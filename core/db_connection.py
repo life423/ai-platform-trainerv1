@@ -25,4 +25,4 @@ test_data = {
 }
 
 collection.insert_one(test_data)
-print("Test data inserted successfully")
+
