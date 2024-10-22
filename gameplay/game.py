@@ -89,8 +89,7 @@ class Game:
         self.enemy.update()
 
         # Check for collisions
-        if self.check_collision():
-            print("Collision detected!")
+        
 
     def training_update(self):
         # Increment time to get new noise values for smooth movement
@@ -109,9 +108,7 @@ class Game:
         # Update enemy position using combined noise and random direction movement
         self.enemy.update_combined_movement()
 
-        # Check for collisions
-        if self.check_collision():
-            print("Collision detected!")
+        
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
