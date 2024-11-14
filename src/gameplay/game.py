@@ -12,7 +12,8 @@ class Game:
     def __init__(self):
         # Initialize screen and clock
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 600))
+        WINDOW_WIDTH, WINDOW_HEIGHT = 800, 600
+        self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption("Pixel Pursuit")
         self.clock = pygame.time.Clock()
 
@@ -47,10 +48,13 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            elif self.menu_active:
-                selected_action = self.menu.handle_menu_events(event)
-                if selected_action:
-                    self.check_menu_selection(selected_action)
+            elif event.type == pygame.VIDEORESIZE:
+                self.screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                # Update player, enemy, and menu sizes based on the new screen dimensions
+                self.player.update_screen_size(event.w, event.h)
+                self.enemy.update_screen_size(event.w, event.h)
+                self.menu.update_screen_size(event.w, event.h)
+        
 
     def check_menu_selection(self, selected_action):
         if selected_action == "exit":
@@ -132,6 +136,4 @@ class Game:
             0, min(self.player.position['y'], self.screen.get_height() - self.player.size))
 
 
-if __name__ == "__main__":
-    game = Game()
-    game.run()
+
