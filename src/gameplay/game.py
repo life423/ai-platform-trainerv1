@@ -8,6 +8,7 @@ from core.data_logger import DataLogger
 from noise import pnoise1
 
 
+
 class Game:
     def __init__(self):
         # Initialize screen and clock
