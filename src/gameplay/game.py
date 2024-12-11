@@ -3,10 +3,10 @@ import random
 from entities.player import Player
 from entities.enemy import Enemy
 from gameplay.menu import Menu
-from gameplay.renderer import Renderer
 from core.data_logger import DataLogger
-from noise import pnoise1
+from gameplay.renderer import Renderer
 
+from noise import pnoise1
 
 
 class Game:
@@ -28,7 +28,7 @@ class Game:
         # Game states
         self.running = True
         self.menu_active = True
-        self.mode = None  # Training or Play
+        self.mode = None  # "train" or "play"
 
     def run(self):
         while self.running:
@@ -37,12 +37,13 @@ class Game:
                 self.menu.draw(self.screen)
             else:
                 self.update()
-                self.renderer.render(self.menu, self.player,
-                                     self.enemy, self.menu_active, self.screen)
+                self.renderer.render(self.menu, self.player, self.enemy, self.menu_active, self.screen)
 
             pygame.display.flip()
             self.clock.tick(60)  # Cap the frame rate
 
+        # When the game closes, save any logged data
+        self.data_logger.save()
         pygame.quit()
 
     def handle_events(self):
@@ -70,6 +71,13 @@ class Game:
         self.player.reset()
         self.enemy.reset()
 
+        # Position the player and enemy in visually distinct places
+        self.player.position["x"] = self.screen.get_width() // 4 - self.player.size // 2
+        self.player.position["y"] = self.screen.get_height() // 2 - self.player.size // 2
+
+        self.enemy.pos["x"] = (self.screen.get_width() * 3) // 4 - self.enemy.size // 2
+        self.enemy.pos["y"] = self.screen.get_height() // 2 - self.enemy.size // 2
+
     def update(self):
         if self.mode == "train":
             self.training_update()
@@ -82,7 +90,6 @@ class Game:
             self.player.position["x"], self.player.position["y"], self.player.size, self.player.size)
         enemy_rect = pygame.Rect(
             self.enemy.pos["x"], self.enemy.pos["y"], self.enemy.size, self.enemy.size)
-
         # Check if the rectangles collide
         return player_rect.colliderect(enemy_rect)
 
@@ -98,25 +105,33 @@ class Game:
             pass
 
     def training_update(self):
-        # Increment time to get new noise values for smooth movement
+        # Increment time for Perlin noise movement
         self.player.noise_time += 0.01
 
         # Update player position using Perlin noise
-        dx_player = pnoise1(self.player.noise_time +
-                            self.player.noise_offset_x) * self.player.step
-        dy_player = pnoise1(self.player.noise_time +
-                            self.player.noise_offset_y) * self.player.step
-        self.player.position["x"] = max(0, min(self.screen.get_width()
-                                                - self.player.size, self.player.position["x"] + dx_player))
-        self.player.position["y"] = max(0, min(self.screen.get_height()
-                                                - self.player.size, self.player.position["y"] + dy_player))
+        dx_player = pnoise1(self.player.noise_time + self.player.noise_offset_x) * self.player.step
+        dy_player = pnoise1(self.player.noise_time + self.player.noise_offset_y) * self.player.step
 
-        # Update enemy position using combined noise and random direction movement
+        self.player.position["x"] = max(0, min(self.screen.get_width() - self.player.size, self.player.position["x"] + dx_player))
+        self.player.position["y"] = max(0, min(self.screen.get_height() - self.player.size, self.player.position["y"] + dy_player))
+
+        # Update enemy position using its movement logic
         self.enemy.update_movement()
 
         # Check for collisions
-        if self.check_collision():
-            pass
+        collision = self.check_collision()
+
+        # **Data Logging for Training:**
+        # Here we log each frame's data. You can include anything you deem relevant.
+        data_point = {
+            "mode": "train",
+            "player_x": self.player.position["x"],
+            "player_y": self.player.position["y"],
+            "enemy_x": self.enemy.pos["x"],
+            "enemy_y": self.enemy.pos["y"],
+            "collision": collision
+        }
+       
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
@@ -129,12 +144,14 @@ class Game:
             self.player.position['y'] -= self.player.step
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             self.player.position['y'] += self.player.step
+        if keys[pygame.K_ESCAPE]:
+            self.running = False
 
         # Ensure player stays within screen boundaries
-        self.player.position['x'] = max(
-            0, min(self.player.position['x'], self.screen.get_width() - self.player.size))
-        self.player.position['y'] = max(
-            0, min(self.player.position['y'], self.screen.get_height() - self.player.size))
+        self.player.position['x'] = max(0, min(self.player.position['x'], self.screen.get_width() - self.player.size))
+        self.player.position['y'] = max(0, min(self.player.position['y'], self.screen.get_height() - self.player.size))
 
 
-
+if __name__ == "__main__":
+    game = Game()
+    game.run()

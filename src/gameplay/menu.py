@@ -20,12 +20,19 @@ class Menu:
 
     def handle_events(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                self.selected_option = (self.selected_option - 1) % len(self.menu_options)
-            elif event.key == pygame.K_DOWN:
-                self.selected_option = (self.selected_option + 1) % len(self.menu_options)
-            elif event.key == pygame.K_RETURN:
-                return self.menu_options[self.selected_option]
+
+            if event.key in [pygame.K_UP, pygame.K_w]:
+                self.selected_option = (
+                    self.selected_option - 1) % len(self.menu_options)
+            elif event.key in [pygame.K_DOWN, pygame.K_s]:
+                self.selected_option = (
+                    self.selected_option + 1) % len(self.menu_options)
+            elif event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                return self.menu_options[self.selected_option].lower()
+            elif event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                exit()
+
         return None
 
     def draw(self, screen):
