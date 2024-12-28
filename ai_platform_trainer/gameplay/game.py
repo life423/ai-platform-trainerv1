@@ -108,10 +108,6 @@ class Game:
             self.player.reset()
             spawn_entities(self)
             
-                    
-            self.missile_model = SimpleMissileModel()
-            self.missile_model.load_state_dict(torch.load('missile_model.pth', map_location='cpu'))
-            self.missile_model.eval()
 
     def _apply_speed_variation(self) -> None:
         """Apply speed variation for player and enemy in training mode."""
