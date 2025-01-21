@@ -352,8 +352,10 @@ class Game:
                 self._missile_input[0, 7] = dist_val
                 self._missile_input[0, 8] = 0.0
 
-                with torch.no_grad():
-                    angle_delta = self.missile_model(self._missile_input).item()
+            with torch.no_grad():
+                angle_prediction = self.missile_model(self._missile_input)
+                print("Missile model output:", angle_prediction)
+                angle_delta = angle_prediction.item()
 
                 new_angle = current_angle + angle_delta
                 speed = 5.0
