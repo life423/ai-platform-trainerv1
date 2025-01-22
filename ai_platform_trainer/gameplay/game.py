@@ -1,5 +1,4 @@
 # file: ai_platform_trainer/gameplay/game.py
-
 import logging
 import os
 from typing import Optional, Tuple
@@ -21,15 +20,17 @@ from ai_platform_trainer.gameplay.renderer import Renderer
 from ai_platform_trainer.gameplay.spawner import spawn_entities
 from config_manager import load_settings, save_settings
 from ai_platform_trainer.core.data_logger import DataLogger
+
+# Our new managers
+from ai_platform_trainer.gameplay.modes.play_mode import PlayModeManager
 from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
 
 
 class Game:
     """
-    Main class to run the Pixel Pursuit game.
-    Works in either 'train' or 'play' modes.
-    In 'play', we handle user input & Pygame rendering.
-    In 'train', we can run headless or minimal.
+    Main class to run the Pixel Pursuit game. This references a single environment
+    (PixelPursuitEnv) for both 'play' and 'train' modes. The difference is how we
+    feed actions (keyboard vs. AI).
     """
 
     def __init__(self) -> None:
@@ -58,14 +59,20 @@ class Game:
         # Entities (player, enemy)
         self.player = None
         self.enemy = None
+
+        # For data logging or advanced usage
         self.data_logger: Optional[DataLogger] = None
+
+        # The environment
+        self.env: Optional[PixelPursuitEnv] = None
+
+        # Manager references
+        self.play_mode_manager: Optional[PlayModeManager] = None
+        self.training_mode_manager: Optional[TrainingMode] = None
 
         # Missile model
         self.missile_model = None
         self._load_missile_model_once()
-
-        # The "Env" for advanced AI/training logic
-        self.env = None
 
         logging.info("Game initialized.")
 
@@ -89,7 +96,7 @@ class Game:
             logging.warning(f"No missile model found at '{missile_model_path}'.")
 
     def run(self) -> None:
-        """Main game loop. If 'train', we might do minimal rendering."""
+        """Main game loop. Depending on mode, update either training or play manager, then render."""
         while self.running:
             self.handle_events()
 
@@ -97,18 +104,12 @@ class Game:
                 self.menu.draw(self.screen)
             else:
                 # 'train' or 'play' update
-                if self.mode == "train":
-                    # Example: step environment once if you want each frame
-                    # (Or do it in a loop if headless.)
-                    if self.env:
-                        # No user input for training, so pass None or AI action
-                        observation, reward, done, info = self.env.step(action=None)
-                        # If done, reset environment
-                        if done:
-                            self.env.reset(self.player, self.enemy)
-                else:
-                    # Normal "play" updates:
-                    self._play_update()
+                if self.mode == "train" and self.training_mode_manager:
+                    self.training_mode_manager.update()
+                elif self.mode == "play" and self.play_mode_manager:
+                    self.play_mode_manager.update()
+
+                # RENDER (the environment or your old approach)
                 self.renderer.render(
                     self.menu, self.player, self.enemy, self.menu_active
                 )
@@ -124,34 +125,42 @@ class Game:
         logging.info("Game loop exited.")
 
     def start_game(self, mode: str) -> None:
-        """Initialize game in 'train' or 'play' mode."""
+        """Initialize game in 'train' or 'play' mode, set up environment, managers, etc."""
         self.mode = mode
         logging.info(f"Starting game in '{mode}' mode.")
 
+        # Common data logger usage:
         if mode == "train":
             self.data_logger = DataLogger(config.DATA_PATH)
+        else:
+            self.data_logger = None
+
+        # Create player, enemy
+        if mode == "train":
             self.player = PlayerTraining(self.screen_width, self.screen_height)
             self.enemy = EnemyTrain(self.screen_width, self.screen_height)
-            spawn_entities(self)
-            self.player.reset()
-            self.env = PixelPursuitEnv(self.screen_width, self.screen_height)
-            self.env.reset(self.player, self.enemy)
-            self.training_mode_manager = TrainingMode(self)
-
         else:
-            # 'play' mode
-            from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
-                EnemyMovementModel,
-            )
-
             self.player, self.enemy = self._init_play_mode()
-            spawn_entities(self)
-            self.player.reset()
-            # Possibly no self.env if you keep old logic.
-            # But you *could* unify it here too.
+
+        spawn_entities(self)
+        self.player.reset()
+
+        # Create the environment once
+        self.env = PixelPursuitEnv(self.screen_width, self.screen_height)
+        self.env.reset(self.player, self.enemy, data_logger=self.data_logger)
+
+        # Create the mode manager
+        if mode == "train":
+            self.training_mode_manager = TrainingMode(self)
+            self.play_mode_manager = None
+        else:
+            self.play_mode_manager = PlayModeManager(self)
+            self.training_mode_manager = None
+
+        # Close menu
+        self.menu_active = False
 
     def _init_play_mode(self) -> Tuple[PlayerPlay, EnemyPlay]:
-        # Load an EnemyMovementModel for "play" AI
         from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
             EnemyMovementModel,
         )
@@ -167,18 +176,9 @@ class Game:
                 logging.error(f"Failed to load enemy model: {e}")
         else:
             logging.warning(f"No enemy model found at '{model_path}'. Using default.")
-
         player = PlayerPlay(self.screen_width, self.screen_height)
         enemy = EnemyPlay(self.screen_width, self.screen_height, model)
         return player, enemy
-
-    def _play_update(self) -> None:
-        """
-        The old 'play' logic.
-        Optionally, you can move collisions, missile updates, etc. into PixelPursuitEnv later.
-        """
-        # E.g. handle collisions, update enemy movement, etc.
-        pass
 
     def handle_events(self) -> None:
         for event in pygame.event.get():
@@ -188,7 +188,7 @@ class Game:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.running = False
-                if event.key == pygame.K_f:
+                elif event.key == pygame.K_f:
                     self.toggle_fullscreen()
 
                 if self.menu_active:
@@ -196,7 +196,7 @@ class Game:
                     if selected_action:
                         self.check_menu_selection(selected_action)
                 else:
-                    # In-game key logic
+                    # Possibly handle in-game key logic or pass to manager
                     if event.key == pygame.K_m:
                         # Return to menu
                         self.menu_active = True
@@ -208,7 +208,6 @@ class Game:
             self.running = False
         elif selected_action in ["train", "play"]:
             logging.info(f"Selected: {selected_action}")
-            self.menu_active = False
             self.start_game(selected_action)
 
     def toggle_fullscreen(self) -> None:
@@ -230,4 +229,6 @@ class Game:
         self.player = None
         self.enemy = None
         self.data_logger = None
+        self.play_mode_manager = None
+        self.training_mode_manager = None
         logging.info("Game state reset, back to menu.")
