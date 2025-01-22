@@ -14,7 +14,7 @@ from ai_platform_trainer.entities.player_training import PlayerTraining
 from ai_platform_trainer.entities.enemy_training import EnemyTrain
 from ai_platform_trainer.ai_model.train_missile_model import SimpleMissileModel
 
-from ai_platform_trainer.gameplay.pixel_pursuit_env import PixelPursuitEnv
+from ai_platform_trainer.gameplay.env.pixel_pursuit_env import PixelPursuitEnv
 from ai_platform_trainer.gameplay.config import config
 from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.renderer import Renderer
