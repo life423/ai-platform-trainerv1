@@ -1,8 +1,8 @@
 # file: ai_platform_trainer/gameplay/modes/training_mode.py
 import logging
 import random
-import pygame
 
+import math
 
 class TrainingMode:
     """
