@@ -1,7 +1,7 @@
+# file: ai_platform_trainer/gameplay/game.py
 import logging
 import math
 import os
-import random
 from typing import Optional, Tuple
 
 import pygame
@@ -9,6 +9,9 @@ import torch
 
 # Logging setup (optional)
 from ai_platform_trainer.core.logging_config import setup_logging
+
+# Suppose you have this new environment:
+from ai_platform_trainer.gameplay.pixel_pursuit_env import PixelPursuitEnv
 
 # AI and model imports
 from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
@@ -33,16 +36,15 @@ from ai_platform_trainer.gameplay.spawner import (
     spawn_entities,
     respawn_enemy_with_fade_in,
 )
-
 # Configuration manager imports for fullscreen settings
 from config_manager import load_settings, save_settings
 
 
 class Game:
     """
-    Main class to run the Pixel Pursuit game.
-    Manages both training ('train') and play ('play') modes,
-    as well as the main loop, event handling, and initialization.
+    A "launcher / UI" class to run the Pixel Pursuit game with a menu, 
+    handle training or play mode, and manage event loops.
+    Eventually, the real 'step' logic will move to `PixelPursuitEnv`.
     """
 
     def __init__(self) -> None:
@@ -77,7 +79,7 @@ class Game:
         self.menu = Menu(self.screen_width, self.screen_height)
         self.renderer = Renderer(self.screen)
 
-        # 5) Entities and managers
+        # 5) Entities and managers (we may phase these out to `pixel_pursuit_env`)
         self.player: Optional[PlayerPlay] = None
         self.enemy: Optional[EnemyPlay] = None
         self.data_logger: Optional[DataLogger] = None
@@ -93,6 +95,10 @@ class Game:
 
         # Reusable tensor for missile AI input
         self._missile_input = torch.zeros((1, 9), dtype=torch.float32)
+
+        # NEW: A reference to the environment (for training or advanced usage)
+        # We could pass screen_width/height if needed
+        self.env = PixelPursuitEnv(width=self.screen_width, height=self.screen_height)
 
         logging.info("Game initialized.")
 
@@ -132,7 +138,7 @@ class Game:
             if self.menu_active:
                 self.menu.draw(self.screen)
             else:
-                self.update(current_time)
+                self.update(current_time)     # We'll eventually reduce direct updates here
                 self.renderer.render(
                     self.menu, self.player, self.enemy, self.menu_active
                 )
@@ -190,11 +196,7 @@ class Game:
 
     def handle_events(self) -> None:
         """
-        Process Pygame events:
-        - QUIT
-        - Keydown (ESC, F, SPACE, M)
-        - Mouse clicks
-        - Menu or in-game logic
+        Process Pygame events (key presses, mouse) and handle menu selections.
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -249,16 +251,12 @@ class Game:
         """
         Toggle fullscreen by flipping the 'fullscreen' setting,
         creating the display surface exactly once, and re-initializing if necessary.
-        This approach prevents flicker and maintains correct resolution.
         """
         # Toggle setting
         self.settings["fullscreen"] = not self.settings.get("fullscreen", False)
         save_settings(self.settings, "settings.json")
 
-        # Determine flags
         flags = pygame.FULLSCREEN if self.settings["fullscreen"] else 0
-
-        # Create display surface only once, eliminating flicker
         if self.settings["fullscreen"]:
             self.screen = pygame.display.set_mode((0, 0), flags)
         else:
@@ -271,19 +269,17 @@ class Game:
             f"New display resolution: {self.screen_width}x{self.screen_height}."
         )
 
-        # Update menu for new resolution
         self.menu = Menu(self.screen_width, self.screen_height)
 
-        # If we're in a game mode (play or train), reset and restart to avoid mismatches
         if not self.menu_active:
             current_mode = self.mode
-            self.reset_game_state()  # Clear entities, etc.
-            self.start_game(current_mode)  # Re-init the same mode at new resolution
+            self.reset_game_state()
+            self.start_game(current_mode)
 
     def update(self, current_time: int) -> None:
         """
-        Update the game each frame. If 'train', updates training mode.
-        If 'play', updates play mode plus collisions, respawns, etc.
+        Update the game each frame. If 'train', calls training_mode_manager, 
+        else does 'play' update. We'll gradually move more logic into the environment.
         """
         if self.mode == "train":
             self.training_mode_manager.update()
@@ -301,9 +297,8 @@ class Game:
         """
         Main update logic for 'play' mode:
          - Handle player input
-         - Update enemy via AI
-         - Check collision
-         - Apply missile AI if present
+         - Possibly call environment step in the future
+         - For now, update enemy/player directly as before.
         """
         if self.player and not self.player.handle_input():
             logging.info("Player requested to quit.")
@@ -312,6 +307,8 @@ class Game:
 
         if self.enemy:
             try:
+                # For now, keep direct update. Later, we might do:
+                # next_state, reward, done, info = self.env.step(action)
                 self.enemy.update_movement(
                     self.player.position["x"],
                     self.player.position["y"],
@@ -323,7 +320,6 @@ class Game:
                 self.running = False
                 return
 
-        # Check collision between player and enemy
         if self.check_collision():
             logging.info("Collision detected between player and enemy.")
             if self.enemy:
@@ -332,16 +328,14 @@ class Game:
             self.respawn_timer = current_time + self.respawn_delay
             logging.info("Player-Enemy collision in play mode.")
 
-        # Apply missile AI if available
+        # We'll keep missile logic here for the moment
         if self.missile_model and self.player and self.player.missiles:
             for missile in self.player.missiles:
                 current_angle = math.atan2(missile.vy, missile.vx)
-
                 px, py = self.player.position["x"], self.player.position["y"]
                 ex, ey = self.enemy.pos["x"], self.enemy.pos["y"]
                 dist_val = math.hypot(px - ex, py - ey)
 
-                # Reuse the class-level input tensor
                 self._missile_input[0, 0] = px
                 self._missile_input[0, 1] = py
                 self._missile_input[0, 2] = ex
@@ -354,7 +348,7 @@ class Game:
 
             with torch.no_grad():
                 angle_prediction = self.missile_model(self._missile_input)
-                print("Missile model output:", angle_prediction)
+                logging.debug(f"Missile model output: {angle_prediction}")
                 angle_delta = angle_prediction.item()
 
                 new_angle = current_angle + angle_delta
