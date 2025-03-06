@@ -1,10 +1,7 @@
-
 import math
 import logging
 import random
 import pygame
-from ai_platform_trainer.entities.missile import Missile
-from ai_platform_trainer.utils.helpers import wrap_position
 
 
 class TrainingMode:
@@ -27,6 +24,21 @@ class TrainingMode:
                 self.game.player.position["y"],
                 self.game.player.step,
             )
+            
+            # Check for player-enemy collision
+            if self.game.check_collision():
+                logging.info("Training mode: Collision detected between player and enemy.")
+                # Log collision data
+                self.log_collision_data(current_time, True)
+                
+                # Handle collision (hide enemy and set respawn)
+                if self.game.enemy:
+                    self.game.enemy.hide()
+                self.game.is_respawning = True
+                self.game.respawn_timer = current_time + self.game.respawn_delay
+            else:
+                # Log normal (non-collision) data
+                self.log_collision_data(current_time, False)
 
             if self.missile_cooldown > 0:
                 self.missile_cooldown -= 1
@@ -62,10 +74,7 @@ class TrainingMode:
                         enemy_x = self.game.enemy.pos["x"]
                         enemy_y = self.game.enemy.pos["y"]
 
-                        # Example distances
-
-
-                        
+                        # Calculate missile angle and get last action
                         missile_angle = math.atan2(missile.vy, missile.vx)
                         missile_action = getattr(missile, "last_action", 0.0)
 
@@ -78,11 +87,10 @@ class TrainingMode:
                                 "missile_x": missile.pos["x"],
                                 "missile_y": missile.pos["y"],
                                 "missile_angle": missile_angle,
-                                
                                 "missile_collision": False,
                                 "missile_action": missile_action,
                                 "timestamp": current_time,
-                                
+                                "collision": False,  # Field for player-enemy collision
                             }
                         )
 
@@ -139,3 +147,37 @@ class TrainingMode:
         logging.debug(
             f"Finalized missile sequence with success={success}, frames={len(frames)}"
         )
+        
+    def log_collision_data(self, current_time, is_collision):
+        """
+        Log data about player and enemy positions with collision information.
+        
+        Args:
+            current_time: Current game time in milliseconds
+            is_collision: Boolean indicating whether a player-enemy collision occurred
+        """
+        if not self.game.data_logger or not self.game.player or not self.game.enemy:
+            return
+            
+        # Calculate distance between player and enemy
+        player_x = self.game.player.position["x"]
+        player_y = self.game.player.position["y"]
+        enemy_x = self.game.enemy.pos["x"]
+        enemy_y = self.game.enemy.pos["y"]
+        
+        dx = player_x - enemy_x
+        dy = player_y - enemy_y
+        distance = math.sqrt(dx*dx + dy*dy)
+        
+        # Prepare and log the data
+        frame_data = {
+            "player_x": player_x,
+            "player_y": player_y,
+            "enemy_x": enemy_x,
+            "enemy_y": enemy_y,
+            "timestamp": current_time,
+            "collision": 1 if is_collision else 0,  # 1/0 for easier ML processing
+            "distance": distance,
+        }
+        
+        self.game.data_logger.log(frame_data)
