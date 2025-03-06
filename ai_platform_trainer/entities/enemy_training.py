@@ -96,12 +96,19 @@ class EnemyTrain(Enemy):
             dy = random.choice([-1, 1])
             self.diagonal_direction = (dx, dy)
 
-    def update_movement(self, player_x, player_y, player_speed):
+    def update_movement(self, player_x, player_y, player_speed, current_time=None, missiles=None):
         """
         Primary movement logic, choosing from the current pattern:
         random_walk, circle_move, diagonal_move, or pursue.
+        
+        Also handles missile avoidance when missiles are present.
         """
-        if self.forced_escape_timer > 0:
+        # Check if there are any dangerous missiles we need to avoid
+        avoid_missile = self._check_for_dangerous_missiles(missiles)
+        if avoid_missile:
+            # Missile avoidance takes highest precedence
+            self._avoid_missile(avoid_missile)
+        elif self.forced_escape_timer > 0:
             # Forced escape mode takes precedence over pattern-based movement
             self.forced_escape_timer -= 1
             self.apply_forced_escape_movement()
@@ -128,6 +135,85 @@ class EnemyTrain(Enemy):
             self.screen_height,
             self.size,
         )
+        
+    def _check_for_dangerous_missiles(self, missiles):
+        """
+        Check if there are any missiles that pose a danger to the enemy.
+        Returns the most dangerous missile or None.
+        """
+        if not missiles:
+            return None
+            
+        # Constants for detection and evaluation
+        DETECTION_RADIUS = 200
+        
+        closest_missile = None
+        closest_dist = float('inf')
+        
+        for missile in missiles:
+            # Calculate distance to missile
+            dx = missile.pos["x"] - self.pos["x"]
+            dy = missile.pos["y"] - self.pos["y"]
+            dist = math.hypot(dx, dy)
+            
+            # Skip if missile is too far
+            if dist > DETECTION_RADIUS:
+                continue
+                
+            # Skip if missile is not moving toward us
+            missile_angle = math.atan2(missile.vy, missile.vx)
+            missile_to_enemy = math.atan2(-dy, -dx)
+            angle_diff = abs((missile_angle - missile_to_enemy + math.pi) % (2 * math.pi) - math.pi)
+            
+            # If missile is heading toward us (within 90 degrees) and closer than previous candidates
+            if angle_diff < math.pi/2 and dist < closest_dist:
+                closest_missile = missile
+                closest_dist = dist
+                
+        return closest_missile
+        
+    def _avoid_missile(self, missile):
+        """
+        Implement avoidance logic for a specific missile.
+        Move perpendicular to the missile's trajectory.
+        """
+        # Calculate missile direction
+        missile_dx = missile.vx
+        missile_dy = missile.vy
+        
+        # Normalize the missile direction
+        missile_len = math.hypot(missile_dx, missile_dy)
+        if missile_len > 0:
+            missile_dx /= missile_len
+            missile_dy /= missile_len
+        
+        # Get the perpendicular directions (two options)
+        perp1_dx, perp1_dy = -missile_dy, missile_dx
+        perp2_dx, perp2_dy = missile_dy, -missile_dx
+        
+        # Determine which perpendicular direction is better
+        # Choose the one that moves toward the center of the screen
+        center_x = self.screen_width / 2
+        center_y = self.screen_height / 2
+        
+        pos1_x = self.pos["x"] + perp1_dx * 100
+        pos1_y = self.pos["y"] + perp1_dy * 100
+        dist1 = math.hypot(pos1_x - center_x, pos1_y - center_y)
+        
+        pos2_x = self.pos["x"] + perp2_dx * 100
+        pos2_y = self.pos["y"] + perp2_dy * 100
+        dist2 = math.hypot(pos2_x - center_x, pos2_y - center_y)
+        
+        # Choose the direction that keeps us more centered
+        if dist1 < dist2:
+            dx, dy = perp1_dx, perp1_dy
+        else:
+            dx, dy = perp2_dx, perp2_dy
+            
+        # Move faster when avoiding missiles
+        avoidance_speed = self.base_speed * 1.5
+        self.pos["x"] += dx * avoidance_speed
+        self.pos["y"] += dy * avoidance_speed
 
     def pursue_pattern(self, player_x: float, player_y: float, player_speed: float):
         """

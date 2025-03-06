@@ -19,10 +19,13 @@ class TrainingMode:
             enemy_y = self.game.enemy.pos["y"]
 
             self.game.player.update(enemy_x, enemy_y)
+            # Pass missiles to enemy movement for avoidance training
             self.game.enemy.update_movement(
                 self.game.player.position["x"],
                 self.game.player.position["y"],
                 self.game.player.step,
+                current_time,
+                self.game.player.missiles,  # Pass missiles for avoidance behavior
             )
             
             # Check for player-enemy collision
