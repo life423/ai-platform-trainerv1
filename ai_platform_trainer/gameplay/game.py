@@ -78,7 +78,7 @@ class Game:
 
         # 4) Entities and managers
         self.player: Optional[PlayerPlay] = None
-        self.enemy: Optional[EnemyPlay] = None
+        self.enemy: Optional[EnemyPlay] = None  # Legacy single enemy reference
         self.data_logger: Optional[DataLogger] = None
         self.training_mode_manager: Optional[TrainingMode] = None  # For train mode
 
@@ -131,7 +131,10 @@ class Game:
                 if not headless_mode:
                     self.renderer.render(
                         self.menu, self.player, self.enemy, self.menu_active,
-                        self.missile_manager
+                        self.missile_manager, 
+                        self.mode,
+                        self.play_mode_manager.enemy_manager if self.mode == "play" else None,
+                        self.play_mode_manager.powerup_manager if self.mode == "play" else None
                     )
 
             # Flip or skip
@@ -218,9 +221,17 @@ class Game:
                         logging.info("Escape key pressed. Exiting game.")
                         self.running = False
                     elif event.key == pygame.K_SPACE and self.player:
-                        self.player.shoot_missile(
-                            self.enemy.pos, self.missile_manager
-                        )
+                        if self.mode == "play" and hasattr(self, 'play_mode_manager'):
+                            # Use closest enemy position from enemy manager
+                            closest_enemy_pos = self.play_mode_manager.enemy_manager.get_closest_enemy_pos()
+                            self.player.shoot_missile(
+                                closest_enemy_pos, self.missile_manager
+                            )
+                        else:
+                            # Fallback to legacy single enemy for training mode
+                            self.player.shoot_missile(
+                                self.enemy.pos, self.missile_manager
+                            )
                     elif event.key == pygame.K_m:
                         logging.info("M key pressed. Returning to menu.")
                         self.menu_active = True

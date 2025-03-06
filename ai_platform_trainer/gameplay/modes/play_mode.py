@@ -1,7 +1,14 @@
 # file: ai_platform_trainer/gameplay/modes/play_mode.py
 
 import logging
+import random
+import pygame
+from typing import Any
+
 from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
+from ai_platform_trainer.gameplay.enemy_manager import EnemyManager
+from ai_platform_trainer.gameplay.powerup_manager import PowerupManager
+from ai_platform_trainer.gameplay.config import config as game_config
 
 
 class PlayMode:
@@ -16,71 +23,220 @@ class PlayMode:
             self.game.collision_manager.set_missile_manager(
                 self.game.missile_manager
             )
+            
+        # Initialize enemy manager (if not already done)
+        self.enemy_manager = EnemyManager(
+            self.game.screen_width,
+            self.game.screen_height,
+            self.game.player.position
+        )
+        
+        # Initialize powerup manager
+        self.powerup_manager = PowerupManager(
+            self.game.screen_width,
+            self.game.screen_height
+        )
+        
+        # Track last enemy spawn time
+        self.last_enemy_spawn = 0
+        
+        # Game state tracking
+        self.level = 1
+        self.game_over = False
 
     def update(self, current_time: int) -> None:
         """
-        The main update loop for 'play' mode, replacing old play_update() 
-        logic in game.py.
+        The main update loop for 'play' mode, handling multiple enemies,
+        scoring, power-ups, and game progression.
         """
-
-        # 1) Player movement & input
+        # Check for game over
+        if self.game_over:
+            # Handle game over state
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_r]:  # Press R to restart
+                self._restart_game()
+            return
+            
+        # 1) Update player
         if self.game.player and not self.game.player.handle_input():
             logging.info("Player requested to quit. Exiting game.")
             self.game.running = False
             return
-
-        # 2) Enemy movement with missile avoidance
-        if self.game.enemy:
-            try:
-                # Get missiles from missile manager for avoidance
-                missiles = self.game.missile_manager.missiles
-                
-                self.game.enemy.update_movement(
-                    self.game.player.position["x"],
-                    self.game.player.position["y"],
-                    self.game.player.step,
-                    current_time,
-                    missiles,  # Pass missiles for avoidance behavior
-                )
-                logging.debug(
-                    "Enemy movement updated in play mode with missile avoidance."
-                )
-            except Exception as e:
-                logging.error(f"Error updating enemy movement: {e}")
-                self.game.running = False
-                return
-
-        # 3) Check for collisions using collision manager
-        collision_results = self.game.collision_manager.update(
-            self.game, current_time, is_training=False
+            
+        # Update player state (power-ups, invincibility)
+        self.game.player.update(current_time)
+        
+        # 2) Update all enemies through the enemy manager
+        self.enemy_manager.update(
+            current_time,
+            self.game.player.position,
+            self.game.player.step,
+            self.game.missile_manager.missiles
         )
         
-        # Handle player-enemy collision
-        if collision_results["player_enemy_collision"]:
-            self.game.is_respawning = True
-            self.game.respawn_timer = current_time + self.game.respawn_delay
-
-        # 4) Missile AI
+        # 3) Check for collisions
+        self._handle_collisions(current_time)
+        
+        # 4) Missile AI - use closest enemy position for guidance
+        closest_enemy_pos = self.enemy_manager.get_closest_enemy_pos()
         if (
-            self.game.missile_model 
+            self.game.missile_model
             and self.game.player
             and self.game.missile_manager.missiles
         ):
             update_missile_ai(
                 self.game.missile_manager.missiles,
                 self.game.player.position,
-                self.game.enemy.pos if self.game.enemy else None,
+                closest_enemy_pos,
                 self.game._missile_input,
                 self.game.missile_model
             )
-
-        # 5) Misc updates
-        # Respawn logic
-        self.game.handle_respawn(current_time)
-
-        # If enemy is fading in, keep updating alpha
-        if self.game.enemy and self.game.enemy.fading_in:
-            self.game.enemy.update_fade_in(current_time)
-
-        # 6) Update missiles through the missile manager
+            
+        # 5) Update powerups
+        self.powerup_manager.update(current_time, self.game.player)
+        
+        # 6) Check for level advancement
+        self._check_level_advancement()
+        
+        # 7) Update missiles
         self.game.missile_manager.update(current_time)
+    
+    def _handle_collisions(self, current_time: int) -> None:
+        """
+        Handle collisions between player, enemies, and missiles.
+        
+        Args:
+            current_time: Current game time in milliseconds
+        """
+        # Process missile-enemy collisions
+        for missile_idx, missile in enumerate(self.game.missile_manager.missiles):
+            # Check collision with each enemy
+            for enemy_idx, enemy in enumerate(self.enemy_manager.enemies):
+                if self._check_collision(missile, enemy):
+                    # Handle enemy taking damage/destruction
+                    points = self.enemy_manager.handle_collision(enemy_idx, missile=True)
+                    
+                    # Award points to player
+                    if points > 0:
+                        self.game.player.add_score(points)
+                        
+                        # Try to spawn power-up at enemy position
+                        self.powerup_manager.spawn_powerup_at_position(
+                            enemy.pos["x"], enemy.pos["y"], current_time
+                        )
+                    
+                    # Remove the missile
+                    self.game.missile_manager.missiles[missile_idx].active = False
+                    break  # Missile can only hit one enemy
+                    
+        # Process player-enemy collisions
+        for enemy_idx, enemy in enumerate(self.enemy_manager.enemies):
+            if self._check_collision_with_player(enemy):
+                # Player takes damage
+                damage_taken = self.game.player.take_damage(current_time)
+                
+                if damage_taken:
+                    # Check if player has run out of health
+                    if self.game.player.health <= 0:
+                        self._handle_game_over()
+                    
+                    # Enemy that hits player is destroyed
+                    self.enemy_manager.handle_collision(enemy_idx, missile=False)
+                    break  # Player can only collide with one enemy at a time
+    
+    def _check_collision(self, missile: Any, enemy: Any) -> bool:
+        """
+        Check if a missile and enemy are colliding.
+        
+        Args:
+            missile: Missile object
+            enemy: Enemy object
+            
+        Returns:
+            True if collision detected
+        """
+        # Basic rectangle collision
+        missile_rect = pygame.Rect(
+            missile.pos["x"] - missile.size // 2,
+            missile.pos["y"] - missile.size // 2,
+            missile.size,
+            missile.size
+        )
+        
+        enemy_rect = pygame.Rect(
+            enemy.pos["x"],
+            enemy.pos["y"],
+            enemy.size,
+            enemy.size
+        )
+        
+        return missile_rect.colliderect(enemy_rect)
+    
+    def _check_collision_with_player(self, enemy: Any) -> bool:
+        """
+        Check if player is colliding with an enemy.
+        
+        Args:
+            enemy: Enemy object
+            
+        Returns:
+            True if collision detected
+        """
+        player_rect = pygame.Rect(
+            self.game.player.position["x"],
+            self.game.player.position["y"],
+            self.game.player.size,
+            self.game.player.size
+        )
+        
+        enemy_rect = pygame.Rect(
+            enemy.pos["x"],
+            enemy.pos["y"],
+            enemy.size,
+            enemy.size
+        )
+        
+        return player_rect.colliderect(enemy_rect)
+    
+    def _check_level_advancement(self) -> None:
+        """
+        Check if player has earned enough points to advance to the next level.
+        """
+        points_needed = self.level * game_config.POINTS_PER_LEVEL
+        
+        if self.game.player.score >= points_needed:
+            # Advance to next level
+            self.level += 1
+            logging.info(f"Advanced to level {self.level}!")
+            
+            # Make game harder by decreasing spawn interval
+            spawn_reduction = min(0.8, 0.95 - (self.level * 0.05))  # Max 80% reduction
+            self.enemy_manager.spawn_interval = int(
+                game_config.ENEMY_SPAWN_INTERVAL * spawn_reduction
+            )
+    
+    def _handle_game_over(self) -> None:
+        """Handle game over state."""
+        self.game_over = True
+        logging.info(f"Game over! Final score: {self.game.player.score}, Level: {self.level}")
+        
+    def _restart_game(self) -> None:
+        """Restart the game after game over."""
+        # Reset player
+        self.game.player.reset()
+        
+        # Clear enemies
+        self.enemy_manager.clear_all()
+        
+        # Clear powerups
+        self.powerup_manager.clear_all()
+        
+        # Clear missiles
+        self.game.missile_manager.clear_all()
+        
+        # Reset game state
+        self.level = 1
+        self.game_over = False
+        self.enemy_manager.spawn_interval = game_config.ENEMY_SPAWN_INTERVAL
+        
+        logging.info("Game restarted!")
