@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 
 from ai_platform_trainer.ai_model.missile_dataset import MissileDataset
 from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
+from ai_platform_trainer.utils.model_manager import ModelManager
 
 
 class MissileTrainer:
@@ -80,9 +81,15 @@ class MissileTrainer:
             os.remove(self.model_save_path)
             print(f"Removed old file at '{self.model_save_path}'.")
 
-        # Save the model
-        torch.save(self.model.state_dict(), self.model_save_path)
-        print(f"Saved new model to '{self.model_save_path}'.")
+        # Save the model using ModelManager
+        model_manager = ModelManager()
+        saved_path = model_manager.save_model("missile", self.model, {
+            "epochs": self.epochs,
+            "batch_size": self.batch_size,
+            "learning_rate": self.lr,
+            "dataset": self.filename
+        })
+        print(f"Saved new model via ModelManager to '{saved_path}'.")
 
 
 if __name__ == "__main__":
@@ -91,6 +98,7 @@ if __name__ == "__main__":
         epochs=20,
         batch_size=32,
         lr=0.001,
-        model_save_path="models/missile_model.pth"
+        # model_save_path param is kept for backward compatibility
+        # but will be ignored in favor of ModelManager
     )
     trainer.run_training()

@@ -22,10 +22,7 @@ from ai_platform_trainer.gameplay.display_manager import (
 )
 from ai_platform_trainer.gameplay.missile_manager import MissileManager
 
-# AI model imports
-from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
-    EnemyMovementModel
-)
+# No need to import model classes directly as we're using ModelManager exclusively
 
 # Data logger and entity imports
 from ai_platform_trainer.core.data_logger import DataLogger
@@ -188,22 +185,12 @@ class Game:
             spawn_entities(self)
 
     def _init_play_mode(self) -> Tuple[PlayerPlay, EnemyPlay]:
-        # Get the enemy model from the model manager
+        # Get the enemy model exclusively from the model manager
         model = self.model_manager.get_model("enemy")
         
         if model is None:
             logging.error("Failed to load enemy model from model manager")
-            # Fallback to direct loading for backward compatibility
-            model = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
-            try:
-                model.load_state_dict(
-                    torch.load(game_config.MODEL_PATH, map_location="cpu")
-                )
-                model.eval()
-                logging.info("Enemy AI model loaded directly (fallback) for play mode.")
-            except Exception as e:
-                logging.error(f"Failed to load enemy model: {e}")
-                raise e
+            raise RuntimeError("Could not load enemy model through ModelManager")
 
         player = PlayerPlay(self.screen_width, self.screen_height)
         enemy = EnemyPlay(self.screen_width, self.screen_height, model)

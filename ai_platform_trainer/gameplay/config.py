@@ -12,7 +12,7 @@ class Config:
 
         # Data paths
         self.DATA_PATH = os.path.join("data", "raw", "training_data.json")
-        self.MODEL_PATH = os.path.join("models", "enemy_ai_model.pth")
+        # Model paths are now handled by ModelManager
 
         # Game settings
         self.WALL_MARGIN = 50

@@ -196,13 +196,22 @@ class DataLogger:
         self.log_event("game_state", game_state)
     
     # Legacy methods for backward compatibility
+    def _deprecated_method_warning(self, method_name):
+        """Display a warning when a deprecated method is called"""
+        logging.warning(
+            f"DEPRECATED: {method_name} is deprecated and will be removed in a future version. "
+            f"Use log_event() or a specialized event logging method instead."
+        )
+    
     def is_valid_data_point(self, data):
         """
         Validates a data point before logging.
+        DEPRECATED: Use log_event() instead.
         
         :param data: The data point to validate
         :return: True if data is valid, False otherwise
         """
+        self._deprecated_method_warning("is_valid_data_point()")
         # Required keys
         required_keys = [
             "timestamp", "player_position", "enemy_position", 
@@ -230,6 +239,7 @@ class DataLogger:
                  collision=0):
         """
         Create a record and log it if valid (legacy method).
+        DEPRECATED: Use log_collision_event() instead.
         
         :param timestamp: Time of the data point
         :param player_pos: Dictionary with x,y player position
@@ -237,6 +247,7 @@ class DataLogger:
         :param distance: Distance between player and enemy
         :param collision: Whether collision occurred (defaults to 0)
         """
+        self._deprecated_method_warning("log_data()")
         # Create legacy record
         record = {
             "timestamp": timestamp,
@@ -267,9 +278,11 @@ class DataLogger:
     def log(self, data_point: Dict[str, Any]) -> None:
         """
         Add a data point to the internal list of logged data (legacy method).
+        DEPRECATED: Use log_event() with appropriate event_type instead.
 
         :param data_point: dictionary containing data to log
         """
+        self._deprecated_method_warning("log()")
         self.legacy_data.append(data_point)
         
         # Try to convert to event-based format if possible
