@@ -22,8 +22,7 @@ from ai_platform_trainer.gameplay.display_manager import (
     init_pygame_display,
     toggle_fullscreen_display,
 )
-# New import for missile AI updates
-from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
+# Removed import for missile AI updates - now handled in PlayMode class
 
 # AI and model imports
 from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import EnemyMovementModel
@@ -287,47 +286,6 @@ class Game:
                 self.play_mode_manager = PlayMode(self)
 
             self.play_mode_manager.update(current_time)
-
-    def play_update(self, current_time: int) -> None:
-        """
-        Main update logic for 'play' mode.
-        """
-        if self.player and not self.player.handle_input():
-            logging.info("Player requested to quit.")
-            self.running = False
-            return
-
-        if self.enemy:
-            try:
-                self.enemy.update_movement(
-                    self.player.position["x"],
-                    self.player.position["y"],
-                    self.player.step,
-                    current_time,
-                )
-            except Exception as e:
-                logging.error(f"Error updating enemy movement: {e}")
-                self.running = False
-                return
-
-        # Check if player & enemy overlap
-        if self.check_collision():
-            logging.info("Collision detected between player and enemy.")
-            if self.enemy:
-                self.enemy.hide()
-            self.is_respawning = True
-            self.respawn_timer = current_time + self.respawn_delay
-            logging.info("Player-Enemy collision in play mode.")
-
-        # Update missile AI
-        if self.missile_model and self.player and self.player.missiles:
-            update_missile_ai(
-                self.player.missiles,
-                self.player.position,
-                self.enemy.pos if self.enemy else None,
-                self._missile_input,
-                self.missile_model
-            )
 
     def check_collision(self) -> bool:
         if not (self.player and self.enemy):

@@ -291,10 +291,18 @@ class PlayerTraining:
 
     def update_missiles(self) -> None:
         """
-        Let each missile move and remove it if it goes off-screen.
+        Let each missile move and remove it if it exceeds its lifespan or goes off-screen.
         """
+        current_time = pygame.time.get_ticks()
         for missile in self.missiles[:]:
             missile.update()
+            
+            # Check if missile exceeded its lifespan
+            if current_time - missile.birth_time >= missile.lifespan:
+                self.missiles.remove(missile)
+                logging.debug("Missile removed for exceeding lifespan.")
+                continue
+                
             # Remove if off-screen
             if (
                 missile.pos["x"] < 0

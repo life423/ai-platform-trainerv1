@@ -1,4 +1,3 @@
--e git+ssh://git@github.com/life423/ai-platform-trainer.git@064bc45407232eae6906b66f2300005edf60c338#egg=ai_platform_trainer
 altgraph==0.17.4
 colorama==0.4.6
 filelock==3.17.0
