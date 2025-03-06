@@ -11,7 +11,7 @@ from config_manager import load_settings, save_settings
 
 # Gameplay imports
 from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
-from ai_platform_trainer.gameplay.config import config
+from ai_platform_trainer.gameplay.config import config as game_config
 from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.renderer import Renderer
 from ai_platform_trainer.gameplay.spawner import (
@@ -45,26 +45,26 @@ class Game:
     as well as the main loop, event handling, and initialization.
     """
 
-    def __init__(self, config: dict = None) -> None:
+    def __init__(self, config_params: dict = None) -> None:
         setup_logging()
         self.running: bool = True
         self.menu_active: bool = True
         self.mode: Optional[str] = None
-        self.config = config or {}
+        self.config_params = config_params or {}
 
         # 1) Load user settings
         self.settings = load_settings("settings.json")
         
         # 2) Apply config to settings
-        self.settings.update(self.config)
+        self.settings.update(self.config_params)
         
         # 3) Set mode directly if specified in config
-        if "mode" in self.config and self.config["mode"] in ["train", "play"]:
+        if "mode" in self.config_params and self.config_params["mode"] in ["train", "play"]:
             self.menu_active = False
-            self.mode = self.config["mode"]
+            self.mode = self.config_params["mode"]
 
         # Check if we're in headless mode before initializing display
-        self.headless_mode = self.config.get("headless", False)
+        self.headless_mode = self.config_params.get("headless", False)
 
         # 2) Initialize Pygame and the display (dummy in headless mode)
         (self.screen, self.screen_width, self.screen_height) = init_pygame_display(
@@ -74,7 +74,7 @@ class Game:
         # 3) Create clock, menu, and renderer
         # Only set caption in non-headless mode
         if not self.headless_mode:
-            pygame.display.set_caption(config.WINDOW_TITLE)
+            pygame.display.set_caption(game_config.WINDOW_TITLE)
             
         self.clock = pygame.time.Clock()
         self.menu = Menu(self.screen_width, self.screen_height)
@@ -108,14 +108,19 @@ class Game:
             )
             try:
                 model = SimpleMissileModel()
-                model.load_state_dict(torch.load(missile_model_path, map_location="cpu"))
+                model.load_state_dict(
+                    torch.load(missile_model_path, map_location="cpu")
+                )
                 model.eval()
                 self.missile_model = model
             except Exception as e:
                 logging.error(f"Failed to load missile model: {e}")
                 self.missile_model = None
         else:
-            logging.warning(f"No missile model found at '{missile_model_path}'. Skipping missile AI.")
+            logging.warning(
+                f"No missile model found at '{missile_model_path}'. "
+                f"Skipping missile AI."
+            )
 
     def run(self) -> None:
         # Initialize game elements if starting directly in a mode
@@ -123,10 +128,10 @@ class Game:
             self.start_game(self.mode)
             
         # Check if we're in headless mode
-        headless_mode = self.config.get("headless", False)
+        headless_mode = self.config_params.get("headless", False)
         # Get training speed multiplier for faster-than-real-time simulation
-        training_speed = self.config.get("training_speed", 1.0)
-        adjusted_frame_rate = int(config.FRAME_RATE * training_speed)
+        training_speed = self.config_params.get("training_speed", 1.0)
+        adjusted_frame_rate = int(game_config.FRAME_RATE * training_speed)
         
         while self.running:
             current_time = pygame.time.get_ticks()
@@ -151,7 +156,7 @@ class Game:
                 self.clock.tick(adjusted_frame_rate)
             else:
                 # Use the original game config for frame rate
-                self.clock.tick(config.FRAME_RATE)
+                self.clock.tick(game_config.FRAME_RATE)
 
         # Save data if we were training
         if self.mode == "train" and self.data_logger:
@@ -192,7 +197,9 @@ class Game:
     def _init_play_mode(self) -> Tuple[PlayerPlay, EnemyPlay]:
         model = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
         try:
-            model.load_state_dict(torch.load(config.MODEL_PATH, map_location="cpu"))
+            model.load_state_dict(
+                torch.load(game_config.MODEL_PATH, map_location="cpu")
+            )
             model.eval()
             logging.info("Enemy AI model loaded for play mode.")
         except Exception as e:
@@ -254,14 +261,14 @@ class Game:
         was_fullscreen = self.settings["fullscreen"]
         new_display, w, h = toggle_fullscreen_display(
             not was_fullscreen,
-            config.SCREEN_SIZE
+            game_config.SCREEN_SIZE
         )
         self.settings["fullscreen"] = not was_fullscreen
         save_settings(self.settings, "settings.json")
 
         self.screen = new_display
         self.screen_width, self.screen_height = w, h
-        pygame.display.set_caption(config.WINDOW_TITLE)
+        pygame.display.set_caption(game_config.WINDOW_TITLE)
         self.menu = Menu(self.screen_width, self.screen_height)
 
         if not self.menu_active:

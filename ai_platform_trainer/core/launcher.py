@@ -13,5 +13,5 @@ def main():
     if config.get("headless", False):
         os.environ["SDL_VIDEODRIVER"] = "dummy"
     
-    game = Game(config)
+    game = Game(config_params=config)
     game.run()
