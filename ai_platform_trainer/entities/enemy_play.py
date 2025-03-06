@@ -50,11 +50,19 @@ class EnemyPlay:
         player_x: float,
         player_y: float,
         player_speed: int,
-        current_time: int
+        current_time: int,
+        missiles=None
     ):
         """
         Delegates AI movement logic to the 'enemy_ai_controller.update_enemy_movement'
         function, keeping EnemyPlay simpler.
+        
+        Args:
+            player_x: Player's x position
+            player_y: Player's y position
+            player_speed: Player's speed
+            current_time: Current game time
+            missiles: List of missile objects for avoidance behavior
         """
         update_enemy_movement(
             self,
@@ -62,6 +70,7 @@ class EnemyPlay:
             player_y=player_y,
             player_speed=player_speed,
             current_time=current_time,
+            missiles=missiles,
         )
 
     def draw(self, screen: pygame.Surface) -> None:

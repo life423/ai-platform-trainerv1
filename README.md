@@ -1,91 +1,110 @@
-# **🚀 AI Platform Trainer**  
-### **Trained AI vs. Trained AI. You’re caught in the middle.**  
+# AI Platform Trainer
 
----
+This application provides an environment for training AI in a 2D game setting, with particular focus on missile evasion behaviors and enemy movement patterns.
 
-## **🔹 What is AI Platform Trainer?**  
-AI Platform Trainer is a **machine learning-powered game** where **two AIs, trained in the same environment, battle it out**—one chases, one hunts.  
+## Features
 
-- 🏃 **AI Enemy** → **Trained to track and pursue you.**  
-- 🎯 **AI Homing Missile** → **Trained to predict and intercept the enemy.**  
-- 💡 **Both AIs were trained separately using supervised learning**, making the battlefield a real test of AI-driven strategy.  
+- Interactive game environment with player and AI-controlled enemies
+- Training mode for collecting data and supervised learning
+- Play mode to test AI models in real-time
+- Missile evasion AI for realistic enemy behavior
+- Configurable headless mode for faster training
+- Built-in data logging and model management
 
-🎮 **In play mode**, you take control—dodging, attacking, and watching the AIs react.  
-🧠 **In training mode**, the AIs learn from their mistakes, improving with every iteration.  
+## Getting Started
 
----
+### Prerequisites
 
-## **🎯 Why This Project Stands Out**
-✅ **AI vs. AI** – Not just scripted enemies; both the **enemy and missile learn their behaviors** through machine learning.  
-✅ **Supervised Learning Done Right** – The game records AI interactions, trains models, and lets them adapt.  
-✅ **Tightly Engineered & Scalable** – Code is structured for clarity, expansion, and real AI research.  
-✅ **Easy to Play** – Download the **ready-to-run** executable and jump in.  
+- Python 3.9+
+- PyTorch
+- Pygame
 
----
+### Installation
 
-## **📥 Download & Play Now**  
-### **🎮 Quick Start**  
-🔗 **[Download AI Platform Trainer (Windows)](https://github.com/life423/ai-platform-trainer/releases/tag/v0.1.0)**  
-
-📌 **No installation required. Just download and play.**  
-
----
-
-## **🛠 How It Works**  
-### **1️⃣ Training Mode** *(AI learns in a controlled environment.)*  
-- The **enemy AI learns to hunt the player**.  
-- The **missile AI learns to predict enemy movement and intercept**.  
-- Training data is logged, then used to refine both models.  
-
-### **2️⃣ Play Mode** *(You control the player. AI takes over the battlefield.)*  
-- The **trained enemy AI chases you**.  
-- The **trained homing missile AI tracks and intercepts**.  
-- The missile AI is **more advanced**—it **predicts movement, not just follows.**  
-
-### **3️⃣ What Makes This Different?**  
-- Both AIs **were trained from the same supervised learning environment**, creating an **AI vs. AI battlefield.**  
-- Unlike scripted enemies, these AIs **learned how to play** instead of being programmed with fixed behavior.  
-- The **missile AI is more complex** than the enemy AI, proving **true predictive AI can be applied to gameplay.**  
-
----
-
-## **💻 Running from Source (For Developers & AI Enthusiasts)**  
-If you want to tweak the models, experiment, or train your own AI versions:  
-
-### **🔧 Install & Run Locally**  
-```bash
-git clone https://github.com/life423/ai-platform-trainer.git
-cd ai-platform-trainer
+```
 pip install -r requirements.txt
-python run_game.py
-🚀 Train Your Own AI Models
-To retrain the AI models from scratch, run:
+```
 
-bash
-Copy
-Edit
-python ai_model/train.py
-🔍 Behind the AI: How It’s Trained
-Supervised Learning – Both AIs are trained using collision-based data logging.
-Neural Networks (PyTorch) – The AI models process game states and predict movement decisions.
-Training Data Generation – The system records AI behavior during training mode and refines decision-making based on that data.
-🎯 The result?
+### Running the Application
 
-The enemy AI "learns" to chase the player.
-The missile AI "learns" to intercept the enemy.
-The game is a battle of trained intelligence—not just hardcoded logic.
-📂 Want to dig deeper? Check out the ai_model directory for the full training pipeline.
+#### Using the Interactive Launcher
 
-💡 Want to Contribute?
-Pull requests, AI model experiments, and feature suggestions are always welcome!
+For a menu of options, run:
 
-🛠 To-Do List & Future Plans
-🔹 Add more AI-controlled entities & different enemy behaviors.
-🔹 Expand training models with reinforcement learning.
-🔹 Optimize AI inference for real-time adaptability.
+```
+run_game_examples.bat
+```
 
-📬 Connect & Follow
-📌 Twitter: @andrewgenai
-📌 GitHub: life423
+#### Command Line Options
 
-📝 Want to chat about AI, game dev, or collab? DM me on Twitter!
+The application supports various command-line arguments:
+
+```
+python -m ai_platform_trainer.main [OPTIONS]
+```
+
+Available options:
+
+- `--headless`: Run without graphical display (for training on servers)
+- `--mode [train|play]`: Start directly in training or play mode
+- `--batch-logging`: Enable batch logging (save data at end of session)
+- `--training-speed X`: Run training at X times normal speed (e.g., 2.0)
+- `--no-log`: Disable data logging
+- `--fullscreen`: Run in fullscreen mode
+
+### Examples
+
+#### Regular Game
+```
+python -m ai_platform_trainer.main
+```
+
+#### Headless Training (2x speed)
+```
+python -m ai_platform_trainer.main --headless --mode train --training-speed 2.0
+```
+
+#### Start Directly in Play Mode
+```
+python -m ai_platform_trainer.main --mode play
+```
+
+## Project Structure
+
+- `ai_platform_trainer/`: Main package
+  - `ai_model/`: Neural network models and training code
+  - `core/`: Core utilities (logging, config, launcher)
+  - `entities/`: Game entities (player, enemy, missiles)
+  - `gameplay/`: Game mechanics (collision, rendering, modes)
+  - `utils/`: Utility functions and helpers
+- `data/`: Training data storage
+- `models/`: Trained model storage
+- `tests/`: Unit tests
+
+## Development
+
+### CI/CD Pipeline
+
+The project uses GitHub Actions for:
+- Linting with flake8
+- Formatting checks with black
+- Headless smoke tests
+- Windows executable builds
+
+### Model Management
+
+The `model_manager.py` utility provides:
+- Versioned model saving with timestamps
+- Loading models by version or latest
+- Model validation and testing
+
+### Contributing
+
+Contributions are welcome! Please ensure:
+- Code passes linting with flake8
+- New features include tests
+- Documentation is updated
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

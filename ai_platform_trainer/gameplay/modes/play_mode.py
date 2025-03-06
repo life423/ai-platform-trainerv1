@@ -22,16 +22,20 @@ class PlayMode:
             self.game.running = False
             return
 
-        # 2) Enemy movement
+        # 2) Enemy movement with missile avoidance
         if self.game.enemy:
             try:
+                # Get player's missiles for avoidance
+                missiles = self.game.player.missiles if self.game.player else []
+                
                 self.game.enemy.update_movement(
                     self.game.player.position["x"],
                     self.game.player.position["y"],
                     self.game.player.step,
                     current_time,
+                    missiles,  # Pass missiles for avoidance behavior
                 )
-                logging.debug("Enemy movement updated in play mode.")
+                logging.debug("Enemy movement updated in play mode with missile avoidance.")
             except Exception as e:
                 logging.error(f"Error updating enemy movement: {e}")
                 self.game.running = False
