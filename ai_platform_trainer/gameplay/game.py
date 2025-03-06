@@ -1,6 +1,5 @@
 # file: ai_platform_trainer/gameplay/game.py
 import logging
-import os
 import pygame
 import torch
 from typing import Optional, Tuple
@@ -22,13 +21,11 @@ from ai_platform_trainer.gameplay.display_manager import (
     toggle_fullscreen_display,
 )
 from ai_platform_trainer.gameplay.missile_manager import MissileManager
-# Removed import for missile AI updates - now handled in PlayMode class
 
-# AI and model imports
+# AI model imports
 from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
     EnemyMovementModel
 )
-from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
 
 # Data logger and entity imports
 from ai_platform_trainer.core.data_logger import DataLogger
@@ -114,28 +111,6 @@ class Game:
         self._missile_input = torch.zeros((1, 9), dtype=torch.float32)
 
         logging.info("Game initialized.")
-
-    def _load_missile_model_once(self) -> None:
-        missile_model_path = "models/missile_model.pth"
-        if os.path.isfile(missile_model_path):
-            logging.info(
-                f"Found missile model at '{missile_model_path}'. Loading once..."
-            )
-            try:
-                model = SimpleMissileModel()
-                model.load_state_dict(
-                    torch.load(missile_model_path, map_location="cpu")
-                )
-                model.eval()
-                self.missile_model = model
-            except Exception as e:
-                logging.error(f"Failed to load missile model: {e}")
-                self.missile_model = None
-        else:
-            logging.warning(
-                f"No missile model found at '{missile_model_path}'. "
-                f"Skipping missile AI."
-            )
 
     def run(self) -> None:
         # If we have a direct mode, start it
@@ -315,35 +290,36 @@ class Game:
             self.play_mode_manager.update(current_time)
 
     def check_collision(self) -> bool:
-        if not (self.player and self.enemy):
-            return False
-        player_rect = pygame.Rect(
-            self.player.position["x"],
-            self.player.position["y"],
-            self.player.size,
-            self.player.size,
+        """
+        Use the collision manager to check for player-enemy collisions.
+        This is a thin wrapper around the collision manager for backward compatibility.
+        
+        Returns:
+            bool: True if player and enemy are colliding, False otherwise
+        """
+        return self.collision_manager.check_player_enemy_collision(
+            self.player, self.enemy
         )
-        enemy_rect = pygame.Rect(
-            self.enemy.pos["x"],
-            self.enemy.pos["y"],
-            self.enemy.size,
-            self.enemy.size
-        )
-        return player_rect.colliderect(enemy_rect)
 
     def check_missile_collisions(self) -> None:
+        """
+        Use the collision manager to check for missile-enemy collisions.
+        This is a thin wrapper around the collision manager for backward compatibility.
+        """
         if not self.enemy:
             return
 
         def respawn_callback() -> None:
             self.is_respawning = True
             self.respawn_timer = pygame.time.get_ticks() + self.respawn_delay
-            logging.info(
-                "Missile-Enemy collision in play mode, enemy will respawn."
-            )
+            logging.info("Missile-Enemy collision in play mode, enemy will respawn.")
 
-        self.missile_manager.handle_enemy_collision(
-            self.enemy, pygame.time.get_ticks(), respawn_callback
+        # Use collision manager to check for missile-enemy collisions
+        self.collision_manager.check_missile_enemy_collisions(
+            self.missile_manager.missiles,
+            self.enemy,
+            pygame.time.get_ticks(),
+            respawn_callback
         )
 
     def handle_respawn(self, current_time: int) -> None:
