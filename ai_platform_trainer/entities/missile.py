@@ -3,7 +3,6 @@
 import pygame
 
 
-
 class Missile:
     def __init__(
         self,
@@ -13,7 +12,7 @@ class Missile:
         vx: float = 5.0,
         vy: float = 0.0,
         birth_time: int = 0,
-        lifespan: int = 1000,  # default 1s if not overridden
+        lifespan: int = 2700,  # default 2.7s if not overridden
     ):
         self.size = 10
         self.color = (255, 255, 0)  # Yellow

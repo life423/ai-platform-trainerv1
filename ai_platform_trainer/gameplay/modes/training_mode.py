@@ -169,15 +169,16 @@ class TrainingMode:
         dy = player_y - enemy_y
         distance = math.sqrt(dx*dx + dy*dy)
         
-        # Prepare and log the data
-        frame_data = {
-            "player_x": player_x,
-            "player_y": player_y,
-            "enemy_x": enemy_x,
-            "enemy_y": enemy_y,
-            "timestamp": current_time,
-            "collision": 1 if is_collision else 0,  # 1/0 for easier ML processing
-            "distance": distance,
-        }
+        # Prepare position dictionaries in the format needed for validation
+        player_pos = {"x": player_x, "y": player_y}
+        enemy_pos = {"x": enemy_x, "y": enemy_y}
+        collision_val = 1 if is_collision else 0
         
-        self.game.data_logger.log(frame_data)
+        # Use the new log_data method with validation
+        self.game.data_logger.log_data(
+            current_time, 
+            player_pos, 
+            enemy_pos, 
+            distance, 
+            collision_val
+        )
