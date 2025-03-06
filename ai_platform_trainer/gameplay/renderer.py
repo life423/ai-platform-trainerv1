@@ -12,7 +12,7 @@ class Renderer:
         self.screen = screen
         self.BACKGROUND_COLOR = (135, 206, 235)  # Light blue
 
-    def render(self, menu, player, enemy, menu_active: bool) -> None:
+    def render(self, menu, player, enemy, menu_active: bool, missile_manager=None) -> None:
         """
         Render the game elements on the screen.
 
@@ -20,6 +20,7 @@ class Renderer:
         :param player: Player instance
         :param enemy: Enemy instance
         :param menu_active: Boolean indicating if the menu is active
+        :param missile_manager: Optional missile manager to render missiles
         """
         try:
             self.screen.fill(self.BACKGROUND_COLOR)
@@ -29,7 +30,13 @@ class Renderer:
             else:
                 player.draw(self.screen)
                 enemy.draw(self.screen)
-                logging.debug("Player and Enemy rendered.")
+                
+                # Draw missiles if missile manager is available
+                if missile_manager:
+                    missile_manager.draw(self.screen)
+                    logging.debug("Player, Enemy, and Missiles rendered.")
+                else:
+                    logging.debug("Player and Enemy rendered.")
             pygame.display.flip()
             logging.debug("Frame updated on display.")
         except Exception as e:

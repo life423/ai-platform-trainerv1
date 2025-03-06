@@ -8,8 +8,7 @@ class TrainingMode:
     def __init__(self, game):
         self.game = game
         self.missile_cooldown = 0
-        self.missile_lifespan = {}
-        self.missile_sequences = {}
+        self.missile_fire_prob = 0.1
 
     def update(self):
         current_time = pygame.time.get_ticks()
@@ -25,7 +24,7 @@ class TrainingMode:
                 self.game.player.position["y"],
                 self.game.player.step,
                 current_time,
-                self.game.player.missiles,  # Pass missiles for avoidance behavior
+                self.game.missile_manager.missiles,  # Pass missiles for avoidance
             )
             
             # Check for player-enemy collision
@@ -46,110 +45,62 @@ class TrainingMode:
             if self.missile_cooldown > 0:
                 self.missile_cooldown -= 1
 
-            if random.random() < getattr(self, "missile_fire_prob", 0.1):
-                if self.missile_cooldown <= 0 and len(self.game.player.missiles) == 0:
-                    self.game.player.shoot_missile(enemy_x, enemy_y)
+            # Randomly fire missiles in training mode with cooldown
+            if random.random() < self.missile_fire_prob:
+                if (self.missile_cooldown <= 0 and 
+                        len(self.game.missile_manager.missiles) == 0):
+                    # Use player's shoot_missile with the missile manager
+                    self.game.player.shoot_missile(
+                        {"x": enemy_x, "y": enemy_y}, 
+                        self.game.missile_manager
+                    )
                     self.missile_cooldown = 120
 
-                    if self.game.player.missiles:
-                        missile = self.game.player.missiles[0]
-                        self.missile_lifespan[missile] = (
-                            missile.birth_time,
-                            missile.lifespan,
-                        )
-                        self.missile_sequences[missile] = []
-
-        current_missiles = self.game.player.missiles[:]
+        # Record training data for all active missiles
+        current_missiles = self.game.missile_manager.missiles[:]
         for missile in current_missiles:
-            if missile in self.missile_lifespan:
-                birth_time, lifespan = self.missile_lifespan[missile]
-                if current_time - birth_time >= lifespan:
-                    self.finalize_missile_sequence(missile, success=False)
-                    self.game.player.missiles.remove(missile)
-                    del self.missile_lifespan[missile]
-                    logging.debug("Training mode: Missile removed (lifespan expiry).")
-                else:
-                    missile.update()
-
-                    if missile in self.missile_sequences:
-                        player_x = self.game.player.position["x"]
-                        player_y = self.game.player.position["y"]
-                        enemy_x = self.game.enemy.pos["x"]
-                        enemy_y = self.game.enemy.pos["y"]
-
-                        # Calculate missile angle and get last action
-                        missile_angle = math.atan2(missile.vy, missile.vx)
-                        missile_action = getattr(missile, "last_action", 0.0)
-
-                        self.missile_sequences[missile].append(
-                            {
-                                "player_x": player_x,
-                                "player_y": player_y,
-                                "enemy_x": enemy_x,
-                                "enemy_y": enemy_y,
-                                "missile_x": missile.pos["x"],
-                                "missile_y": missile.pos["y"],
-                                "missile_angle": missile_angle,
-                                "missile_collision": False,
-                                "missile_action": missile_action,
-                                "timestamp": current_time,
-                                "collision": False,  # Field for player-enemy collision
-                            }
+            if self.game.player and self.game.enemy:
+                # Record training frame data for each missile
+                self.game.missile_manager.record_training_frame(
+                    missile,
+                    self.game.player.position,
+                    self.game.enemy.pos,
+                    current_time,
+                    False  # Not a collision frame
+                )
+                
+                # Check for missile-enemy collisions 
+                if self.game.enemy:
+                    enemy_rect = pygame.Rect(
+                        self.game.enemy.pos["x"],
+                        self.game.enemy.pos["y"],
+                        self.game.enemy.size,
+                        self.game.enemy.size,
+                    )
+                    if missile.get_rect().colliderect(enemy_rect):
+                        logging.info("Missile hit the enemy (training mode).")
+                        
+                        # Handle missile collision in training mode
+                        self.game.missile_manager.finalize_missile_sequence(
+                            missile, True
                         )
-
-                    if self.game.enemy:
-                        enemy_rect = pygame.Rect(
-                            self.game.enemy.pos["x"],
-                            self.game.enemy.pos["y"],
-                            self.game.enemy.size,
-                            self.game.enemy.size,
+                        self.game.missile_manager.missiles.remove(missile)
+                        
+                        # Hide enemy and set up respawn
+                        self.game.enemy.hide()
+                        self.game.is_respawning = True
+                        self.game.respawn_timer = (
+                            current_time + self.game.respawn_delay
                         )
-                        if missile.get_rect().colliderect(enemy_rect):
-                            logging.info("Missile hit the enemy (training mode).")
-                            self.finalize_missile_sequence(missile, success=True)
-                            self.game.player.missiles.remove(missile)
-                            del self.missile_lifespan[missile]
+                        break
 
-                            self.game.enemy.hide()
-                            self.game.is_respawning = True
-                            self.game.respawn_timer = (
-                                current_time + self.game.respawn_delay
-                            )
-                            break
-
-                    if not (
-                        0 <= missile.pos["x"] <= self.game.screen_width
-                        and 0 <= missile.pos["y"] <= self.game.screen_height
-                    ):
-                        self.finalize_missile_sequence(missile, success=False)
-                        self.game.player.missiles.remove(missile)
-                        del self.missile_lifespan[missile]
-                        logging.debug("Training Mode: Missile left the screen.")
-
+        # Update missiles with the missile manager
+        self.game.missile_manager.update(current_time)
+        
+        # Handle enemy respawn if needed
         if self.game.is_respawning and current_time >= self.game.respawn_timer:
             if self.game.enemy:
                 self.game.handle_respawn(current_time)
-
-    def finalize_missile_sequence(self, missile, success: bool) -> None:
-        """
-        Called when a missile's life ends or collision occurs.
-        Logs each frame's data with a final 'missile_collision' outcome.
-        """
-        if missile not in self.missile_sequences:
-            return
-
-        outcome_val = success
-        frames = self.missile_sequences[missile]
-
-        for frame_data in frames:
-            frame_data["missile_collision"] = outcome_val
-            if self.game.data_logger:
-                self.game.data_logger.log(frame_data)
-
-        del self.missile_sequences[missile]
-        logging.debug(
-            f"Finalized missile sequence with success={success}, frames={len(frames)}"
-        )
         
     def log_collision_data(self, current_time, is_collision):
         """

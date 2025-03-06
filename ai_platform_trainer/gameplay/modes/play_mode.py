@@ -1,8 +1,8 @@
 # file: ai_platform_trainer/gameplay/modes/play_mode.py
 
 import logging
-import pygame
 from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
+
 
 class PlayMode:
     def __init__(self, game):
@@ -13,7 +13,8 @@ class PlayMode:
 
     def update(self, current_time: int) -> None:
         """
-        The main update loop for 'play' mode, replacing old play_update() logic in game.py.
+        The main update loop for 'play' mode, replacing old play_update() 
+        logic in game.py.
         """
 
         # 1) Player movement & input
@@ -25,8 +26,8 @@ class PlayMode:
         # 2) Enemy movement with missile avoidance
         if self.game.enemy:
             try:
-                # Get player's missiles for avoidance
-                missiles = self.game.player.missiles if self.game.player else []
+                # Get missiles from missile manager for avoidance
+                missiles = self.game.missile_manager.missiles
                 
                 self.game.enemy.update_movement(
                     self.game.player.position["x"],
@@ -35,7 +36,9 @@ class PlayMode:
                     current_time,
                     missiles,  # Pass missiles for avoidance behavior
                 )
-                logging.debug("Enemy movement updated in play mode with missile avoidance.")
+                logging.debug(
+                    "Enemy movement updated in play mode with missile avoidance."
+                )
             except Exception as e:
                 logging.error(f"Error updating enemy movement: {e}")
                 self.game.running = False
@@ -52,12 +55,12 @@ class PlayMode:
 
         # 4) Missile AI
         if (
-            self.game.missile_model
+            self.game.missile_model 
             and self.game.player
-            and self.game.player.missiles
+            and self.game.missile_manager.missiles
         ):
             update_missile_ai(
-                self.game.player.missiles,
+                self.game.missile_manager.missiles,
                 self.game.player.position,
                 self.game.enemy.pos if self.game.enemy else None,
                 self.game._missile_input,
@@ -72,9 +75,8 @@ class PlayMode:
         if self.game.enemy and self.game.enemy.fading_in:
             self.game.enemy.update_fade_in(current_time)
 
-        # Update missiles
-        # If you need the enemy position, pass it. Some players do "self.game.player.update_missiles()" with no arguments.
-        self.game.player.update_missiles()
-
-        # Check if missiles collide with the enemy
+        # 5) Update and draw missiles through the missile manager
+        self.game.missile_manager.update(current_time)
+        
+        # 6) Check if missiles collide with the enemy
         self.game.check_missile_collisions()

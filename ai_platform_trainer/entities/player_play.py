@@ -2,7 +2,7 @@ import pygame
 import logging
 import random
 import math
-from typing import List, Optional, Dict
+from typing import Optional, Dict
 from ai_platform_trainer.entities.missile import Missile
 
 
@@ -14,11 +14,10 @@ class PlayerPlay:
         self.color = (0, 0, 139)  # Dark Blue
         self.position = {"x": screen_width // 4, "y": screen_height // 2}
         self.step = 5
-        self.missiles: List[Missile] = []
+        # Missiles are now managed by MissileManager
 
     def reset(self) -> None:
         self.position = {"x": self.screen_width // 4, "y": self.screen_height // 2}
-        self.missiles.clear()
         logging.info("Player has been reset to the initial position.")
 
     def handle_input(self) -> bool:
@@ -46,70 +45,57 @@ class PlayerPlay:
 
         return True
 
-    def shoot_missile(self, enemy_pos: Optional[Dict[str, float]] = None) -> None:
-        # Shoot only if no missile is active, or allow multiple—up to you
-        if len(self.missiles) == 0:
-            missile_start_x = self.position["x"] + self.size // 2
-            missile_start_y = self.position["y"] + self.size // 2
+    def shoot_missile(self, enemy_pos: Optional[Dict[str, float]] = None, 
+                     missile_manager=None) -> None:
+        """
+        Create a new missile and add it to the missile manager.
+        Now takes an optional missile_manager parameter.
+        """
+        if missile_manager is None:
+            logging.error("No missile manager provided to shoot_missile")
+            return
+            
+        # Previously we checked if there's already a missile
+        # Now the MissileManager handles multiple missiles
+        missile_start_x = self.position["x"] + self.size // 2
+        missile_start_y = self.position["y"] + self.size // 2
 
-            birth_time = pygame.time.get_ticks()
-            # Use the default 7 seconds (7000ms) lifespan 
-            missile_lifespan = 7000  # 7 seconds
-            missile_speed = 5.0
+        birth_time = pygame.time.get_ticks()
+        # Use the default 7 seconds (7000ms) lifespan 
+        missile_lifespan = 7000  # 7 seconds
+        missile_speed = 5.0
 
-            # Determine initial velocity based on enemy position if available
-            if enemy_pos is not None:
-                # Calculate the angle toward the enemy's position
-                angle = math.atan2(
-                    enemy_pos["y"] - missile_start_y, 
-                    enemy_pos["x"] - missile_start_x
-                )
-                # Add a small random deviation to simulate inaccuracy
-                angle += random.uniform(-0.1, 0.1)  # deviation in radians
-                vx = missile_speed * math.cos(angle)
-                vy = missile_speed * math.sin(angle)
-            else:
-                vx = missile_speed
-                vy = 0.0
-
-            # Create a new missile object with calculated initial velocity and specified lifespan
-            missile = Missile(
-                x=missile_start_x,
-                y=missile_start_y,
-                speed=missile_speed,
-                vx=vx,
-                vy=vy,
-                birth_time=birth_time,
-                lifespan=missile_lifespan,
+        # Determine initial velocity based on enemy position if available
+        if enemy_pos is not None:
+            # Calculate the angle toward the enemy's position
+            angle = math.atan2(
+                enemy_pos["y"] - missile_start_y, 
+                enemy_pos["x"] - missile_start_x
             )
-            self.missiles.append(missile)
-            logging.info("Play mode: Shot a missile with 7-second lifespan and dynamic initial direction.")
+            # Add a small random deviation to simulate inaccuracy
+            angle += random.uniform(-0.1, 0.1)  # deviation in radians
+            vx = missile_speed * math.cos(angle)
+            vy = missile_speed * math.sin(angle)
         else:
-            logging.debug("Attempted to shoot missile, but one is already active.")
+            vx = missile_speed
+            vy = 0.0
 
-    def update_missiles(self) -> None:
-        current_time = pygame.time.get_ticks()
-        for missile in self.missiles[:]:
-            missile.update()
+        # Create a new missile object with calculated initial velocity and specified lifespan
+        missile = Missile(
+            x=missile_start_x,
+            y=missile_start_y,
+            speed=missile_speed,
+            vx=vx,
+            vy=vy,
+            birth_time=birth_time,
+            lifespan=missile_lifespan,
+        )
+        
+        # Add missile to manager instead of self.missiles
+        missile_manager.spawn_missile(missile)
+        logging.info("Play mode: Shot a missile with 7-second lifespan and dynamic initial direction.")
 
-            # Remove if it expires or goes off-screen
-            if current_time - missile.birth_time >= missile.lifespan:
-                self.missiles.remove(missile)
-                logging.debug("Missile removed for exceeding lifespan.")
-                continue
-
-            if (
-                missile.pos["x"] < 0
-                or missile.pos["x"] > self.screen_width
-                or missile.pos["y"] < 0
-                or missile.pos["y"] > self.screen_height
-            ):
-                self.missiles.remove(missile)
-                logging.debug("Missile removed for going off-screen.")
-
-    def draw_missiles(self, screen: pygame.Surface) -> None:
-        for missile in self.missiles:
-            missile.draw(screen)
+    # The update_missiles and draw_missiles methods are now handled by MissileManager
 
     def draw(self, screen: pygame.Surface) -> None:
         pygame.draw.rect(
@@ -117,4 +103,4 @@ class PlayerPlay:
             self.color,
             (self.position["x"], self.position["y"], self.size, self.size),
         )
-        self.draw_missiles(screen)
+        # Missiles are now drawn by the MissileManager
