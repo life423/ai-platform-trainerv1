@@ -19,7 +19,7 @@ class PlayerTraining:
             "y": random.randint(0, self.screen_height - self.size),
         }
         self.step = 5
-        self.missiles = []
+        # Missiles are now managed by MissileManager
         logging.info("PlayerTraining initialized.")
 
         # Desired distance logic for movement patterns
@@ -80,7 +80,7 @@ class PlayerTraining:
             "x": random.randint(0, self.screen_width - self.size),
             "y": random.randint(0, self.screen_height - self.size),
         }
-        self.missiles.clear()
+        # Missiles are now managed by MissileManager
         self.switch_pattern()
         logging.info("PlayerTraining has been reset.")
 
@@ -249,84 +249,66 @@ class PlayerTraining:
         )
         self.position["x"], self.position["y"] = new_x, new_y
 
-    def shoot_missile(self, enemy_x: float, enemy_y: float) -> None:
+    def shoot_missile(self, enemy_pos, missile_manager=None) -> None:
         """
         Fires a missile toward the enemy with a slight random angle offset
-        and a random lifespan. Only one missile at a time.
+        and a random lifespan. Now uses MissileManager.
         """
-        if len(self.missiles) == 0:
-            missile_start_x = self.position["x"] + self.size // 2
-            missile_start_y = self.position["y"] + self.size // 2
-
-            # Compute base angle
-            dx = enemy_x - missile_start_x
-            dy = enemy_y - missile_start_y
-            angle = math.atan2(dy, dx)
-
-            # NEW: Add a random offset to the angle for variety
-            offset_degrees = random.uniform(-10, 10)  # e.g., ±10 degrees
-            angle += math.radians(offset_degrees)
-
-            speed = 5.0
-            vx = math.cos(angle) * speed
-            vy = math.sin(angle) * speed
-
-            # Random missile lifespan
-            lifespan = random.randint(500, 3000)  # 0.5s - 1.5s
-            birth_time = pygame.time.get_ticks()
-
-            missile = Missile(
-                missile_start_x,
-                missile_start_y,
-                speed=speed,
-                vx=vx,
-                vy=vy,
-                lifespan=lifespan,
-                birth_time=birth_time,
-            )
-            self.missiles.append(missile)
-            logging.info(
-                f"Training Mode: Missile shot with offset {offset_degrees:.1f}°, final angle: {math.degrees(angle):.1f}°"
-            )
-
-    def update_missiles(self) -> None:
-        """
-        Let each missile move and remove it if it exceeds its lifespan or goes off-screen.
-        """
-        current_time = pygame.time.get_ticks()
-        for missile in self.missiles[:]:
-            missile.update()
+        if missile_manager is None:
+            logging.error("No missile manager provided to shoot_missile")
+            return
             
-            # Check if missile exceeded its lifespan
-            if current_time - missile.birth_time >= missile.lifespan:
-                self.missiles.remove(missile)
-                logging.debug("Missile removed for exceeding lifespan.")
-                continue
-                
-            # Remove if off-screen
-            if (
-                missile.pos["x"] < 0
-                or missile.pos["x"] > self.screen_width
-                or missile.pos["y"] < 0
-                or missile.pos["y"] > self.screen_height
-            ):
-                self.missiles.remove(missile)
-                logging.debug("Missile removed for going off-screen.")
+        # Use enemy_pos which is a dict with 'x' and 'y' keys
+        enemy_x = enemy_pos.get('x', 0)
+        enemy_y = enemy_pos.get('y', 0)
+        
+        missile_start_x = self.position["x"] + self.size // 2
+        missile_start_y = self.position["y"] + self.size // 2
 
-    def draw_missiles(self, screen: pygame.Surface) -> None:
-        """
-        Draw each missile on the given screen surface.
-        """
-        for missile in self.missiles:
-            missile.draw(screen)
+        # Compute base angle
+        dx = enemy_x - missile_start_x
+        dy = enemy_y - missile_start_y
+        angle = math.atan2(dy, dx)
+
+        # Add a random offset to the angle for variety
+        offset_degrees = random.uniform(-10, 10)  # e.g., ±10 degrees
+        angle += math.radians(offset_degrees)
+
+        speed = 5.0
+        vx = math.cos(angle) * speed
+        vy = math.sin(angle) * speed
+
+        # Random missile lifespan
+        lifespan = random.randint(500, 3000)  # 0.5s - 3.0s
+        birth_time = pygame.time.get_ticks()
+
+        missile = Missile(
+            missile_start_x,
+            missile_start_y,
+            speed=speed,
+            vx=vx,
+            vy=vy,
+            lifespan=lifespan,
+            birth_time=birth_time,
+        )
+        
+        # Add the missile to the manager
+        missile_manager.spawn_missile(missile)
+        
+        logging.info(
+            f"Training Mode: Missile shot with offset {offset_degrees:.1f}°, "
+            f"final angle: {math.degrees(angle):.1f}°"
+        )
+
+    # Missile updating and drawing now handled by MissileManager
 
     def draw(self, screen: pygame.Surface) -> None:
         """
-        Draw the player (a rectangle) and any active missiles.
+        Draw the player (a rectangle).
         """
         pygame.draw.rect(
             screen,
             self.color,
             (self.position["x"], self.position["y"], self.size, self.size),
         )
-        self.draw_missiles(screen)
+        # Missiles are now drawn by the MissileManager

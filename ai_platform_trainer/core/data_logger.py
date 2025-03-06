@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import time
+import math
+import pygame
 from typing import Any, Dict, List
 
 
@@ -9,6 +11,9 @@ class DataLogger:
     """
     Handles appending data points in memory and batching writes
     to a JSON file to improve performance during training.
+    
+    This enhanced version provides a unified event-based approach to logging
+    that centralizes all data collection for easier analysis and expansion.
     """
 
     def __init__(self, filename: str = None, batch_mode: bool = True) -> None:
@@ -29,8 +34,19 @@ class DataLogger:
             timestamp = int(time.time())
             self.filename = f"data/raw/training_data_{timestamp}.json"
         
-        self.data: List[Dict[str, Any]] = []
+        # Primary data storage categorized by event type
+        self.events: Dict[str, List[Dict[str, Any]]] = {
+            "collision": [],       # Player-enemy collisions
+            "missile": [],         # Missile trajectories and outcomes
+            "enemy_movement": [],  # Enemy movement patterns
+            "player_movement": [], # Player movement patterns
+            "game_state": []       # Overall game state snapshots
+        }
+        
+        # Backward compatibility for older data formats
+        self.legacy_data: List[Dict[str, Any]] = []
         self.collision_data: List[Dict[str, Any]] = []
+        
         self.batch_mode = batch_mode
         self.save_counter = 0
         self.save_frequency = 1000  # Save every 1000 data points in non-batch mode
@@ -59,6 +75,127 @@ class DataLogger:
         except IOError as e:
             logging.error(f"Error creating file {self.filename}: {e}")
     
+    def log_event(self, event_type: str, data: Dict[str, Any]) -> None:
+        """
+        Log an event of a specific type with associated data.
+        
+        Args:
+            event_type: Category of the event (e.g., 'collision', 'missile', etc.)
+            data: Dictionary containing event data
+        """
+        # Add timestamp if not present
+        if "timestamp" not in data:
+            data["timestamp"] = pygame.time.get_ticks() if 'pygame' in globals() else int(time.time() * 1000)
+            
+        # Store event in appropriate category
+        if event_type in self.events:
+            self.events[event_type].append(data)
+        else:
+            # Create category if it doesn't exist
+            self.events[event_type] = [data]
+            
+        # Save periodically in non-batch mode
+        if not self.batch_mode:
+            self.save_counter += 1
+            if self.save_counter >= self.save_frequency:
+                self.save()
+                self.save_counter = 0
+    
+    def log_missile_event(self, missile, player_pos, enemy_pos, current_time, 
+                         outcome=None, action=None) -> None:
+        """
+        Log missile-related event with all relevant context.
+        
+        Args:
+            missile: The missile entity
+            player_pos: Player position dictionary
+            enemy_pos: Enemy position dictionary
+            current_time: Current game time
+            outcome: Optional outcome (hit/miss)
+            action: Optional AI action taken
+        """
+        if not missile or not player_pos or not enemy_pos:
+            return
+            
+        # Calculate missile angle
+        try:
+            missile_angle = math.atan2(missile.vy, missile.vx)
+        except (AttributeError, TypeError):
+            missile_angle = 0
+            
+        # Get missile action from AI if available
+        missile_action = action if action is not None else getattr(missile, "last_action", 0.0)
+        
+        # Create event data
+        event_data = {
+            "player_x": player_pos.get("x", 0),
+            "player_y": player_pos.get("y", 0),
+            "enemy_x": enemy_pos.get("x", 0),
+            "enemy_y": enemy_pos.get("y", 0),
+            "missile_x": missile.pos.get("x", 0) if hasattr(missile, "pos") else 0,
+            "missile_y": missile.pos.get("y", 0) if hasattr(missile, "pos") else 0,
+            "missile_angle": missile_angle,
+            "missile_action": missile_action,
+            "timestamp": current_time,
+            "outcome": outcome
+        }
+        
+        self.log_event("missile", event_data)
+    
+    def log_collision_event(self, player_pos, enemy_pos, current_time, 
+                          is_collision: bool, missile=None) -> None:
+        """
+        Log a collision or near-miss event.
+        
+        Args:
+            player_pos: Player position dictionary
+            enemy_pos: Enemy position dictionary
+            current_time: Current game time
+            is_collision: Whether a collision occurred
+            missile: Optional missile involved (for missile collisions)
+        """
+        if not player_pos or not enemy_pos:
+            return
+        
+        # Calculate distance
+        dx = player_pos.get("x", 0) - enemy_pos.get("x", 0)
+        dy = player_pos.get("y", 0) - enemy_pos.get("y", 0)
+        distance = math.sqrt(dx*dx + dy*dy)
+        
+        # Create event data
+        event_data = {
+            "timestamp": current_time,
+            "player_position": player_pos,
+            "enemy_position": enemy_pos,
+            "distance": distance,
+            "collision": 1 if is_collision else 0,
+            "collision_type": "missile" if missile else "player"
+        }
+        
+        # Add missile data if applicable
+        if missile:
+            event_data["missile_position"] = {
+                "x": missile.pos.get("x", 0) if hasattr(missile, "pos") else 0,
+                "y": missile.pos.get("y", 0) if hasattr(missile, "pos") else 0
+            }
+        
+        self.log_event("collision", event_data)
+    
+    def log_game_state(self, game_state: Dict[str, Any], current_time: int = None) -> None:
+        """
+        Log overall game state for analysis.
+        
+        Args:
+            game_state: Dictionary of game state variables
+            current_time: Optional current time
+        """
+        if current_time is None:
+            current_time = pygame.time.get_ticks() if 'pygame' in globals() else int(time.time() * 1000)
+            
+        game_state["timestamp"] = current_time
+        self.log_event("game_state", game_state)
+    
+    # Legacy methods for backward compatibility
     def is_valid_data_point(self, data):
         """
         Validates a data point before logging.
@@ -92,7 +229,7 @@ class DataLogger:
     def log_data(self, timestamp, player_pos, enemy_pos, distance, 
                  collision=0):
         """
-        Create a record and log it if valid.
+        Create a record and log it if valid (legacy method).
         
         :param timestamp: Time of the data point
         :param player_pos: Dictionary with x,y player position
@@ -100,6 +237,7 @@ class DataLogger:
         :param distance: Distance between player and enemy
         :param collision: Whether collision occurred (defaults to 0)
         """
+        # Create legacy record
         record = {
             "timestamp": timestamp,
             "player_position": player_pos,
@@ -107,8 +245,15 @@ class DataLogger:
             "distance": distance,
             "collision": collision
         }
+        
+        # Store in legacy format for backward compatibility
         if self.is_valid_data_point(record):
             self.collision_data.append(record)
+            
+            # Also log as a new-style collision event
+            self.log_collision_event(
+                player_pos, enemy_pos, timestamp, bool(collision)
+            )
             
             # If not in batch mode, save periodically
             if not self.batch_mode:
@@ -121,11 +266,16 @@ class DataLogger:
     
     def log(self, data_point: Dict[str, Any]) -> None:
         """
-        Add a data point to the internal list of logged data.
+        Add a data point to the internal list of logged data (legacy method).
 
         :param data_point: dictionary containing data to log
         """
-        self.data.append(data_point)
+        self.legacy_data.append(data_point)
+        
+        # Try to convert to event-based format if possible
+        if "missile_collision" in data_point:
+            # This appears to be a missile event
+            self.log_event("missile", data_point)
         
         # If not in batch mode, save periodically
         if not self.batch_mode:
@@ -138,17 +288,25 @@ class DataLogger:
         """
         Write the logged data to the JSON file.
         """
-        # Combine regular data and collision data
-        all_data = self.data + self.collision_data
+        # Flatten all events into a single list
+        all_events = []
+        for event_list in self.events.values():
+            all_events.extend(event_list)
+            
+        # Add legacy data formats for backward compatibility
+        all_events.extend(self.legacy_data)
+        all_events.extend(self.collision_data)
         
         try:
             with open(self.filename, "w") as f:
-                json.dump(all_data, f, indent=4)
-            logging.info(f"Saved {len(all_data)} data points to {self.filename}")
+                json.dump(all_events, f, indent=4)
+            logging.info(f"Saved {len(all_events)} data points to {self.filename}")
             
             # Clear data arrays if in non-batch mode to avoid memory bloat
             if not self.batch_mode:
-                self.data = []
+                for event_type in self.events:
+                    self.events[event_type] = []
+                self.legacy_data = []
                 self.collision_data = []
                 
         except IOError as e:

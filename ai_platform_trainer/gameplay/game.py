@@ -1,6 +1,5 @@
 # file: ai_platform_trainer/gameplay/game.py
 import logging
-import os
 import pygame
 import torch
 from typing import Optional, Tuple
@@ -10,7 +9,6 @@ from ai_platform_trainer.core.logging_config import setup_logging
 from config_manager import load_settings, save_settings
 
 # Gameplay imports
-from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
 from ai_platform_trainer.gameplay.config import config as game_config
 from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.renderer import Renderer
@@ -22,11 +20,12 @@ from ai_platform_trainer.gameplay.display_manager import (
     init_pygame_display,
     toggle_fullscreen_display,
 )
-# Removed import for missile AI updates - now handled in PlayMode class
+from ai_platform_trainer.gameplay.missile_manager import MissileManager
 
-# AI and model imports
-from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import EnemyMovementModel
-from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
+# AI model imports
+from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
+    EnemyMovementModel
+)
 
 # Data logger and entity imports
 from ai_platform_trainer.core.data_logger import DataLogger
@@ -58,7 +57,8 @@ class Game:
         self.settings.update(self.config_params)
         
         # 3) Set mode directly if specified in config
-        if "mode" in self.config_params and self.config_params["mode"] in ["train", "play"]:
+        if ("mode" in self.config_params and 
+                self.config_params["mode"] in ["train", "play"]):
             self.menu_active = False
             self.mode = self.config_params["mode"]
 
@@ -85,11 +85,24 @@ class Game:
         self.data_logger: Optional[DataLogger] = None
         self.training_mode_manager: Optional[TrainingMode] = None  # For train mode
 
-        # 5) Load missile model once
-        self.missile_model: Optional[SimpleMissileModel] = None
-        self._load_missile_model_once()
-
-        # 6) Additional logic
+        # 5) Initialize missile manager and collision manager
+        self.missile_manager = MissileManager(
+            self.screen_width, self.screen_height, self.data_logger
+        )
+        
+        # 6) Initialize collision manager
+        from ai_platform_trainer.gameplay.collision_manager import CollisionManager
+        self.collision_manager = CollisionManager(
+            data_logger=self.data_logger,
+            missile_manager=self.missile_manager
+        )
+        
+        # 7) Initialize model manager and load necessary models
+        from ai_platform_trainer.utils.model_manager import ModelManager
+        self.model_manager = ModelManager()
+        self.missile_model = self.model_manager.get_model("missile")
+        
+        # 8) Additional logic
         self.respawn_delay = 1000
         self.respawn_timer = 0
         self.is_respawning = False
@@ -99,39 +112,16 @@ class Game:
 
         logging.info("Game initialized.")
 
-    def _load_missile_model_once(self) -> None:
-        missile_model_path = "models/missile_model.pth"
-        if os.path.isfile(missile_model_path):
-            logging.info(
-                f"Found missile model at '{missile_model_path}'. Loading once..."
-            )
-            try:
-                model = SimpleMissileModel()
-                model.load_state_dict(
-                    torch.load(missile_model_path, map_location="cpu")
-                )
-                model.eval()
-                self.missile_model = model
-            except Exception as e:
-                logging.error(f"Failed to load missile model: {e}")
-                self.missile_model = None
-        else:
-            logging.warning(
-                f"No missile model found at '{missile_model_path}'. "
-                f"Skipping missile AI."
-            )
-
     def run(self) -> None:
-        # Initialize game elements if starting directly in a mode
+        # If we have a direct mode, start it
         if self.mode and not self.player:
             self.start_game(self.mode)
-            
-        # Check if we're in headless mode
+
+        # read config for headless & training speed
         headless_mode = self.config_params.get("headless", False)
-        # Get training speed multiplier for faster-than-real-time simulation
         training_speed = self.config_params.get("training_speed", 1.0)
-        adjusted_frame_rate = int(game_config.FRAME_RATE * training_speed)
-        
+        adjusted_fps = int(game_config.FRAME_RATE * training_speed)
+
         while self.running:
             current_time = pygame.time.get_ticks()
             self.handle_events()
@@ -143,21 +133,19 @@ class Game:
                 self.update(current_time)
                 if not headless_mode:
                     self.renderer.render(
-                        self.menu, self.player, self.enemy, self.menu_active
+                        self.menu, self.player, self.enemy, self.menu_active,
+                        self.missile_manager
                     )
 
-            # Skip display updates in headless mode
+            # Flip or skip
             if not headless_mode:
                 pygame.display.flip()
-                
-            # In headless mode with training, we can run faster than real-time
+
             if headless_mode and self.mode == "train":
-                self.clock.tick(adjusted_frame_rate)
+                self.clock.tick(adjusted_fps)
             else:
-                # Use the original game config for frame rate
                 self.clock.tick(game_config.FRAME_RATE)
 
-        # Save data if we were training
         if self.mode == "train" and self.data_logger:
             self.data_logger.save()
 
@@ -172,10 +160,16 @@ class Game:
             # Create a unique filename for this training session with timestamp
             import time
             timestamp = int(time.time())
-            unique_filename = f"data/raw/training_data_{timestamp}.json"
+            unique_filename = (
+                f"data/raw/training_data_{timestamp}.json"
+            )
             
             # Create data logger with the unique filename
             self.data_logger = DataLogger(filename=unique_filename)
+            
+            # Update collision manager and missile manager with the data logger
+            self.collision_manager.set_data_logger(self.data_logger)
+            self.missile_manager.data_logger = self.data_logger
             
             # Log the filename being used
             logging.info(
@@ -194,16 +188,22 @@ class Game:
             spawn_entities(self)
 
     def _init_play_mode(self) -> Tuple[PlayerPlay, EnemyPlay]:
-        model = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
-        try:
-            model.load_state_dict(
-                torch.load(game_config.MODEL_PATH, map_location="cpu")
-            )
-            model.eval()
-            logging.info("Enemy AI model loaded for play mode.")
-        except Exception as e:
-            logging.error(f"Failed to load enemy model: {e}")
-            raise e
+        # Get the enemy model from the model manager
+        model = self.model_manager.get_model("enemy")
+        
+        if model is None:
+            logging.error("Failed to load enemy model from model manager")
+            # Fallback to direct loading for backward compatibility
+            model = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
+            try:
+                model.load_state_dict(
+                    torch.load(game_config.MODEL_PATH, map_location="cpu")
+                )
+                model.eval()
+                logging.info("Enemy AI model loaded directly (fallback) for play mode.")
+            except Exception as e:
+                logging.error(f"Failed to load enemy model: {e}")
+                raise e
 
         player = PlayerPlay(self.screen_width, self.screen_height)
         enemy = EnemyPlay(self.screen_width, self.screen_height, model)
@@ -231,7 +231,9 @@ class Game:
                         logging.info("Escape key pressed. Exiting game.")
                         self.running = False
                     elif event.key == pygame.K_SPACE and self.player:
-                        self.player.shoot_missile(self.enemy.pos)
+                        self.player.shoot_missile(
+                            self.enemy.pos, self.missile_manager
+                        )
                     elif event.key == pygame.K_m:
                         logging.info("M key pressed. Returning to menu.")
                         self.menu_active = True
@@ -280,42 +282,45 @@ class Game:
             self.training_mode_manager.update()
         elif self.mode == "play":
             # If we haven't created a play_mode_manager yet, do so now
-            if (not hasattr(self, 'play_mode_manager') 
-                    or self.play_mode_manager is None):
+            if (not hasattr(self, 'play_mode_manager') or 
+                    self.play_mode_manager is None):
                 from ai_platform_trainer.gameplay.modes.play_mode import PlayMode
                 self.play_mode_manager = PlayMode(self)
 
             self.play_mode_manager.update(current_time)
 
     def check_collision(self) -> bool:
-        if not (self.player and self.enemy):
-            return False
-        player_rect = pygame.Rect(
-            self.player.position["x"],
-            self.player.position["y"],
-            self.player.size,
-            self.player.size,
+        """
+        Use the collision manager to check for player-enemy collisions.
+        This is a thin wrapper around the collision manager for backward compatibility.
+        
+        Returns:
+            bool: True if player and enemy are colliding, False otherwise
+        """
+        return self.collision_manager.check_player_enemy_collision(
+            self.player, self.enemy
         )
-        enemy_rect = pygame.Rect(
-            self.enemy.pos["x"],
-            self.enemy.pos["y"],
-            self.enemy.size,
-            self.enemy.size
-        )
-        return player_rect.colliderect(enemy_rect)
 
     def check_missile_collisions(self) -> None:
-        if not self.enemy or not self.player:
+        """
+        Use the collision manager to check for missile-enemy collisions.
+        This is a thin wrapper around the collision manager for backward compatibility.
+        """
+        if not self.enemy:
             return
 
         def respawn_callback() -> None:
             self.is_respawning = True
             self.respawn_timer = pygame.time.get_ticks() + self.respawn_delay
-            logging.info(
-                "Missile-Enemy collision in play mode, enemy will respawn."
-            )
+            logging.info("Missile-Enemy collision in play mode, enemy will respawn.")
 
-        handle_missile_collisions(self.player, self.enemy, respawn_callback)
+        # Use collision manager to check for missile-enemy collisions
+        self.collision_manager.check_missile_enemy_collisions(
+            self.missile_manager.missiles,
+            self.enemy,
+            pygame.time.get_ticks(),
+            respawn_callback
+        )
 
     def handle_respawn(self, current_time: int) -> None:
         if (
@@ -332,4 +337,5 @@ class Game:
         self.data_logger = None
         self.is_respawning = False
         self.respawn_timer = 0
+        self.missile_manager.clear_all()
         logging.info("Game state reset, returning to menu.")
