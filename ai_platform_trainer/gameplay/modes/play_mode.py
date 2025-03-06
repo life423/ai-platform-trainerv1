@@ -10,6 +10,12 @@ class PlayMode:
         Holds 'play' mode logic for the game.
         """
         self.game = game
+        
+        # Ensure collision manager has dependencies
+        if self.game.collision_manager.missile_manager is None:
+            self.game.collision_manager.set_missile_manager(
+                self.game.missile_manager
+            )
 
     def update(self, current_time: int) -> None:
         """
@@ -44,14 +50,15 @@ class PlayMode:
                 self.game.running = False
                 return
 
-        # 3) Player-Enemy collision
-        if self.game.check_collision():
-            logging.info("Collision detected between player and enemy.")
-            if self.game.enemy:
-                self.game.enemy.hide()
+        # 3) Check for collisions using collision manager
+        collision_results = self.game.collision_manager.update(
+            self.game, current_time, is_training=False
+        )
+        
+        # Handle player-enemy collision
+        if collision_results["player_enemy_collision"]:
             self.game.is_respawning = True
             self.game.respawn_timer = current_time + self.game.respawn_delay
-            logging.info("Player-Enemy collision in play mode.")
 
         # 4) Missile AI
         if (
@@ -75,8 +82,5 @@ class PlayMode:
         if self.game.enemy and self.game.enemy.fading_in:
             self.game.enemy.update_fade_in(current_time)
 
-        # 5) Update and draw missiles through the missile manager
+        # 6) Update missiles through the missile manager
         self.game.missile_manager.update(current_time)
-        
-        # 6) Check if missiles collide with the enemy
-        self.game.check_missile_collisions()

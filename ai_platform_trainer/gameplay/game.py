@@ -88,16 +88,24 @@ class Game:
         self.data_logger: Optional[DataLogger] = None
         self.training_mode_manager: Optional[TrainingMode] = None  # For train mode
 
-        # 5) Initialize missile manager
+        # 5) Initialize missile manager and collision manager
         self.missile_manager = MissileManager(
             self.screen_width, self.screen_height, self.data_logger
         )
         
-        # 6) Load missile model once
-        self.missile_model: Optional[SimpleMissileModel] = None
-        self._load_missile_model_once()
-
-        # 7) Additional logic
+        # 6) Initialize collision manager
+        from ai_platform_trainer.gameplay.collision_manager import CollisionManager
+        self.collision_manager = CollisionManager(
+            data_logger=self.data_logger,
+            missile_manager=self.missile_manager
+        )
+        
+        # 7) Initialize model manager and load necessary models
+        from ai_platform_trainer.utils.model_manager import ModelManager
+        self.model_manager = ModelManager()
+        self.missile_model = self.model_manager.get_model("missile")
+        
+        # 8) Additional logic
         self.respawn_delay = 1000
         self.respawn_timer = 0
         self.is_respawning = False
@@ -184,6 +192,10 @@ class Game:
             # Create data logger with the unique filename
             self.data_logger = DataLogger(filename=unique_filename)
             
+            # Update collision manager and missile manager with the data logger
+            self.collision_manager.set_data_logger(self.data_logger)
+            self.missile_manager.data_logger = self.data_logger
+            
             # Log the filename being used
             logging.info(
                 f"Training data will be saved to: {unique_filename}"
@@ -201,16 +213,22 @@ class Game:
             spawn_entities(self)
 
     def _init_play_mode(self) -> Tuple[PlayerPlay, EnemyPlay]:
-        model = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
-        try:
-            model.load_state_dict(
-                torch.load(game_config.MODEL_PATH, map_location="cpu")
-            )
-            model.eval()
-            logging.info("Enemy AI model loaded for play mode.")
-        except Exception as e:
-            logging.error(f"Failed to load enemy model: {e}")
-            raise e
+        # Get the enemy model from the model manager
+        model = self.model_manager.get_model("enemy")
+        
+        if model is None:
+            logging.error("Failed to load enemy model from model manager")
+            # Fallback to direct loading for backward compatibility
+            model = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
+            try:
+                model.load_state_dict(
+                    torch.load(game_config.MODEL_PATH, map_location="cpu")
+                )
+                model.eval()
+                logging.info("Enemy AI model loaded directly (fallback) for play mode.")
+            except Exception as e:
+                logging.error(f"Failed to load enemy model: {e}")
+                raise e
 
         player = PlayerPlay(self.screen_width, self.screen_height)
         enemy = EnemyPlay(self.screen_width, self.screen_height, model)

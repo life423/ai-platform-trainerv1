@@ -9,6 +9,14 @@ class TrainingMode:
         self.game = game
         self.missile_cooldown = 0
         self.missile_fire_prob = 0.1
+        
+        # Set data logger in collision manager if not already set
+        if self.game.collision_manager.data_logger is None:
+            self.game.collision_manager.set_data_logger(self.game.data_logger)
+        
+        # Set missile manager in collision manager if not already set
+        if self.game.collision_manager.missile_manager is None:
+            self.game.collision_manager.set_missile_manager(self.game.missile_manager)
 
     def update(self):
         current_time = pygame.time.get_ticks()
@@ -27,20 +35,15 @@ class TrainingMode:
                 self.game.missile_manager.missiles,  # Pass missiles for avoidance
             )
             
-            # Check for player-enemy collision
-            if self.game.check_collision():
-                logging.info("Training mode: Collision detected between player and enemy.")
-                # Log collision data
-                self.log_collision_data(current_time, True)
-                
-                # Handle collision (hide enemy and set respawn)
-                if self.game.enemy:
-                    self.game.enemy.hide()
+            # Check for collisions using collision manager (handles logging internally)
+            collision_results = self.game.collision_manager.update(
+                self.game, current_time, is_training=True
+            )
+            
+            # Handle player-enemy collision result
+            if collision_results["player_enemy_collision"]:
                 self.game.is_respawning = True
                 self.game.respawn_timer = current_time + self.game.respawn_delay
-            else:
-                # Log normal (non-collision) data
-                self.log_collision_data(current_time, False)
 
             if self.missile_cooldown > 0:
                 self.missile_cooldown -= 1
