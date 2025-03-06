@@ -5,6 +5,7 @@ import math
 from typing import List, Optional, Dict
 from ai_platform_trainer.entities.missile import Missile
 
+
 class PlayerPlay:
     def __init__(self, screen_width: int, screen_height: int):
         self.screen_width = screen_width
@@ -52,14 +53,17 @@ class PlayerPlay:
             missile_start_y = self.position["y"] + self.size // 2
 
             birth_time = pygame.time.get_ticks()
-            # Random lifespan from 0.5–1.5s to match training
-            random_lifespan = random.randint(500, 1500)
+            # Use the default 7 seconds (7000ms) lifespan 
+            missile_lifespan = 7000  # 7 seconds
             missile_speed = 5.0
 
             # Determine initial velocity based on enemy position if available
             if enemy_pos is not None:
                 # Calculate the angle toward the enemy's position
-                angle = math.atan2(enemy_pos["y"] - missile_start_y, enemy_pos["x"] - missile_start_x)
+                angle = math.atan2(
+                    enemy_pos["y"] - missile_start_y, 
+                    enemy_pos["x"] - missile_start_x
+                )
                 # Add a small random deviation to simulate inaccuracy
                 angle += random.uniform(-0.1, 0.1)  # deviation in radians
                 vx = missile_speed * math.cos(angle)
@@ -68,7 +72,7 @@ class PlayerPlay:
                 vx = missile_speed
                 vy = 0.0
 
-            # Create a new missile object with calculated initial velocity and random lifespan
+            # Create a new missile object with calculated initial velocity and specified lifespan
             missile = Missile(
                 x=missile_start_x,
                 y=missile_start_y,
@@ -76,10 +80,10 @@ class PlayerPlay:
                 vx=vx,
                 vy=vy,
                 birth_time=birth_time,
-                lifespan=random_lifespan,
+                lifespan=missile_lifespan,
             )
             self.missiles.append(missile)
-            logging.info("Play mode: Shot a missile with random lifespan and dynamic initial direction.")
+            logging.info("Play mode: Shot a missile with 7-second lifespan and dynamic initial direction.")
         else:
             logging.debug("Attempted to shoot missile, but one is already active.")
 
