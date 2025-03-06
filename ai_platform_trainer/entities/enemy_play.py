@@ -1,12 +1,13 @@
 # ai_platform_trainer/entities/enemy_play.py
 
-import math
 import pygame
 import logging
-from typing import Optional, Tuple
+from typing import Tuple
 
-import torch  # Possibly no longer needed if we fully delegate AI logic
-from ai_platform_trainer.gameplay.ai.enemy_ai_controller import update_enemy_movement
+from ai_platform_trainer.gameplay.ai.enemy_ai_controller import (
+    update_enemy_movement
+)
+
 
 class EnemyPlay:
     def __init__(self, screen_width: int, screen_height: int, model):
@@ -18,6 +19,8 @@ class EnemyPlay:
         self.model = model
         self.base_speed = max(2, screen_width // 400)
         self.visible = True
+        # Add active attribute to track if enemy is alive/active
+        self.active = True
 
         # Fade-in attributes
         self.fading_in = False
@@ -31,8 +34,9 @@ class EnemyPlay:
 
     def wrap_position(self, x: float, y: float) -> Tuple[float, float]:
         """
-        Example wrap-around logic. 
-        You might unify this in a separate utils file if used by multiple entities.
+        Example wrap-around logic.
+        You might unify this in a separate utils file if used by
+        multiple entities.
         """
         def wrap(val: float, lower: float, upper: float) -> float:
             if val < lower:
@@ -54,8 +58,9 @@ class EnemyPlay:
         missiles=None
     ):
         """
-        Delegates AI movement logic to the 'enemy_ai_controller.update_enemy_movement'
-        function, keeping EnemyPlay simpler.
+        Delegates AI movement logic to the 
+        'enemy_ai_controller.update_enemy_movement' function, 
+        keeping EnemyPlay simpler.
         
         Args:
             player_x: Player's x position
