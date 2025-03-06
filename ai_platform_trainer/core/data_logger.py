@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import time
 from typing import Any, Dict, List
@@ -6,18 +7,20 @@ from typing import Any, Dict, List
 
 class DataLogger:
     """
-    Handles appending data points in memory and periodically writing
-    them to a JSON file.
+    Handles appending data points in memory and batching writes
+    to a JSON file to improve performance during training.
     """
 
-    def __init__(self, filename: str = None) -> None:
+    def __init__(self, filename: str = None, batch_mode: bool = True) -> None:
         """
-        Initialize the DataLogger with the given filename. If no filename is 
-        provided, a timestamped filename is generated. If file exists, it is 
-        removed and replaced with an empty JSON file.
-
-        :param filename: Optional path to the JSON file where data will be 
-                       logged. If None, a timestamped filename is generated.
+        Initialize the DataLogger with the given filename.
+        
+        Args:
+            filename: Optional path to the JSON file where data will be logged.
+                     If None, a timestamped filename is generated.
+            batch_mode: If True, all data is stored in memory and only written
+                       at the end when save() is called. If False, data is
+                       written immediately after each log() call.
         """
         if filename:
             self.filename = filename
@@ -25,27 +28,36 @@ class DataLogger:
             # Generate a filename with timestamp if none provided
             timestamp = int(time.time())
             self.filename = f"data/raw/training_data_{timestamp}.json"
+        
         self.data: List[Dict[str, Any]] = []
-
+        self.collision_data: List[Dict[str, Any]] = []
+        self.batch_mode = batch_mode
+        self.save_counter = 0
+        self.save_frequency = 1000  # Save every 1000 data points in non-batch mode
+        
         # Ensure parent directory exists
         os.makedirs(os.path.dirname(self.filename), exist_ok=True)
 
-        # Remove existing file
+        # Initialize file
+        self._init_file()
+        
+        logging.info(f"DataLogger initialized with batch_mode={batch_mode}")
+        
+    def _init_file(self) -> None:
+        """Initialize the log file."""
+        # Remove existing file if it exists
         if os.path.isfile(self.filename):
             try:
                 os.remove(self.filename)
             except OSError as e:
-                print(f"Error deleting existing file {self.filename}: {e}")
+                logging.error(f"Error deleting existing file {self.filename}: {e}")
 
         # Create an empty JSON file
         try:
             with open(self.filename, "w") as f:
-                json.dump(self.data, f, indent=4)
+                json.dump([], f, indent=4)
         except IOError as e:
-            print(f"Error creating file {self.filename}: {e}")
-        
-        # For collision data
-        self.collision_data: List[Dict[str, Any]] = []
+            logging.error(f"Error creating file {self.filename}: {e}")
     
     def is_valid_data_point(self, data):
         """
@@ -97,8 +109,15 @@ class DataLogger:
         }
         if self.is_valid_data_point(record):
             self.collision_data.append(record)
+            
+            # If not in batch mode, save periodically
+            if not self.batch_mode:
+                self.save_counter += 1
+                if self.save_counter >= self.save_frequency:
+                    self.save()
+                    self.save_counter = 0
         else:
-            print("[WARNING] Invalid data point, skipping")
+            logging.warning("Invalid data point, skipping")
     
     def log(self, data_point: Dict[str, Any]) -> None:
         """
@@ -107,6 +126,13 @@ class DataLogger:
         :param data_point: dictionary containing data to log
         """
         self.data.append(data_point)
+        
+        # If not in batch mode, save periodically
+        if not self.batch_mode:
+            self.save_counter += 1
+            if self.save_counter >= self.save_frequency:
+                self.save()
+                self.save_counter = 0
 
     def save(self) -> None:
         """
@@ -118,5 +144,12 @@ class DataLogger:
         try:
             with open(self.filename, "w") as f:
                 json.dump(all_data, f, indent=4)
+            logging.info(f"Saved {len(all_data)} data points to {self.filename}")
+            
+            # Clear data arrays if in non-batch mode to avoid memory bloat
+            if not self.batch_mode:
+                self.data = []
+                self.collision_data = []
+                
         except IOError as e:
-            print(f"Error saving data to {self.filename}: {e}")
+            logging.error(f"Error saving data to {self.filename}: {e}")
