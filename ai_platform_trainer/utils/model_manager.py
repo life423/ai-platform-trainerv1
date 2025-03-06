@@ -20,7 +20,7 @@ import torch
 import torch.nn as nn
 
 # Import model classes to make them available to the ModelManager
-from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
+from ai_platform_trainer.ai_model.model_definition.simple_missile_model import SimpleMissileModel
 from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
     EnemyMovementModel
 )
