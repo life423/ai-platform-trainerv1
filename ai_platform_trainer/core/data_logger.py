@@ -1,20 +1,30 @@
-import json
+fimport json
 import os
+import time
 from typing import Any, Dict, List
+
 
 class DataLogger:
     """
-    Handles appending data points in memory and periodically writing them to a JSON file.
+    Handles appending data points in memory and periodically writing
+    them to a JSON file.
     """
 
-    def __init__(self, filename: str) -> None:
+    def __init__(self, filename: str = None) -> None:
         """
-        Initialize the DataLogger with the given filename. If file exists, it is removed
-        and replaced with an empty JSON file.
+        Initialize the DataLogger with the given filename. If no filename is 
+        provided, a timestamped filename is generated. If file exists, it is 
+        removed and replaced with an empty JSON file.
 
-        :param filename: path to the JSON file where data will be logged
+        :param filename: Optional path to the JSON file where data will be 
+                       logged. If None, a timestamped filename is generated.
         """
-        self.filename = filename
+        if filename:
+            self.filename = filename
+        else:
+            # Generate a filename with timestamp if none provided
+            timestamp = int(time.time())
+            self.filename = f"data/raw/training_data_{timestamp}.json"
         self.data: List[Dict[str, Any]] = []
 
         # Ensure parent directory exists

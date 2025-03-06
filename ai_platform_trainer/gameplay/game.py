@@ -1,7 +1,6 @@
 # file: ai_platform_trainer/gameplay/game.py
 import logging
 import os
-import math
 import pygame
 import torch
 from typing import Optional, Tuple
@@ -89,7 +88,9 @@ class Game:
     def _load_missile_model_once(self) -> None:
         missile_model_path = "models/missile_model.pth"
         if os.path.isfile(missile_model_path):
-            logging.info(f"Found missile model at '{missile_model_path}'. Loading once...")
+            logging.info(
+                f"Found missile model at '{missile_model_path}'. Loading once..."
+            )
             try:
                 model = SimpleMissileModel()
                 model.load_state_dict(torch.load(missile_model_path, map_location="cpu"))
@@ -127,7 +128,18 @@ class Game:
         logging.info(f"Starting game in '{mode}' mode.")
 
         if mode == "train":
-            self.data_logger = DataLogger(config.DATA_PATH)
+            # Create a unique filename for this training session with timestamp
+            import time
+            timestamp = int(time.time())
+            unique_filename = f"data/raw/training_data_{timestamp}.json"
+            
+            # Create data logger with the unique filename
+            self.data_logger = DataLogger(filename=unique_filename)
+            
+            # Log the filename being used
+            logging.info(
+                f"Training data will be saved to: {unique_filename}"
+            )
             self.player = PlayerTraining(self.screen_width, self.screen_height)
             self.enemy = EnemyTrain(self.screen_width, self.screen_height)
 
@@ -224,8 +236,9 @@ class Game:
         if self.mode == "train" and self.training_mode_manager:
             self.training_mode_manager.update()
         elif self.mode == "play":
-    # If we haven't created a play_mode_manager yet, do so now
-            if not hasattr(self, 'play_mode_manager') or self.play_mode_manager is None:
+            # If we haven't created a play_mode_manager yet, do so now
+            if (not hasattr(self, 'play_mode_manager') 
+                    or self.play_mode_manager is None):
                 from ai_platform_trainer.gameplay.modes.play_mode import PlayMode
                 self.play_mode_manager = PlayMode(self)
 
@@ -271,7 +284,6 @@ class Game:
                 self._missile_input,
                 self.missile_model
             )
-      
 
     def check_collision(self) -> bool:
         if not (self.player and self.enemy):
@@ -297,7 +309,9 @@ class Game:
         def respawn_callback() -> None:
             self.is_respawning = True
             self.respawn_timer = pygame.time.get_ticks() + self.respawn_delay
-            logging.info("Missile-Enemy collision in play mode, enemy will respawn.")
+            logging.info(
+                "Missile-Enemy collision in play mode, enemy will respawn."
+            )
 
         handle_missile_collisions(self.player, self.enemy, respawn_callback)
 
