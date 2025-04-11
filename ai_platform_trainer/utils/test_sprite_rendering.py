@@ -141,7 +141,6 @@ def test_sprite_rendering():
     pygame.quit()
 
 
-
 if __name__ == "__main__":
     try:
         test_sprite_rendering()
