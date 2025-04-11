@@ -2,7 +2,7 @@ import logging
 import math
 import os
 import random
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 import pygame
 import torch
@@ -11,14 +11,14 @@ from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import E
 from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
 from ai_platform_trainer.core.data_logger import DataLogger
 from ai_platform_trainer.core.logging_config import setup_logging
-from ai_platform_trainer.entities.enemy_play import EnemyPlay
 from ai_platform_trainer.entities.components.enemy_variants import create_enemy_by_type
+from ai_platform_trainer.entities.enemy_play import EnemyPlay
 from ai_platform_trainer.entities.enemy_training import EnemyTrain
 from ai_platform_trainer.entities.player_play import PlayerPlay
 from ai_platform_trainer.entities.player_training import PlayerTraining
 from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
-from ai_platform_trainer.gameplay.difficulty_manager import DifficultyManager
 from ai_platform_trainer.gameplay.config import config
+from ai_platform_trainer.gameplay.difficulty_manager import DifficultyManager
 from ai_platform_trainer.gameplay.display_manager import (
     init_pygame_display,
     toggle_fullscreen_display,
@@ -54,7 +54,6 @@ class Game:
         self.clock = pygame.time.Clock()
         self.menu = Menu(self.screen_width, self.screen_height)
         self.renderer = Renderer(self.screen)
-
         self.player: Optional[PlayerPlay] = None
         self.enemy: Optional[EnemyPlay] = None
         self.enemies: List[EnemyPlay] = []
@@ -107,6 +106,11 @@ class Game:
                 self.menu.draw(self.screen)
             else:
                 self.update(current_time)
+                # Pass the game instance to player so it can access game.enemies
+                if self.player and not hasattr(self.player, 'game'):
+                    self.player.game = self
+                
+                # Render the game with all enemies
                 self.renderer.render(self.menu, self.player, self.enemy, self.menu_active)
 
             pygame.display.flip()
@@ -133,6 +137,9 @@ class Game:
 
         else:
             self.player, self.enemy, self.enemies = self._init_play_mode()
+            
+            # Set player.game reference for easy access to game state
+            self.player.game = self
             
             # Initialize score tracking
             self.score = 0
