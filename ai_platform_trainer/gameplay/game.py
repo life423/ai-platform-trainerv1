@@ -29,25 +29,21 @@ from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
 from ai_platform_trainer.gameplay.renderer import Renderer
 from ai_platform_trainer.gameplay.spawner import respawn_enemy_with_fade_in, spawn_entities
 from config_manager import load_settings, save_settings
-        self.enemies: List[EnemyPlay] = []
-        self.num_enemies: int = 3  # Default starting number of enemies
-        self.enemy_types = ["standard", "fast", "tank"]  # Available enemy types
+
+
 class Game:
     """
     Main class to run the Pixel Pursuit game.
     Manages both training ('train') and play ('play') modes,
     as well as the main loop, event handling, and initialization.
     """
-        # Score tracking
-        self.score = 0
-        self.last_score_time = 0
-        self.survival_score_interval = 1000  # 1 point per second
-        self.paused = False
+
     def __init__(self) -> None:
         setup_logging()
         self.running: bool = True
         self.menu_active: bool = True
         self.mode: Optional[str] = None
+
         self.settings = load_settings("settings.json")
 
         (self.screen, self.screen_width, self.screen_height) = init_pygame_display(
@@ -61,6 +57,10 @@ class Game:
 
         self.player: Optional[PlayerPlay] = None
         self.enemy: Optional[EnemyPlay] = None
+        self.enemies: List[EnemyPlay] = []
+        self.num_enemies: int = 3  # Default starting number of enemies
+        self.enemy_types = ["standard", "fast", "tank"]  # Available enemy types
+        
         self.data_logger: Optional[DataLogger] = None
         self.training_mode_manager: Optional[TrainingMode] = None
 
@@ -70,6 +70,12 @@ class Game:
         self.respawn_delay = 1000
         self.respawn_timer = 0
         self.is_respawning = False
+        
+        # Score tracking
+        self.score = 0
+        self.last_score_time = 0
+        self.survival_score_interval = 1000  # 1 point per second
+        self.paused = False
 
         self._missile_input = torch.zeros((1, 9), dtype=torch.float32)
 
@@ -173,15 +179,17 @@ class Game:
             enemies.append(new_enemy)
             
             logging.info(f"Created {enemy_type} enemy ({i+1} of {self.num_enemies})")
-                    # Apply RL model to all enemies as well
-                    for e in enemies:
-                        e.load_rl_model(rl_model_path)
+
+        # Load RL model for all enemies if available
         rl_model_path = "models/enemy_rl/final_model.zip"
         if os.path.exists(rl_model_path):
             try:
                 success = enemy.load_rl_model(rl_model_path)
                 if success:
                     logging.info("Using reinforcement learning model for enemy behavior")
+                    # Apply RL model to all enemies as well
+                    for e in enemies:
+                        e.load_rl_model(rl_model_path)
                 else:
                     logging.warning("RL model exists but couldn't be loaded.")
                     logging.warning("Falling back to neural network.")
@@ -260,6 +268,12 @@ class Game:
                         logging.info("M key pressed. Returning to menu.")
                         self.menu_active = True
                         self.reset_game_state()
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if self.menu_active:
+                    selected_action = self.menu.handle_menu_events(event)
+                    if selected_action:
+                        self.check_menu_selection(selected_action)
                         
     def _get_nearest_enemy_position(self) -> Optional[dict]:
         """
@@ -297,12 +311,7 @@ class Game:
             return self.enemy.pos
             
         return None
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.menu_active:
-                    selected_action = self.menu.handle_menu_events(event)
-                    if selected_action:
-                        self.check_menu_selection(selected_action)
-        self.enemies = []
+
     def check_menu_selection(self, selected_action: str) -> None:
         if selected_action == "exit":
             logging.info("Exit action selected from menu.")
@@ -424,6 +433,7 @@ class Game:
     def reset_game_state(self) -> None:
         self.player = None
         self.enemy = None
+        self.enemies = []  # Reset the enemies list too
         self.data_logger = None
         self.is_respawning = False
         self.respawn_timer = 0
