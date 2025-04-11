@@ -1,6 +1,7 @@
-import pygame
 import logging
-from typing import List, Dict, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
+
+import pygame
 
 # Import sprite manager for entity rendering
 from ai_platform_trainer.utils.sprite_manager import SpriteManager
