@@ -4,9 +4,9 @@ Direct sprite rendering test for AI Platform Trainer.
 This script directly loads and displays sprites on screen to test
 if pygame can properly load and display the sprite files.
 """
-import os
-import sys
 import logging
+import os
+
 import pygame
 
 # Configure logging
@@ -14,6 +14,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
 
 def test_sprite_rendering():
     """Test direct sprite rendering with pygame."""
@@ -138,6 +139,8 @@ def test_sprite_rendering():
         clock.tick(60)
     
     pygame.quit()
+
+
 
 if __name__ == "__main__":
     try:
