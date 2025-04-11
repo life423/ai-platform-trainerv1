@@ -74,9 +74,14 @@ class Game:
 
         # 4) Entities and managers
         self.player: Optional[PlayerPlay] = None
-        self.enemy: Optional[EnemyPlay] = None
+        self.enemy: Optional[EnemyPlay] = None  # Keeping for backward compatibility
+        self.enemies = []  # List to hold multiple enemies
+        self.num_enemies = 3  # Default number of enemies to spawn
+        self.obstacles = []  # List to hold obstacles
+        self.num_obstacles = 5  # Default number of obstacles to spawn
         self.data_logger: Optional[DataLogger] = None
         self.training_mode_manager: Optional[TrainingMode] = None  # For train mode
+        self.play_mode_manager = None  # Will be initialized in start_game
 
         # 5) Load missile model once
         self.missile_model: Optional[SimpleMissileModel] = None
@@ -87,6 +92,11 @@ class Game:
         self.respawn_timer = 0
         self.is_respawning = False
 
+        # Scoring system
+        self.score = 0
+        self.last_score_time = 0  # For time-based scoring
+        self.survival_score_interval = 1000  # 1 second in milliseconds
+        
         # Reusable tensor for missile AI input
         self._missile_input = torch.zeros((1, 9), dtype=torch.float32)
 
@@ -132,6 +142,7 @@ class Game:
 
     def start_game(self, mode: str) -> None:
         self.mode = mode
+        self.menu_active = False  # Explicitly set menu_active to False
         logging.info(f"Starting game in '{mode}' mode.")
 
         if mode == "train":
@@ -160,14 +171,21 @@ class Game:
             raise e
 
         player = PlayerPlay(self.screen_width, self.screen_height)
+        
+        # Create the main enemy (for backward compatibility)
         enemy = EnemyPlay(self.screen_width, self.screen_height, model)
-
+        
+        # Initialize the enemies list
+        self.enemies = []
+        
         # Check for RL model and try to load if available
         rl_model_path = "models/enemy_rl/final_model.zip"
+        rl_loaded = False
         if os.path.exists(rl_model_path):
             try:
                 success = enemy.load_rl_model(rl_model_path)
                 if success:
+                    rl_loaded = True
                     logging.info("Using reinforcement learning model for enemy behavior")
                 else:
                     logging.warning("RL model exists but couldn't be loaded.")
@@ -178,8 +196,21 @@ class Game:
         else:
             logging.info("No RL model found, using traditional neural network")
 
-        logging.info("Initialized PlayerPlay and EnemyPlay for play mode.")
-        return player, enemy
+        # Create multiple enemies
+        self.enemies.append(enemy)  # Add the main enemy to the list
+        
+        # Create additional enemies
+        for i in range(1, self.num_enemies):
+            new_enemy = EnemyPlay(self.screen_width, self.screen_height, model)
+            
+            # If RL model was loaded successfully for the first enemy, apply to all
+            if rl_loaded:
+                new_enemy.load_rl_model(rl_model_path)
+                
+            self.enemies.append(new_enemy)
+            
+        logging.info(f"Initialized PlayerPlay and {len(self.enemies)} enemies for play mode.")
+        return player, enemy  # Return the first enemy for backward compatibility
 
     def handle_events(self) -> None:
         for event in pygame.event.get():

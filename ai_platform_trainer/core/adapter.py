@@ -16,17 +16,19 @@ Usage:
 """
 import warnings
 import importlib
-import sys
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Optional, Set
+
 
 # Track which warnings have been shown
 _shown_warnings: Set[str] = set()
+
 
 def _warn_once(message: str) -> None:
     """Show a warning only once per message."""
     if message not in _shown_warnings:
         warnings.warn(message, DeprecationWarning, stacklevel=3)
         _shown_warnings.add(message)
+
 
 class CoreAdapter:
     """
@@ -65,11 +67,13 @@ class CoreAdapter:
                     f"Failed to import '{name}' from either 'engine/core' or 'core': {e}"
                 ) from e
 
+
 # Create adapter functions for commonly used modules
 def get_service_locator() -> Any:
     """Get the ServiceLocator module from engine/core."""
     module = CoreAdapter.get_module("service_locator")
     return module.ServiceLocator
+
 
 def get_config_manager(config_path: Optional[str] = None) -> Any:
     """
@@ -85,6 +89,7 @@ def get_config_manager(config_path: Optional[str] = None) -> Any:
     if config_path:
         return module.get_config_manager(config_path)
     return module.get_config_manager()
+
 
 def setup_logging() -> None:
     """Set up logging using the engine/core logging configuration."""

@@ -8,17 +8,9 @@ if(CUDA_FOUND)
 else()
   project(gpu_game_environment LANGUAGES CXX)
   message(STATUS "CUDA not found, using CPU-only build")
+  set(CUDA_FOUND FALSE)
+  set(CUDA_ENABLED FALSE)
 endif()
-
-# Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Using CUDA implementation for GPU acceleration
-# Our physics.cu implementation handles physics on the GPU
-option(USE_CUDA "Build with CUDA support if available" ON)
-set(CUDA_ENABLED TRUE)
-message(STATUS "Using CUDA-accelerated implementation for enhanced physics")
 
 # Find PyBind11 - try multiple approaches
 include(FetchContent QUIET)
@@ -52,6 +44,11 @@ include_directories(
     ${pybind11_INCLUDE_DIRS}
     ${Python_INCLUDE_DIRS}
 )
+
+# Add CUDA includes if available
+if(CUDA_FOUND)
+    include_directories(${CUDA_INCLUDE_DIRS})
+endif()
 
 # Source files
 set(SOURCES

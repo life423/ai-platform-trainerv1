@@ -54,14 +54,14 @@ class Renderer:
         
         logging.info("Renderer initialization complete")
 
-    def render(self, menu, player, enemy, menu_active: bool) -> None:
+    def render(self, menu, player, enemy, menu_active: bool, powerup_manager=None) -> None:
         """
         Render the game elements on the screen.
 
         Args:
             menu: Menu instance
             player: Player instance
-            enemy: Enemy instance
+            enemy: Enemy instance (for backward compatibility)
             menu_active: Boolean indicating if the menu is active
         """
         try:
@@ -77,7 +77,7 @@ class Renderer:
                 logging.debug("Menu rendered.")
             else:
                 # Render game elements
-                self._render_game(player, enemy)
+                self._render_game(menu.game, player, enemy)
                 logging.debug("Game elements rendered.")
                 
                 # Check if game is paused and render pause overlay
@@ -91,14 +91,25 @@ class Renderer:
         except Exception as e:
             logging.error(f"Error during rendering: {e}")
 
-    def _render_game(self, player, enemy) -> None:
+    def _render_game(self, game, player, enemy) -> None:
         """
         Render the game elements during gameplay.
 
         Args:
+            game: Game instance
             player: Player instance
-            enemy: Enemy instance
+            enemy: Enemy instance (for backward compatibility)
         """
+        # Render power-ups if PlayMode has any
+        has_play_mode = hasattr(game, 'play_mode_manager')
+        if has_play_mode and hasattr(game.play_mode_manager, 'powerup_manager'):
+            game.play_mode_manager.powerup_manager.render(self.screen)
+        # Draw obstacles first (they're in the background)
+        if hasattr(game, 'obstacles'):
+            for obstacle in game.obstacles:
+                if obstacle.visible:
+                    self._render_obstacle(obstacle)
+        
         # Draw player with sprite
         if hasattr(player, 'position') and hasattr(player, 'size'):
             self._render_player(player)
@@ -108,14 +119,73 @@ class Renderer:
                 for missile in player.missiles:
                     self._render_missile(missile)
 
-        # Draw enemy with sprite
-        if hasattr(enemy, 'pos') and hasattr(enemy, 'size') and enemy.visible:
+        # Draw multiple enemies if available
+        if hasattr(game, 'enemies') and game.enemies:
+            for enemy_obj in game.enemies:
+                if hasattr(enemy_obj, 'pos') and hasattr(enemy_obj, 'size') and enemy_obj.visible:
+                    self._render_enemy(enemy_obj)
+        # Fallback to single enemy for backward compatibility
+        elif hasattr(enemy, 'pos') and hasattr(enemy, 'size') and enemy.visible:
             self._render_enemy(enemy)
 
+        # Render score if available
+        if hasattr(game, 'score'):
+            self._render_score(game.score)
+            
         # Render particle effects if enabled
         if self.enable_effects:
             self._update_and_render_effects()
 
+    def _render_obstacle(self, obstacle) -> None:
+        """
+        Render an obstacle entity.
+        
+        Args:
+            obstacle: Obstacle instance
+        """
+        try:
+            # Position and size
+            pos_x, pos_y = obstacle.pos["x"], obstacle.pos["y"]
+            size = obstacle.size
+            
+            logging.debug(f"Rendering obstacle at ({pos_x}, {pos_y}), size={size}")
+            
+            # Use sprite if available, otherwise fall back to a colored rectangle
+            if hasattr(obstacle, 'sprite') and obstacle.sprite:
+                self.screen.blit(obstacle.sprite, (pos_x, pos_y))
+                logging.debug("Obstacle sprite blitted to screen")
+            else:
+                # Use a fallback color rectangle
+                color = obstacle.color if hasattr(obstacle, 'color') else (100, 100, 100)
+                
+                # Add visual hint for destructible obstacles
+                if hasattr(obstacle, 'destructible') and obstacle.destructible:
+                    # Draw a border for destructible obstacles
+                    pygame.draw.rect(
+                        self.screen,
+                        (200, 0, 0),  # Red border for destructible
+                        pygame.Rect(pos_x, pos_y, size, size),
+                        3  # Border width
+                    )
+                    
+                    # Fill with slightly lighter color
+                    pygame.draw.rect(
+                        self.screen,
+                        (min(color[0] + 50, 255), min(color[1] + 20, 255), color[2]),
+                        pygame.Rect(pos_x + 3, pos_y + 3, size - 6, size - 6)
+                    )
+                else:
+                    # Solid obstacle with no border
+                    pygame.draw.rect(
+                        self.screen,
+                        color,
+                        pygame.Rect(pos_x, pos_y, size, size)
+                    )
+                
+                logging.debug(f"Obstacle drawn as rect with color {color}")
+        except Exception as e:
+            logging.error(f"Error rendering obstacle: {e}")
+    
     def _render_player(self, player) -> None:
         """
         Render the player entity with sprites.
@@ -302,6 +372,43 @@ class Renderer:
         # Replace particle list with updated one
         self.particle_effects = updated_particles
         
+    def _render_score(self, score: int) -> None:
+        """
+        Render the player's score on screen.
+
+        Args:
+            score: Current game score
+        """
+        try:
+            # Create a font for the score display
+            if not hasattr(self, 'score_font'):
+                self.score_font = pygame.font.Font(None, 36)  # Use default font, size 36
+            
+            # Render score text
+            score_text = self.score_font.render(
+                f"Score: {score}", 
+                True, 
+                (255, 255, 255)  # White text
+            )
+            
+            # Position in top-right corner with some padding
+            padding = 10
+            score_rect = score_text.get_rect(
+                topright=(self.screen.get_width() - padding, padding)
+            )
+            
+            # Draw with a dark semi-transparent background for better visibility
+            bg_rect = score_rect.inflate(20, 10)  # Make bg slightly larger than text
+            bg_surface = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
+            bg_surface.fill((0, 0, 0, 128))  # Semi-transparent black
+            self.screen.blit(bg_surface, bg_rect)
+            
+            # Draw the score text
+            self.screen.blit(score_text, score_rect)
+            
+        except Exception as e:
+            logging.error(f"Error rendering score: {e}")
+
     def _render_pause_overlay(self) -> None:
         """Render a pause overlay when the game is paused."""
         # Create a semi-transparent overlay
