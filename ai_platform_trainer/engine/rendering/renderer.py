@@ -27,6 +27,9 @@ class Renderer:
         self.enable_effects = True
         self.frame_count = 0
         self.particle_effects = []
+        
+        # For displaying pause message
+        self.font = pygame.font.Font(None, 72)  # Large font for pause message
 
     def render(self, menu, player, enemy, menu_active: bool) -> None:
         """
@@ -53,6 +56,10 @@ class Renderer:
                 # Render game elements
                 self._render_game(player, enemy)
                 logging.debug("Game elements rendered.")
+                
+                # Check if game is paused and render pause overlay
+                if hasattr(menu, 'game') and hasattr(menu.game, 'paused') and menu.game.paused:
+                    self._render_pause_overlay()
 
             # Update display
             pygame.display.flip()
@@ -232,3 +239,37 @@ class Renderer:
 
         # Replace particle list with updated one
         self.particle_effects = updated_particles
+        
+    def _render_pause_overlay(self) -> None:
+        """Render a pause overlay when the game is paused."""
+        # Create a semi-transparent overlay
+        overlay = pygame.Surface(
+            (self.screen.get_width(), self.screen.get_height()), 
+            pygame.SRCALPHA
+        )
+        # Semi-transparent black
+        overlay.fill((0, 0, 0, 128))
+        self.screen.blit(overlay, (0, 0))
+        
+        # Render "PAUSED" text
+        pause_text = self.font.render(
+            "PAUSED", 
+            True, 
+            (255, 255, 255)
+        )
+        text_rect = pause_text.get_rect(
+            center=(self.screen.get_width() // 2, self.screen.get_height() // 2)
+        )
+        self.screen.blit(pause_text, text_rect)
+        
+        # Render help text
+        small_font = pygame.font.Font(None, 24)
+        help_text = small_font.render(
+            "Press 'P' to resume", 
+            True, 
+            (200, 200, 200)
+        )
+        help_rect = help_text.get_rect(
+            center=(self.screen.get_width() // 2, self.screen.get_height() // 2 + 50)
+        )
+        self.screen.blit(help_text, help_rect)

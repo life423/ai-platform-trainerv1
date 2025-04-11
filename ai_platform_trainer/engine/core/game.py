@@ -56,6 +56,7 @@ class Game:
         self.running: bool = True
         self.menu_active: bool = True
         self.mode: Optional[str] = None
+        self.paused: bool = False
 
         # 1) Load user settings
         self.settings = load_settings("settings.json")
@@ -198,8 +199,12 @@ class Game:
                         self.check_menu_selection(selected_action)
                 else:
                     if event.key == pygame.K_ESCAPE:
-                        logging.info("Escape key pressed. Exiting game.")
-                        self.running = False
+                        logging.info("Escape key pressed. Returning to menu.")
+                        self.menu_active = True
+                        self.reset_game_state()
+                    elif event.key == pygame.K_p:
+                        self.paused = not self.paused
+                        logging.info(f"Game {'paused' if self.paused else 'resumed'}")
                     elif event.key == pygame.K_SPACE and self.player:
                         self.player.shoot_missile(self.enemy.pos)
                     elif event.key == pygame.K_m:
@@ -246,6 +251,10 @@ class Game:
             self.start_game(current_mode)
 
     def update(self, current_time: int) -> None:
+        if self.paused:
+            # Skip updates while paused
+            return
+            
         if self.mode == "train" and self.training_mode_manager:
             self.training_mode_manager.update()
         elif self.mode == "play":

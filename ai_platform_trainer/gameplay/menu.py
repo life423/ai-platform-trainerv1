@@ -268,10 +268,11 @@ class Menu:
             "• Arrow Keys or W/S to navigate menu",
             "• Control Player with Arrow Keys or WASD",
             "• Press Space to shoot missiles",
+            "• Press P to pause/unpause the game",
             "• Press Enter to select menu items",
             "• Press F to toggle fullscreen",
             "• Press M to return to the menu",
-            "• Press Escape to quit help or game"
+            "• Press Escape to return to menu (in-game) or quit help screen"
         ]
 
         # Draw controls text
