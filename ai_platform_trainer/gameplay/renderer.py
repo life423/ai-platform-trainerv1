@@ -1,5 +1,6 @@
 import pygame
 import logging
+from typing import List, Dict, Tuple, Optional
 
 # Import sprite manager for entity rendering
 from ai_platform_trainer.utils.sprite_manager import SpriteManager
@@ -23,6 +24,18 @@ class Renderer:
         self.enable_effects = True
         self.frame_count = 0
         self.particle_effects = []
+        
+        # Explosion animation tracking
+        self.explosions = []
+        self.explosion_frames = None  # Will be loaded on demand
+        self.explosion_frame_count = 4
+        
+        # Enemy type color variations
+        self.enemy_colors = {
+            "standard": (255, 50, 50),     # Red
+            "fast": (255, 180, 50),        # Orange
+            "tank": (120, 50, 120)         # Purple
+        }
 
     def render(self, menu, player, enemy, menu_active: bool) -> None:
         """
@@ -47,7 +60,13 @@ class Renderer:
                 logging.debug("Menu rendered.")
             else:
                 # Render game elements
-                self._render_game(player, enemy)
+                if hasattr(player, 'position') and player:
+                    # In case we have a list of enemies, we'll render them all
+                    enemies = []
+                    if hasattr(player, 'game') and hasattr(player.game, 'enemies'):
+                        enemies = player.game.enemies
+                    
+                    self._render_game(player, enemy, enemies)
                 logging.debug("Game elements rendered.")
 
             # Update display
@@ -57,8 +76,11 @@ class Renderer:
         except Exception as e:
             logging.error(f"Error during rendering: {e}")
 
-    def _render_game(self, player, enemy) -> None:
+    def _render_game(self, player, enemy, enemies=None) -> None:
+            enemies: List of enemy instances (optional)
         """
+        # Update and render any active explosions
+        self._update_explosions()
         Render the game elements during gameplay.
 
         Args:
@@ -74,8 +96,14 @@ class Renderer:
                 for missile in player.missiles:
                     self._render_missile(missile)
 
-        # Draw enemy with sprite
-        if hasattr(enemy, 'pos') and hasattr(enemy, 'size') and enemy.visible:
+        # Render multiple enemies if available
+        if enemies:
+            for enemy_obj in enemies:
+                if hasattr(enemy_obj, 'pos') and hasattr(enemy_obj, 'size') and enemy_obj.visible:
+                    self._render_enemy(enemy_obj)
+        
+        # Fallback to single enemy for backward compatibility
+        elif hasattr(enemy, 'pos') and hasattr(enemy, 'size') and enemy.visible:
             self._render_enemy(enemy)
 
         # Render particle effects if enabled
@@ -115,15 +143,150 @@ class Renderer:
         if hasattr(enemy, 'fading_in') and enemy.fading_in:
             alpha = enemy.fade_alpha
 
-        # Render the enemy sprite
-        sprite = self.sprite_manager.load_sprite("enemy", size)
+        # Determine enemy type for visual differentiation
+        enemy_type = "enemy"  # Default
+        if hasattr(enemy, 'enemy_type'):
+            enemy_type = enemy.enemy_type
+            
+        # Get appropriate sprite based on enemy type
+        sprite = None
+        
+        # First try to load a type-specific sprite
+        specific_sprite_name = f"enemy_{enemy_type}"
+        try:
+            sprite = self.sprite_manager.load_sprite(specific_sprite_name, size)
+        except Exception:
+            # Fall back to generic enemy sprite
+            sprite = self.sprite_manager.load_sprite("enemy", size)
+            
+            # If we have a generic sprite but different enemy types,
+            # apply color tinting to differentiate them visually
+            if hasattr(enemy, 'enemy_type') and enemy.enemy_type in self.enemy_colors:
+                # Create a copy of the sprite for tinting
+                tinted_sprite = sprite.copy()
+                color = self.enemy_colors.get(enemy.enemy_type, (255, 255, 255))
+                
+                # Apply the tint by creating a colored overlay
+                overlay = pygame.Surface(size, pygame.SRCALPHA)
+                overlay.fill((*color, 128))  # Semi-transparent color
+                tinted_sprite.blit(overlay, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+                
+                sprite = tinted_sprite
         sprite.set_alpha(alpha)
         self.screen.blit(sprite, (enemy.pos["x"], enemy.pos["y"]))
-
+        # For tank enemies, show damage state if applicable
+        if hasattr(enemy, 'enemy_type') and enemy.enemy_type == "tank" and hasattr(enemy, 'damage_state'):
+            self._render_tank_damage_state(enemy)
+    
+    def _render_tank_damage_state(self, enemy) -> None:
+        """
+        Render visual indicators of tank enemy damage state.
+        
+        Args:
+            enemy: Tank enemy instance
+        """
+        if not hasattr(enemy, 'damage_state') or enemy.damage_state == 0:
+            return
+            
+        # Add cracks or damage indicators based on damage state
+        damage = enemy.damage_state
+        pos_x, pos_y = enemy.pos["x"], enemy.pos["y"]
+        size = enemy.size
+        
+        # Draw damage indicators (simple cracks)
+        if damage >= 1:
+            # First damage indicator - diagonal crack
+            pygame.draw.line(
+                self.screen, 
+                (30, 30, 30), 
+                (pos_x + size * 0.2, pos_y + size * 0.2),
+                (pos_x + size * 0.8, pos_y + size * 0.8),
+                3
+            )
+            
+        if damage >= 2:
+            # Second damage indicator - horizontal crack
+            pygame.draw.line(
+                self.screen, 
+                (30, 30, 30), 
+                (pos_x, pos_y + size * 0.5),
+                (pos_x + size, pos_y + size * 0.5),
+                2
+            )
     def _render_missile(self, missile) -> None:
         """
         Render a missile entity with sprites.
-
+    def add_explosion(self, x: float, y: float, size: int = 40) -> None:
+        """
+        Add a new explosion animation at the specified position.
+        
+        Args:
+            x: X position of explosion center
+            y: Y position of explosion center
+            size: Size of the explosion
+        """
+        # Adjust position to center the explosion
+        x = x - size // 2
+        y = y - size // 2
+        
+        # Create a new explosion entry
+        explosion = {
+            'x': x,
+            'y': y,
+            'size': size,
+            'frame': 0,
+            'max_frames': self.explosion_frame_count,
+            'frame_delay': 3,  # Frames to wait before advancing to next animation frame
+            'current_delay': 0
+        }
+        
+        self.explosions.append(explosion)
+        logging.debug(f"Added explosion at ({x}, {y}) with size {size}")
+        
+    def _update_explosions(self) -> None:
+        """Update and render all active explosion animations."""
+        # Initialize explosion frames if not already loaded
+        if self.explosion_frames is None:
+            self.explosion_frames = self.sprite_manager.load_animation(
+                "effects/explosion", 
+                (64, 64), 
+                self.explosion_frame_count
+            )
+        
+        # Update and render each explosion
+        updated_explosions = []
+        for explosion in self.explosions:
+            # Increment delay counter
+            explosion['current_delay'] += 1
+            
+            # Advance to next frame if delay reached
+            if explosion['current_delay'] >= explosion['frame_delay']:
+                explosion['current_delay'] = 0
+                explosion['frame'] += 1
+            
+            # Skip explosions that have completed animation
+            if explosion['frame'] >= explosion['max_frames']:
+                continue
+                
+            # Get the current frame
+            frame_idx = min(explosion['frame'], len(self.explosion_frames) - 1)
+            frame = self.explosion_frames[frame_idx]
+            
+            # Scale frame to explosion size
+            size = explosion['size']
+            scaled_frame = pygame.transform.scale(frame, (size, size))
+            
+            # Draw explosion
+            self.screen.blit(
+                scaled_frame, 
+                (explosion['x'], explosion['y'])
+            )
+            
+            # Keep explosion for next frame
+            updated_explosions.append(explosion)
+            
+        # Replace explosion list with updated one
+        self.explosions = updated_explosions
         Args:
             missile: Missile instance
         """
