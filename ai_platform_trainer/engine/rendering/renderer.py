@@ -20,7 +20,8 @@ class Renderer:
         self.screen = screen
         
         # Log important initialization details
-        logging.info(f"Initializing renderer with screen size: {screen.get_width()}x{screen.get_height()}")
+        width, height = screen.get_width(), screen.get_height()
+        logging.info(f"Initializing renderer with screen size: {width}x{height}")
         logging.info(f"Current working directory: {os.getcwd()}")
 
         # Initialize sprite and background managers
@@ -122,16 +123,26 @@ class Renderer:
         Args:
             player: Player instance
         """
-        # Determine sprite size
-        size = (player.size, player.size)
-
-        # Render the player sprite
-        self.sprite_manager.render(
-            screen=self.screen,
-            entity_type="player",
-            position=player.position,
-            size=size
-        )
+        try:
+            # Determine sprite size
+            size = (player.size, player.size)
+            pos = player.position
+            
+            logging.debug(f"Rendering player at position: ({pos['x']}, {pos['y']}), size: {size}")
+            
+            # Load sprite directly to verify it exists before rendering
+            sprite = self.sprite_manager.load_sprite("player", size)
+            if sprite:
+                logging.debug(f"Player sprite loaded successfully, alpha: {sprite.get_alpha()}")
+                
+                # Render directly to verify exact position
+                self.screen.blit(sprite, (pos['x'], pos['y']))
+                logging.debug("Player sprite blitted directly to screen")
+            else:
+                logging.warning("Player sprite is None")
+                
+        except Exception as e:
+            logging.error(f"Error rendering player: {e}")
 
     def _render_enemy(self, enemy) -> None:
         """
@@ -140,18 +151,30 @@ class Renderer:
         Args:
             enemy: Enemy instance
         """
-        # Determine sprite size
-        size = (enemy.size, enemy.size)
+        try:
+            # Determine sprite size
+            size = (enemy.size, enemy.size)
+            pos_x, pos_y = enemy.pos["x"], enemy.pos["y"]
+            
+            logging.debug(f"Rendering enemy at position: ({pos_x}, {pos_y}), size: {size}")
 
-        # Check if the enemy is fading in
-        alpha = 255
-        if hasattr(enemy, 'fading_in') and enemy.fading_in:
-            alpha = enemy.fade_alpha
+            # Check if the enemy is fading in
+            alpha = 255
+            if hasattr(enemy, 'fading_in') and enemy.fading_in:
+                alpha = enemy.fade_alpha
+                logging.debug(f"Enemy fading in, alpha: {alpha}")
 
-        # Render the enemy sprite
-        sprite = self.sprite_manager.load_sprite("enemy", size)
-        sprite.set_alpha(alpha)
-        self.screen.blit(sprite, (enemy.pos["x"], enemy.pos["y"]))
+            # Render the enemy sprite
+            sprite = self.sprite_manager.load_sprite("enemy", size)
+            if sprite:
+                logging.debug(f"Enemy sprite loaded successfully, setting alpha: {alpha}")
+                sprite.set_alpha(alpha)
+                self.screen.blit(sprite, (pos_x, pos_y))
+                logging.debug("Enemy sprite blitted to screen")
+            else:
+                logging.warning("Enemy sprite is None")
+        except Exception as e:
+            logging.error(f"Error rendering enemy: {e}")
 
     def _render_missile(self, missile) -> None:
         """
@@ -160,34 +183,51 @@ class Renderer:
         Args:
             missile: Missile instance
         """
-        if hasattr(missile, 'position') and hasattr(missile, 'size'):
-            # Determine sprite size - make it a bit more elongated
-            width = missile.size
-            height = int(missile.size * 1.5)
-            size = (width, height)
+        try:
+            if hasattr(missile, 'position') and hasattr(missile, 'size'):
+                # Determine sprite size - make it a bit more elongated
+                width = missile.size
+                height = int(missile.size * 1.5)
+                size = (width, height)
+                pos = missile.position
+                
+                logging.debug(f"Rendering missile at position: ({pos['x']}, {pos['y']}), " 
+                             f"size: {size}")
 
-            # Calculate rotation angle based on direction
-            rotation = 0
-            if hasattr(missile, 'direction'):
-                # Convert direction to angle in degrees
-                dx, dy = missile.direction
-                if dx != 0 or dy != 0:
-                    import math
-                    angle_rad = math.atan2(dy, dx)
-                    rotation = math.degrees(angle_rad) + 90  # Adjust so 0 points up
+                # Calculate rotation angle based on direction
+                rotation = 0
+                if hasattr(missile, 'direction'):
+                    # Convert direction to angle in degrees
+                    dx, dy = missile.direction
+                    if dx != 0 or dy != 0:
+                        import math
+                        angle_rad = math.atan2(dy, dx)
+                        rotation = math.degrees(angle_rad) + 90  # Adjust so 0 points up
+                        logging.debug(f"Missile rotation: {rotation} degrees")
 
-            # Render the missile sprite with rotation
-            self.sprite_manager.render(
-                screen=self.screen,
-                entity_type="missile",
-                position=missile.position,
-                size=size,
-                rotation=rotation
-            )
+                # Load sprite directly to check
+                sprite = self.sprite_manager.load_sprite("missile", size)
+                if sprite:
+                    logging.debug("Missile sprite loaded successfully")
+                    
+                    # Rotate sprite if needed
+                    if rotation != 0:
+                        sprite = pygame.transform.rotate(sprite, rotation)
+                        logging.debug(f"Missile sprite rotated to {rotation} degrees")
+                    
+                    # Render directly
+                    self.screen.blit(sprite, (pos['x'], pos['y']))
+                    logging.debug("Missile sprite blitted to screen")
+                else:
+                    logging.warning("Missile sprite is None")
 
-            # Add a trail effect if effects are enabled
-            if self.enable_effects and self.frame_count % 2 == 0:
-                self._add_missile_trail(missile)
+                # Add a trail effect if effects are enabled
+                if self.enable_effects and self.frame_count % 2 == 0:
+                    self._add_missile_trail(missile)
+            else:
+                logging.warning("Missile missing position or size attributes")
+        except Exception as e:
+            logging.error(f"Error rendering missile: {e}")
 
     def _add_missile_trail(self, missile) -> None:
         """
