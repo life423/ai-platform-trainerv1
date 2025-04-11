@@ -18,9 +18,26 @@ class Renderer:
             screen: Pygame display surface
         """
         self.screen = screen
+        
+        # Log important initialization details
+        logging.info(f"Initializing renderer with screen size: {screen.get_width()}x{screen.get_height()}")
+        logging.info(f"Current working directory: {os.getcwd()}")
 
         # Initialize sprite and background managers
+        logging.info("Initializing sprite manager...")
         self.sprite_manager = SpriteManager()
+        
+        # Test load a sprite to verify sprite loading works
+        try:
+            test_sprite = self.sprite_manager.load_sprite("player", (50, 50))
+            if test_sprite:
+                logging.info(f"Test sprite loaded successfully, size: {test_sprite.get_size()}")
+            else:
+                logging.warning("Test sprite load returned None")
+        except Exception as e:
+            logging.error(f"Error during test sprite load: {e}")
+            
+        logging.info("Initializing background manager...")
         self.background_manager = BackgroundManager(
             screen_width=screen.get_width(),
             screen_height=screen.get_height()
@@ -33,6 +50,8 @@ class Renderer:
         
         # For displaying pause message
         self.font = pygame.font.Font(None, 72)  # Large font for pause message
+        
+        logging.info("Renderer initialization complete")
 
     def render(self, menu, player, enemy, menu_active: bool) -> None:
         """
