@@ -192,7 +192,7 @@ class Renderer:
                 pos = missile.position
                 
                 logging.debug(f"Rendering missile at position: ({pos['x']}, {pos['y']}), " 
-                             f"size: {size}")
+                              f"size: {size}")
 
                 # Calculate rotation angle based on direction
                 rotation = 0
