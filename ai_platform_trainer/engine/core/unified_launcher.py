@@ -5,9 +5,9 @@ This module provides a consolidated entry point for the game with support for
 different game initialization methods (dependency injection, standard, or state machine).
 It selects the appropriate launcher based on settings and provides fallback mechanisms.
 """
+import logging
 import os
 import sys
-import logging
 import traceback
 from enum import Enum, auto
 from typing import Any, Dict, Optional
@@ -16,8 +16,9 @@ from typing import Any, Dict, Optional
 try:
     from ai_platform_trainer.core.logging_config import setup_logging
     from ai_platform_trainer.core.service_locator import ServiceLocator
+
     # Import game modes
-    from ai_platform_trainer.gameplay.game import Game as StandardGame
+    from ai_platform_trainer.engine.core.game import Game as StandardGame
     from ai_platform_trainer.gameplay.game_di import Game as DIGame
     from ai_platform_trainer.gameplay.game_refactored import Game as StateMachineGame
 except ImportError as e:
@@ -78,6 +79,8 @@ def launch_standard() -> None:
     Launch the game using the standard launcher.
     """
     try:
+        # Initialize logging
+        setup_logging()
         game = StandardGame()
         game.run()
     except Exception as e:
@@ -86,17 +89,17 @@ def launch_standard() -> None:
         raise
 
 
-def launch_dependency_injection() -> None:
+def launch_dependency_injection(config: Optional[Dict[str, Any]] = None) -> None:
     """
-    Launch the game using the dependency injection launcher.
+    Launch the game using dependency injection.
     
-    Sets up all services and registers them with the service locator before
-    creating and running the game.
+    Args:
+        config: Optional configuration dictionary
     """
     try:
         # Import DI specific components
         from ai_platform_trainer.core.launcher_di import register_services
-        
+
         # Register all the services
         register_services()
         
@@ -113,9 +116,11 @@ def launch_dependency_injection() -> None:
 
 def launch_state_machine() -> None:
     """
-    Launch the game using the state machine launcher.
+    Launch the game using the state machine implementation.
     """
     try:
+        # Initialize logging
+        setup_logging()
         game = StateMachineGame()
         game.run()
     except Exception as e:
@@ -133,10 +138,7 @@ def launch_state_machine() -> None:
 
 def main() -> None:
     """
-    Main entry point for the AI Platform Trainer.
-    
-    Selects the appropriate launcher based on settings and runs the game.
-    Provides fallback mechanisms if the selected launcher fails.
+    Main entry point that selects and runs the appropriate launcher.
     """
     # Setup logging first
     setup_logging()
@@ -169,4 +171,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    main()
     main()
