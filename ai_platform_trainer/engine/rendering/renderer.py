@@ -1,9 +1,12 @@
-import pygame
 import logging
+import os
+
+import pygame
+
+from ai_platform_trainer.engine.rendering.background import BackgroundManager
 
 # Import sprite manager and background manager
 from ai_platform_trainer.utils.sprite_manager import SpriteManager
-from ai_platform_trainer.engine.rendering.background import BackgroundManager
 
 
 class Renderer:
