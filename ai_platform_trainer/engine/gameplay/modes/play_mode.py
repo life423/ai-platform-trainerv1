@@ -7,9 +7,9 @@ import logging
 
 import pygame
 
+from ai_platform_trainer.engine.gameplay.difficulty_manager import DifficultyManager
 from ai_platform_trainer.entities.behaviors.missile_ai_controller import update_missile_ai
 from ai_platform_trainer.entities.components.power_up_manager import PowerUpManager
-from ai_platform_trainer.engine.gameplay.difficulty_manager import DifficultyManager
 
 # Config and spawn utils will need to be refactored later
 from ai_platform_trainer.gameplay.config import config
@@ -234,14 +234,16 @@ class PlayMode:
                         self.game.player.missiles.remove(missile)
                         
                         # Create explosion animation at enemy position
-                        if hasattr(self.game, 'renderer') and hasattr(self.game.renderer, 'add_explosion'):
+                        if (hasattr(self.game, 'renderer') and 
+                                hasattr(self.game.renderer, 'add_explosion')):
                             # Size of explosion based on enemy type
                             explosion_size = enemy.size * 1.5
                             if hasattr(enemy, 'enemy_type'):
                                 if enemy.enemy_type == "tank":
                                     explosion_size = enemy.size * 2.0  # Bigger explosion for tank
                                 elif enemy.enemy_type == "fast":
-                                    explosion_size = enemy.size * 1.2  # Smaller explosion for fast enemy
+                                    # Smaller explosion for fast enemy
+                                    explosion_size = enemy.size * 1.2
                             
                             # Create the explosion
                             self.game.renderer.add_explosion(
@@ -249,7 +251,8 @@ class PlayMode:
                                 enemy.pos["y"] + enemy.size/2,  # Center Y
                                 int(explosion_size)
                             )
-                            logging.debug(f"Created explosion for {getattr(enemy, 'enemy_type', 'enemy')}")
+                            enemy_type = getattr(enemy, 'enemy_type', 'enemy')
+                            logging.debug(f"Created explosion for {enemy_type}")
                         
                         # Hide the enemy
                         enemy.hide()
@@ -270,7 +273,8 @@ class PlayMode:
                                     score_value = 150  # More points for fast enemy
                             
                             self.game.score += score_value
-                            logging.info(f"Score: {self.game.score} (+{score_value} for missile hit)")
+                            logging.info(f"Score: {self.game.score} "
+                                         f"(+{score_value} for missile hit)")
                         
                         break  # One missile hits one enemy
         # Backward compatibility with single enemy
@@ -291,7 +295,8 @@ class PlayMode:
                         self.game.player.missiles.remove(missile)
                         
                         # Create explosion animation
-                        if hasattr(self.game, 'renderer') and hasattr(self.game.renderer, 'add_explosion'):
+                        if (hasattr(self.game, 'renderer') and 
+                                hasattr(self.game.renderer, 'add_explosion')):
                             self.game.renderer.add_explosion(
                                 self.game.enemy.pos["x"] + self.game.enemy.size/2,
                                 self.game.enemy.pos["y"] + self.game.enemy.size/2,
