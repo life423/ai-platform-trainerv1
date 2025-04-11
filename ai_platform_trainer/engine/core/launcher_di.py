@@ -1,21 +1,23 @@
-# file: ai_platform_trainer/core/launcher_di.py
+# file: ai_platform_trainer/engine/core/launcher_di.py
 """
 Launcher module for the AI Platform Trainer with dependency injection.
 Registers all services with the ServiceLocator before starting the game.
 """
 import pygame
-from config_manager import load_settings, save_settings
-from ai_platform_trainer.core.config_manager import get_config_manager
 
+from ai_platform_trainer.core.config_manager import get_config_manager
 from ai_platform_trainer.core.logging_config import setup_logging
 from ai_platform_trainer.core.service_locator import ServiceLocator
-from ai_platform_trainer.gameplay.game_di import Game
-from ai_platform_trainer.gameplay.renderer_di import Renderer
-from ai_platform_trainer.gameplay.input_handler import InputHandler
+from ai_platform_trainer.engine.core.game_di import Game
+from ai_platform_trainer.engine.input.input_handler import InputHandler
+from ai_platform_trainer.engine.physics.collisions import handle_missile_collisions
+from ai_platform_trainer.engine.rendering.display_manager import init_pygame_display
+from ai_platform_trainer.engine.rendering.renderer_di import Renderer
 from ai_platform_trainer.entities.entity_factory import PlayEntityFactory, TrainingEntityFactory
+
+# Menu not yet refactored to engine directory
 from ai_platform_trainer.gameplay.menu import Menu
-from ai_platform_trainer.gameplay.display_manager import init_pygame_display
-from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
+from config_manager import load_settings, save_settings
 
 
 class DisplayService:
