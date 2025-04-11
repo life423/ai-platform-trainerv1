@@ -61,7 +61,7 @@ class Renderer:
             else:
                 # Render game elements
                 if hasattr(player, 'position') and player:
-                    # In case we have a list of enemies, we'll render them all
+                    # In case we have multiple enemies, check player's game attribute
                     enemies = []
                     if hasattr(player, 'game') and hasattr(player.game, 'enemies'):
                         enemies = player.game.enemies
@@ -77,16 +77,17 @@ class Renderer:
             logging.error(f"Error during rendering: {e}")
 
     def _render_game(self, player, enemy, enemies=None) -> None:
-            enemies: List of enemy instances (optional)
         """
-        # Update and render any active explosions
-        self._update_explosions()
         Render the game elements during gameplay.
 
         Args:
             player: Player instance
             enemy: Enemy instance
+            enemies: List of enemy instances (optional)
         """
+        # Update and render any active explosions
+        self._update_explosions()
+        
         # Draw player with sprite
         if hasattr(player, 'position') and hasattr(player, 'size'):
             self._render_player(player)
@@ -172,8 +173,10 @@ class Renderer:
                 tinted_sprite.blit(overlay, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
                 
                 sprite = tinted_sprite
+        
         sprite.set_alpha(alpha)
         self.screen.blit(sprite, (enemy.pos["x"], enemy.pos["y"]))
+        
         # For tank enemies, show damage state if applicable
         if hasattr(enemy, 'enemy_type') and enemy.enemy_type == "tank" and hasattr(enemy, 'damage_state'):
             self._render_tank_damage_state(enemy)
@@ -213,9 +216,43 @@ class Renderer:
                 (pos_x + size, pos_y + size * 0.5),
                 2
             )
+    
     def _render_missile(self, missile) -> None:
         """
         Render a missile entity with sprites.
+
+        Args:
+            missile: Missile instance
+        """
+        if hasattr(missile, 'position') and hasattr(missile, 'size'):
+            # Determine sprite size - make it a bit more elongated
+            width = missile.size
+            height = int(missile.size * 1.5)
+            size = (width, height)
+
+            # Calculate rotation angle based on direction
+            rotation = 0
+            if hasattr(missile, 'direction'):
+                # Convert direction to angle in degrees
+                dx, dy = missile.direction
+                if dx != 0 or dy != 0:
+                    import math
+                    angle_rad = math.atan2(dy, dx)
+                    rotation = math.degrees(angle_rad) + 90  # Adjust so 0 points up
+
+            # Render the missile sprite with rotation
+            self.sprite_manager.render(
+                screen=self.screen,
+                entity_type="missile",
+                position=missile.position,
+                size=size,
+                rotation=rotation
+            )
+
+            # Add a trail effect if effects are enabled
+            if self.enable_effects and self.frame_count % 2 == 0:
+                self._add_missile_trail(missile)
+
     def add_explosion(self, x: float, y: float, size: int = 40) -> None:
         """
         Add a new explosion animation at the specified position.
@@ -287,38 +324,7 @@ class Renderer:
             
         # Replace explosion list with updated one
         self.explosions = updated_explosions
-        Args:
-            missile: Missile instance
-        """
-        if hasattr(missile, 'position') and hasattr(missile, 'size'):
-            # Determine sprite size - make it a bit more elongated
-            width = missile.size
-            height = int(missile.size * 1.5)
-            size = (width, height)
-
-            # Calculate rotation angle based on direction
-            rotation = 0
-            if hasattr(missile, 'direction'):
-                # Convert direction to angle in degrees
-                dx, dy = missile.direction
-                if dx != 0 or dy != 0:
-                    import math
-                    angle_rad = math.atan2(dy, dx)
-                    rotation = math.degrees(angle_rad) + 90  # Adjust so 0 points up
-
-            # Render the missile sprite with rotation
-            self.sprite_manager.render(
-                screen=self.screen,
-                entity_type="missile",
-                position=missile.position,
-                size=size,
-                rotation=rotation
-            )
-
-            # Add a trail effect if effects are enabled
-            if self.enable_effects and self.frame_count % 2 == 0:
-                self._add_missile_trail(missile)
-
+    
     def _add_missile_trail(self, missile) -> None:
         """
         Add a particle effect trail behind a missile.
