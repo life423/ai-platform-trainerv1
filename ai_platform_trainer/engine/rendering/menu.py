@@ -11,6 +11,11 @@ import pygame
 
 class Menu:
     def __init__(self, screen_width, screen_height):
+        # Get actual display info to calculate scaling
+        display_info = pygame.display.Info()
+        self.actual_width = display_info.current_w
+        self.actual_height = display_info.current_h
+        
         # Menu options displayed in the main menu
         self.menu_options = ["Play", "AI Select", "Train", "Help", "Exit"]
         # Tracks which menu option is currently selected (for keyboard input)
@@ -30,10 +35,17 @@ class Menu:
         # Store screen dimensions to position menu items correctly
         self.screen_width = screen_width
         self.screen_height = screen_height
+        
+        # Calculate scaling factor for fonts based on resolution
+        self.scale_factor = min(self.actual_width / 1920, self.actual_height / 1080)
+        
+        # Scale font sizes based on display resolution
+        title_size = int(100 * self.scale_factor)
+        option_size = int(60 * self.scale_factor)
 
         # Fonts and colors for text rendering and background
-        self.font_title = pygame.font.Font(None, 100)  # Large font for the main title
-        self.font_option = pygame.font.Font(None, 60)  # Font for menu options
+        self.font_title = pygame.font.Font(None, max(title_size, 40))  # Large font for the main title
+        self.font_option = pygame.font.Font(None, max(option_size, 30))  # Font for menu options
         self.color_background = (135, 206, 235)  # Light blue background color
         self.color_title = (0, 51, 102)  # Dark blue for title text
         self.color_option = (245, 245, 245)  # Light gray for unselected options
@@ -203,8 +215,9 @@ class Menu:
         )
         screen.blit(ai_title_surface, ai_title_rect)
 
-        # Create a smaller font for descriptions
-        font_info = pygame.font.Font(None, 34)
+        # Create a smaller font for descriptions with appropriate scaling
+        info_size = int(34 * self.scale_factor)
+        font_info = pygame.font.Font(None, max(info_size, 24))
 
         # Render AI options
         for index, option in enumerate(self.ai_options):
@@ -265,8 +278,9 @@ class Menu:
         )
         screen.blit(help_title_surface, help_title_rect)
 
-        # Create a smaller font for more detailed explanations
-        font_info = pygame.font.Font(None, 34)
+        # Create a smaller font for more detailed explanations with proper scaling
+        info_size = int(34 * self.scale_factor)
+        font_info = pygame.font.Font(None, max(info_size, 24))
 
         # Controls section
         controls_title = self.font_option.render("Controls:", True, self.color_selected)

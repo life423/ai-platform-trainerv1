@@ -22,14 +22,12 @@ from ai_platform_trainer.entities.player_play import PlayerPlay
 from ai_platform_trainer.entities.player_training import PlayerTraining
 from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
 from ai_platform_trainer.gameplay.difficulty_manager import DifficultyManager
-from ai_platform_trainer.gameplay.display_manager import (
-    init_pygame_display,
-    toggle_fullscreen_display,
-)
 from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
 from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
 from ai_platform_trainer.gameplay.renderer import Renderer
+from ai_platform_trainer.gameplay.screen_manager import ScreenManager
+from ai_platform_trainer.gameplay.scaled_menu import ScaledMenu
 from ai_platform_trainer.gameplay.spawner import respawn_enemy_with_fade_in, spawn_entities
 
 
@@ -49,15 +47,29 @@ class Game:
         self.mode: Optional[str] = None
 
         self.settings = get_config_manager("settings.json").config
-        self.settings["fullscreen"] = True
-        # Initialize screen dimensions from game config
+        # Initialize screen dimensions from game config (logical resolution)
         self.screen_width = config.SCREEN_WIDTH
         self.screen_height = config.SCREEN_HEIGHT
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+        
+        # Set fullscreen by default
+        self.settings["fullscreen"] = True
+        
+        # Initialize screen manager for better display management
+        self.screen_manager = ScreenManager()
+        self.screen = self.screen_manager.initialize_display(fullscreen=True)
+        
         pygame.display.set_caption(config.WINDOW_TITLE)
         self.clock = pygame.time.Clock()
+        
+        # Use ScaledMenu with ScreenManager for proper fullscreen scaling
+        self.scaled_menu = ScaledMenu(self.screen_manager)
+        
+        # Keep regular menu for compatibility with other code
         self.menu = Menu(self.screen_width, self.screen_height)
+        
+        # Initialize renderer with screen
         self.renderer = Renderer(self.screen)
+        
         self.player: Optional[PlayerPlay] = None
         self.enemy: Optional[EnemyPlay] = None
         self.enemies: List[EnemyPlay] = []
@@ -108,21 +120,13 @@ class Game:
         return self.settings.get(key, default)
 
     def _toggle_fullscreen(self):
-        # Toggle fullscreen mode safely, always fallback to windowed if key missing
+        # Toggle fullscreen mode using ScreenManager
         was_fullscreen = self._get_setting("fullscreen", False)
         self.settings["fullscreen"] = not was_fullscreen
-        pygame.display.quit()
-        pygame.display.init()
-        if self.settings["fullscreen"]:
-            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
-        else:
-            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        pygame.display.set_caption(config.WINDOW_TITLE)
-
-    def _init_fullscreen(self):
-        # Always start in fullscreen
-        self.settings["fullscreen"] = True
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+        # Use ScreenManager to toggle fullscreen
+        self.screen = self.screen_manager.toggle_fullscreen()
+        # Update screen references in menu and renderer
+        self.scaled_menu.update_screen_reference(self.screen_manager)
         pygame.display.set_caption(config.WINDOW_TITLE)
 
     def run(self) -> None:
@@ -131,7 +135,8 @@ class Game:
             self.handle_events()
 
             if self.menu_active:
-                self.menu.draw(self.screen)
+                # Use the ScaledMenu for drawing instead of the regular menu
+                self.scaled_menu.draw(self.screen)
             else:
                 self.update(current_time)
                 # Pass the game instance to player so it can access game.enemies
@@ -287,7 +292,8 @@ class Game:
                     self._toggle_fullscreen()
 
                 if self.menu_active:
-                    selected_action = self.menu.handle_menu_events(event)
+                    # Use the ScaledMenu for event handling
+                    selected_action = self.scaled_menu.handle_menu_events(event)
                     if selected_action:
                         self.check_menu_selection(selected_action)
                 else:
@@ -306,7 +312,8 @@ class Game:
 
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.menu_active:
-                    selected_action = self.menu.handle_menu_events(event)
+                    # Use the ScaledMenu for event handling
+                    selected_action = self.scaled_menu.handle_menu_events(event)
                     if selected_action:
                         self.check_menu_selection(selected_action)
 

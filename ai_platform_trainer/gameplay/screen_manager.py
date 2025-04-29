@@ -53,6 +53,7 @@ class ScreenManager:
     def initialize_display(self, fullscreen=True):
         """
         Initialize the pygame display with the appropriate resolution and mode.
+        Uses FULLSCREEN flag with proper scaling to fill the entire screen.
         
         Args:
             fullscreen: Whether to start in fullscreen mode
@@ -63,13 +64,18 @@ class ScreenManager:
         self.fullscreen = fullscreen
         
         if fullscreen:
-            # Use native resolution for fullscreen
+            # For fullscreen, set the video mode to the native resolution
+            # and render stretched to fill the entire screen
             self.current_width = self.native_width
             self.current_height = self.native_height
+            
+            # Set mode with FULLSCREEN flag
             self.screen = pygame.display.set_mode(
-                (self.current_width, self.current_height),
-                pygame.FULLSCREEN
+                (self.native_width, self.native_height),
+                pygame.FULLSCREEN | pygame.HWSURFACE
             )
+            
+            logging.info(f"Fullscreen display initialized at native resolution: {self.native_width}x{self.native_height}")
         else:
             # Use design resolution for windowed mode
             self.current_width = self.design_width
@@ -95,18 +101,26 @@ class ScreenManager:
     
     def update_scaling_factors(self):
         """
-        Calculate scaling factors to maintain aspect ratio.
-        This ensures the game fits the screen without distortion.
+        Calculate scaling factors for proper coordinate transformations.
+        In fullscreen mode, stretch to fill the entire screen.
         """
+        # Calculate the basic scaling factors based on current dimensions
         self.scale_x = self.current_width / self.design_width
         self.scale_y = self.current_height / self.design_height
         
-        # For aspect ratio preservation, use the smaller scale factor
-        self.scale = min(self.scale_x, self.scale_y)
-        
-        # Calculate offsets to center the game content
-        self.offset_x = (self.current_width - self.design_width * self.scale) / 2
-        self.offset_y = (self.current_height - self.design_height * self.scale) / 2
+        if self.fullscreen:
+            # In fullscreen, use different scaling for X and Y to stretch content
+            # to fill the entire screen without black bars
+            self.scale = 1.0  # Not used directly, each axis uses its own scale 
+            
+            # No offsets in fullscreen stretched mode
+            self.offset_x = 0
+            self.offset_y = 0
+        else:
+            # In windowed mode, maintain the original aspect ratio
+            self.scale = min(self.scale_x, self.scale_y)
+            self.offset_x = (self.current_width - self.design_width * self.scale) / 2
+            self.offset_y = (self.current_height - self.design_height * self.scale) / 2
         
         logging.debug(f"Scaling factors updated: x={self.scale_x}, y={self.scale_y}, scale={self.scale}")
         logging.debug(f"Offsets: x={self.offset_x}, y={self.offset_y}")
@@ -122,8 +136,15 @@ class ScreenManager:
         Returns:
             Tuple of (x, y) in screen coordinates
         """
-        screen_x = x * self.scale + self.offset_x
-        screen_y = y * self.scale + self.offset_y
+        if self.fullscreen:
+            # In fullscreen stretched mode, use different scaling for each axis
+            screen_x = x * self.scale_x
+            screen_y = y * self.scale_y
+        else:
+            # In windowed mode, use uniform scaling with offset
+            screen_x = x * self.scale + self.offset_x
+            screen_y = y * self.scale + self.offset_y
+            
         return (screen_x, screen_y)
     
     def get_scaled_dimensions(self, width, height):
@@ -137,7 +158,12 @@ class ScreenManager:
         Returns:
             Tuple of (width, height) in screen coordinates
         """
-        return (width * self.scale, height * self.scale)
+        if self.fullscreen:
+            # In fullscreen stretched mode, use different scaling for each axis
+            return (width * self.scale_x, height * self.scale_y)
+        else:
+            # In windowed mode, use uniform scaling
+            return (width * self.scale, height * self.scale)
     
     def get_design_rect(self, x, y, width, height):
         """
@@ -201,9 +227,14 @@ class ScreenManager:
         Returns:
             Tuple of (x, y) in design coordinates
         """
-        # Reverse the scaling calculation
-        design_x = (screen_x - self.offset_x) / self.scale
-        design_y = (screen_y - self.offset_y) / self.scale
+        if self.fullscreen:
+            # In fullscreen stretched mode, use different scaling for each axis
+            design_x = screen_x / self.scale_x
+            design_y = screen_y / self.scale_y
+        else:
+            # In windowed mode, account for offsets
+            design_x = (screen_x - self.offset_x) / self.scale
+            design_y = (screen_y - self.offset_y) / self.scale
         
         return (design_x, design_y)
     
