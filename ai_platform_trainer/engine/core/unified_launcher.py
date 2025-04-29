@@ -19,8 +19,13 @@ try:
 
     # Import game modes
     from ai_platform_trainer.engine.core.game import Game as StandardGame
+<<<<<<< HEAD
     from ai_platform_trainer.gameplay.game_di import Game as DIGame
     from ai_platform_trainer.gameplay.game_refactored import Game as StateMachineGame
+=======
+    from ai_platform_trainer.engine.core.game_di import Game as DIGame
+    from ai_platform_trainer.engine.core.game_refactored import Game as StateMachineGame
+>>>>>>> d209db6 (refactor: update all game implementations to use engine/core versions)
 except ImportError as e:
     print(f"Critical import error: {e}")
     print("Cannot initialize launcher system.")
