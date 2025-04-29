@@ -26,8 +26,8 @@ from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
 from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
 from ai_platform_trainer.gameplay.renderer import Renderer
-from ai_platform_trainer.gameplay.screen_manager import ScreenManager
 from ai_platform_trainer.gameplay.scaled_menu import ScaledMenu
+from ai_platform_trainer.gameplay.screen_manager import ScreenManager
 from ai_platform_trainer.gameplay.spawner import respawn_enemy_with_fade_in, spawn_entities
 
 
