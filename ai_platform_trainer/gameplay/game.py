@@ -7,19 +7,20 @@ from typing import List, Optional, Tuple
 import pygame
 import torch
 
-from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
-    EnemyMovementModel,
-)
+from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import EnemyMovementModel
 from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
+from ai_platform_trainer.core.config_manager import get_config_manager
 from ai_platform_trainer.core.data_logger import DataLogger
 from ai_platform_trainer.core.logging_config import setup_logging
+from ai_platform_trainer.engine.core.game_config import config
+
+# config is a class instance, not a module
 from ai_platform_trainer.entities.components.enemy_variants import create_enemy_by_type
 from ai_platform_trainer.entities.enemy_play import EnemyPlay
 from ai_platform_trainer.entities.enemy_training import EnemyTrain
 from ai_platform_trainer.entities.player_play import PlayerPlay
 from ai_platform_trainer.entities.player_training import PlayerTraining
 from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
-from ai_platform_trainer.gameplay.config import config
 from ai_platform_trainer.gameplay.difficulty_manager import DifficultyManager
 from ai_platform_trainer.gameplay.display_manager import (
     init_pygame_display,
@@ -29,11 +30,7 @@ from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
 from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
 from ai_platform_trainer.gameplay.renderer import Renderer
-from ai_platform_trainer.gameplay.spawner import (
-    respawn_enemy_with_fade_in,
-    spawn_entities,
-)
-from config_manager import load_settings, save_settings
+from ai_platform_trainer.gameplay.spawner import respawn_enemy_with_fade_in, spawn_entities
 
 
 class Game:
@@ -49,12 +46,9 @@ class Game:
         self.menu_active: bool = True
         self.mode: Optional[str] = None
 
-        self.settings = load_settings("settings.json")
-
-        (self.screen, self.screen_width, self.screen_height) = init_pygame_display(
-            fullscreen=self.settings.get("fullscreen", False)
-        )
-
+        self.settings = get_config_manager("settings.json").config        # Always start in fullscreen mode
+        self.settings["fullscreen"] = True
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
         pygame.display.set_caption(config.WINDOW_TITLE)
         self.clock = pygame.time.Clock()
         self.menu = Menu(self.screen_width, self.screen_height)
@@ -103,6 +97,28 @@ class Game:
         else:
             logging.warning(f"No missile model found at '{missile_model_path}'.")
             logging.warning("Skipping missile AI.")
+
+    def _get_setting(self, key, default=None):
+        # Helper to get a setting with a default fallback
+        return self.settings.get(key, default)
+
+    def _toggle_fullscreen(self):
+        # Toggle fullscreen mode safely, always fallback to windowed if key missing
+        was_fullscreen = self._get_setting("fullscreen", False)
+        self.settings["fullscreen"] = not was_fullscreen
+        pygame.display.quit()
+        pygame.display.init()
+        if self.settings["fullscreen"]:
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+        else:
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption(config.WINDOW_TITLE)
+
+    def _init_fullscreen(self):
+        # Always start in fullscreen
+        self.settings["fullscreen"] = True
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+        pygame.display.set_caption(config.WINDOW_TITLE)
 
     def run(self) -> None:
         while self.running:
@@ -334,28 +350,6 @@ class Game:
             logging.info(f"'{selected_action}' selected from menu.")
             self.menu_active = False
             self.start_game(selected_action)
-
-    def _toggle_fullscreen(self) -> None:
-        """
-        Helper that toggles between windowed and fullscreen,
-        updating self.screen, self.screen_width, self.screen_height.
-        """
-        was_fullscreen = self.settings["fullscreen"]
-        new_display, w, h = toggle_fullscreen_display(
-            not was_fullscreen, config.SCREEN_SIZE
-        )
-        self.settings["fullscreen"] = not was_fullscreen
-        save_settings(self.settings, "settings.json")
-
-        self.screen = new_display
-        self.screen_width, self.screen_height = w, h
-        pygame.display.set_caption(config.WINDOW_TITLE)
-        self.menu = Menu(self.screen_width, self.screen_height)
-
-        if not self.menu_active:
-            current_mode = self.mode
-            self.reset_game_state()
-            self.start_game(current_mode)
 
     def update(self, current_time: int) -> None:
         if self.mode == "train" and self.training_mode_manager:

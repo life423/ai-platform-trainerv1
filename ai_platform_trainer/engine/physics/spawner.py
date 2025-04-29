@@ -3,7 +3,7 @@ import logging
 from ai_platform_trainer.gameplay.spawn_utils import (
     find_valid_spawn_position,
 )
-from ai_platform_trainer.gameplay.config import config
+from ai_platform_trainer.engine.core.game_config import config
 
 
 def spawn_entities(game):

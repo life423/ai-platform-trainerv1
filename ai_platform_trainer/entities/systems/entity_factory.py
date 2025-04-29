@@ -13,7 +13,7 @@ from ai_platform_trainer.entities.enemy_training import EnemyTrain
 from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
     EnemyMovementModel,
 )
-from ai_platform_trainer.gameplay.config import config
+from ai_platform_trainer.engine.core.game_config import config
 
 
 class PlayEntityFactory(IEntityFactory):

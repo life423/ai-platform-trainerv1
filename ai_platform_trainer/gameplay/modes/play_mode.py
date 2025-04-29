@@ -8,10 +8,10 @@ import logging
 
 import pygame
 
-from ai_platform_trainer.entities.behaviors.missile_ai_controller import (
-    update_missile_ai,
-)
-from ai_platform_trainer.entities.components.power_up_manager import PowerUpManager
+from ai_platform_trainer.entities.behaviors.missile_ai_controller import \
+    update_missile_ai
+from ai_platform_trainer.entities.components.power_up_manager import \
+    PowerUpManager
 from ai_platform_trainer.gameplay.difficulty_manager import DifficultyManager
 
 
@@ -331,8 +331,9 @@ class PlayMode:
         if not hasattr(self.game, "enemies") or not self.game.enemies:
             return
 
-        from ai_platform_trainer.gameplay.config import config
-        from ai_platform_trainer.gameplay.spawn_utils import find_valid_spawn_position
+        from ai_platform_trainer.engine.core.game_config import config
+        from ai_platform_trainer.gameplay.spawn_utils import \
+            find_valid_spawn_position
 
         for enemy in self.game.enemies:
             is_invisible = not enemy.visible
@@ -492,4 +493,5 @@ class PlayMode:
             # Award 1 point per second survived
             self.game.score += 1
             self.game.last_score_time = current_time
+            logging.debug(f"Score: {self.game.score} (+1 for survival)")
             logging.debug(f"Score: {self.game.score} (+1 for survival)")

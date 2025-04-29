@@ -6,7 +6,7 @@ import pygame
 from ai_platform_trainer.engine.rendering.background import BackgroundManager
 
 # Import sprite manager and background manager
-from ai_platform_trainer.utils.sprite_manager import SpriteManager
+# from ai_platform_trainer.utils.sprite_manager import SpriteManager  # Removed for sprite-free build
 
 
 class Renderer:
@@ -26,7 +26,7 @@ class Renderer:
 
         # Initialize sprite and background managers
         logging.info("Initializing sprite manager...")
-        self.sprite_manager = SpriteManager()
+        # self.sprite_manager = SpriteManager()  # Removed for sprite-free build
 
         # Test load a sprite to verify sprite loading works
         try:

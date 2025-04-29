@@ -5,23 +5,22 @@ Registers all services with the ServiceLocator before starting the game.
 """
 
 import pygame
+from config_manager import load_settings, save_settings
 
 from ai_platform_trainer.core.config_manager import get_config_manager
 from ai_platform_trainer.core.logging_config import setup_logging
 from ai_platform_trainer.core.service_locator import ServiceLocator
 from ai_platform_trainer.engine.core.game_di import Game
 from ai_platform_trainer.engine.input.input_handler import InputHandler
-from ai_platform_trainer.engine.physics.collisions import handle_missile_collisions
-from ai_platform_trainer.engine.rendering.display_manager import init_pygame_display
+from ai_platform_trainer.engine.physics.collisions import \
+    handle_missile_collisions
+from ai_platform_trainer.engine.rendering.display_manager import \
+    init_pygame_display
 from ai_platform_trainer.engine.rendering.renderer_di import Renderer
-from ai_platform_trainer.entities.entity_factory import (
-    PlayEntityFactory,
-    TrainingEntityFactory,
-)
-
+from ai_platform_trainer.entities.entity_factory import (PlayEntityFactory,
+                                                         TrainingEntityFactory)
 # Menu not yet refactored to engine directory
 from ai_platform_trainer.gameplay.menu import Menu
-from config_manager import load_settings, save_settings
 
 
 class DisplayService:
@@ -129,7 +128,7 @@ def register_services():
     ServiceLocator.register("clock", clock)
 
     # Register configuration (legacy config)
-    from ai_platform_trainer.gameplay.config import config
+    from ai_platform_trainer.engine.core.game_config import config
 
     ServiceLocator.register("config", config)
 

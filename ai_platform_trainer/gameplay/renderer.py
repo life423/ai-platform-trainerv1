@@ -2,9 +2,6 @@ import logging
 
 import pygame
 
-# Import sprite manager for entity rendering
-from ai_platform_trainer.utils.sprite_manager import SpriteManager
-
 
 class Renderer:
     def __init__(self, screen: pygame.Surface) -> None:
@@ -17,17 +14,11 @@ class Renderer:
         self.screen = screen
         self.BACKGROUND_COLOR = (135, 206, 235)  # Light blue
 
-        # Initialize sprite manager
-        self.sprite_manager = SpriteManager()
-
         # Optional effects
         self.enable_effects = True
         self.frame_count = 0
-        self.particle_effects = []
-
-        # Explosion animation tracking
+        self.particle_effects = []        # Explosion animation tracking
         self.explosions = []
-        self.explosion_frames = None  # Will be loaded on demand
         self.explosion_frame_count = 4
 
         # Enemy type color variations
@@ -36,6 +27,21 @@ class Renderer:
             "fast": (255, 180, 50),  # Orange
             "tank": (120, 50, 120),  # Purple
         }
+
+        self.explosion_frames = self._load_explosion_frames()
+
+    def _load_explosion_frames(self):
+        """Load explosion sprite frames or create a default if not available."""
+        frames = []
+        try:
+            explosion_sheet = pygame.image.load("assets/explosion.png")  # Adjust path as needed
+            frames = [explosion_sheet]  # Modify if you have multiple frames
+        except Exception:
+            logging.warning("Could not load explosion frames, using default.")
+            default_frame = pygame.Surface((32, 32), pygame.SRCALPHA)
+            pygame.draw.circle(default_frame, (255, 0, 0), (16, 16), 16)
+            frames = [default_frame]
+        return frames
 
     def render(self, menu, player, enemy, menu_active: bool) -> None:
         """
@@ -88,7 +94,7 @@ class Renderer:
         # Update and render any active explosions
         self._update_explosions()
 
-        # Draw player with sprite
+        # Draw player
         if hasattr(player, "position") and hasattr(player, "size"):
             self._render_player(player)
 
@@ -117,71 +123,41 @@ class Renderer:
 
     def _render_player(self, player) -> None:
         """
-        Render the player entity with sprites.
+        Render the player entity.
 
         Args:
             player: Player instance
         """
-        # Determine sprite size
-        size = (player.size, player.size)
+        # Determine player rectangle
+        size = player.size
+        rect = pygame.Rect(player.position["x"], player.position["y"], size, size)
 
-        # Render the player sprite
-        self.sprite_manager.render(
-            screen=self.screen,
-            entity_type="player",
-            position=player.position,
-            size=size,
-        )
+        # Draw the player rectangle
+        pygame.draw.rect(self.screen, (0, 255, 0), rect)  # Green
 
     def _render_enemy(self, enemy) -> None:
         """
-        Render the enemy entity with sprites.
+        Render the enemy entity.
 
         Args:
             enemy: Enemy instance
         """
-        # Determine sprite size
-        size = (enemy.size, enemy.size)
+        # Determine enemy rectangle
+        size = enemy.size
+        rect = pygame.Rect(enemy.pos["x"], enemy.pos["y"], size, size)
 
         # Check if the enemy is fading in
         alpha = 255
         if hasattr(enemy, "fading_in") and enemy.fading_in:
-            alpha = enemy.fade_alpha
-
-        # Determine enemy type for visual differentiation
+            alpha = enemy.fade_alpha        # Determine enemy type for visual differentiation
         enemy_type = "enemy"  # Default
         if hasattr(enemy, "enemy_type"):
             enemy_type = enemy.enemy_type
-
-        # Get appropriate sprite based on enemy type
-        sprite = None
-
-        # First try to load a type-specific sprite
-        specific_sprite_name = f"enemy_{enemy_type}"
-        try:
-            sprite = self.sprite_manager.load_sprite(specific_sprite_name, size)
-        except Exception:
-            # Fall back to generic enemy sprite
-            sprite = self.sprite_manager.load_sprite("enemy", size)
-
-            # If we have a generic sprite but different enemy types,
-            # apply color tinting to differentiate them visually
-            if hasattr(enemy, "enemy_type") and enemy.enemy_type in self.enemy_colors:
-                # Create a copy of the sprite for tinting
-                tinted_sprite = sprite.copy()
-                color = self.enemy_colors.get(enemy.enemy_type, (255, 255, 255))
-
-                # Apply the tint by creating a colored overlay
-                overlay = pygame.Surface(size, pygame.SRCALPHA)
-                overlay.fill((*color, 128))  # Semi-transparent color
-                tinted_sprite.blit(
-                    overlay, (0, 0), special_flags=pygame.BLEND_RGBA_MULT
-                )
-
-                sprite = tinted_sprite
-
-        sprite.set_alpha(alpha)
-        self.screen.blit(sprite, (enemy.pos["x"], enemy.pos["y"]))
+        color = self.enemy_colors.get(enemy_type, (255, 0, 0))
+        rect = pygame.Rect(enemy.pos["x"], enemy.pos["y"], enemy.size, enemy.size)
+        surface = pygame.Surface((enemy.size, enemy.size), pygame.SRCALPHA)
+        surface.fill((*color, alpha))
+        self.screen.blit(surface, rect)
 
         # For tank enemies, show damage state if applicable
         if (

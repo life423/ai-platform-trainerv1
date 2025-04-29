@@ -1,7 +1,5 @@
 LICENSE
-README.md
 pyproject.toml
-setup.cfg
 setup.py
 src/ai_platform_trainer/__init__.py
 src/ai_platform_trainer/main.py
@@ -11,7 +9,6 @@ src/ai_platform_trainer.egg-info/dependency_links.txt
 src/ai_platform_trainer.egg-info/requires.txt
 src/ai_platform_trainer.egg-info/top_level.txt
 src/ai_platform_trainer/core/__init__.py
-src/ai_platform_trainer/core/config.py
 src/ai_platform_trainer/core/data_logger.py
 src/ai_platform_trainer/core/game.py
 src/ai_platform_trainer/core/interfaces.py
@@ -48,7 +45,6 @@ src/ai_platform_trainer/physics/cpp/verify_gpu_training.py
 src/ai_platform_trainer/rendering/__init__.py
 src/ai_platform_trainer/rendering/display_manager.py
 src/ai_platform_trainer/rendering/renderer.py
-src/ai_platform_trainer/rendering/sprite_manager.py
 src/ai_platform_trainer/utils/__init__.py
 src/ai_platform_trainer/utils/common.py
 src/ai_platform_trainer/utils/environment.py

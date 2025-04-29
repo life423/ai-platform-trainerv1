@@ -2,7 +2,7 @@ import math
 import random
 from typing import Optional, Tuple
 
-from ai_platform_trainer.gameplay.config import config
+from ai_platform_trainer.engine.core.game_config import config
 
 
 def compute_normalized_direction(

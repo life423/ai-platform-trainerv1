@@ -4,16 +4,17 @@ Entity factory for creating game entities.
 """
 
 import logging
+
 import torch
+
 from ai_platform_trainer.core.interfaces import IEntityFactory
-from ai_platform_trainer.entities.player_play import PlayerPlay
-from ai_platform_trainer.entities.player_training import PlayerTraining
+from ai_platform_trainer.engine.core.game_config import config
 from ai_platform_trainer.entities.enemy_play import EnemyPlay
 from ai_platform_trainer.entities.enemy_training import EnemyTrain
-from ai_platform_trainer.ml.model_definition.enemy_movement_model import (
-    EnemyMovementModel,
-)
-from ai_platform_trainer.gameplay.config import config
+from ai_platform_trainer.entities.player_play import PlayerPlay
+from ai_platform_trainer.entities.player_training import PlayerTraining
+from ai_platform_trainer.ml.model_definition.enemy_movement_model import \
+    EnemyMovementModel
 
 
 class PlayEntityFactory(IEntityFactory):
@@ -109,4 +110,5 @@ class TrainingEntityFactory(IEntityFactory):
             EnemyTrain: An enemy entity for training mode
         """
         enemy = EnemyTrain(screen_width, screen_height)
+        return enemy
         return enemy

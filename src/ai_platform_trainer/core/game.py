@@ -6,44 +6,39 @@ user events, and coordinates between various subsystems.
 """
 
 import logging
-import os
 import math
-import pygame
-import torch
+import os
 from typing import Optional, Tuple
 
-# Logging setup
-from ai_platform_trainer.core.logging_config import setup_logging
+import pygame
+import torch
 from config_manager import load_settings, save_settings
-
-# Gameplay imports
-from ai_platform_trainer.physics.collisions import handle_missile_collisions
-from ai_platform_trainer.gameplay.config import config
-from ai_platform_trainer.gameplay.menu import Menu
-from ai_platform_trainer.rendering.renderer import Renderer
-from ai_platform_trainer.gameplay.spawner import (
-    spawn_entities,
-    respawn_enemy_with_fade_in,
-)
-from ai_platform_trainer.rendering.display_manager import (
-    init_pygame_display,
-    toggle_fullscreen_display,
-)
-
-# New import for missile AI updates
-from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
-
-# AI and model imports
-from ai_platform_trainer.ml.models.enemy_movement_model import EnemyMovementModel
-from ai_platform_trainer.ml.models.missile_model import SimpleMissileModel
 
 # Data logger and entity imports
 from ai_platform_trainer.core.data_logger import DataLogger
+# Logging setup
+from ai_platform_trainer.core.logging_config import setup_logging
+from ai_platform_trainer.engine.core.game_config import config
 from ai_platform_trainer.entities.enemy_play import EnemyPlay
 from ai_platform_trainer.entities.enemy_training import EnemyTrain
 from ai_platform_trainer.entities.player_play import PlayerPlay
 from ai_platform_trainer.entities.player_training import PlayerTraining
+from ai_platform_trainer.gameplay.menu import Menu
+# New import for missile AI updates
+from ai_platform_trainer.gameplay.missile_ai_controller import \
+    update_missile_ai
 from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
+from ai_platform_trainer.gameplay.spawner import (respawn_enemy_with_fade_in,
+                                                  spawn_entities)
+# AI and model imports
+from ai_platform_trainer.ml.models.enemy_movement_model import \
+    EnemyMovementModel
+from ai_platform_trainer.ml.models.missile_model import SimpleMissileModel
+# Gameplay imports
+from ai_platform_trainer.physics.collisions import handle_missile_collisions
+from ai_platform_trainer.rendering.display_manager import (
+    init_pygame_display, toggle_fullscreen_display)
+from ai_platform_trainer.rendering.renderer import Renderer
 
 
 class Game:
@@ -258,7 +253,8 @@ class Game:
         elif self.mode == "play":
             # If we haven't created a play_mode_manager yet, do so now
             if not hasattr(self, "play_mode_manager") or self.play_mode_manager is None:
-                from ai_platform_trainer.gameplay.modes.play_mode import PlayMode
+                from ai_platform_trainer.gameplay.modes.play_mode import \
+                    PlayMode
 
                 self.play_mode_manager = PlayMode(self)
 

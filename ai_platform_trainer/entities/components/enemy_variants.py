@@ -248,6 +248,26 @@ class TankEnemy(EnemyPlay):
         self.health = self.max_health
         self.damage_state = 0
 
+    def _constrain_to_screen(self, position=None):
+        """Keep the tank within screen boundaries."""
+        if position is None:
+            x, y = self.pos["x"], self.pos["y"]
+        else:
+            x, y = position
+        import pygame
+        screen = pygame.display.get_surface()
+        if screen:
+            screen_width, screen_height = screen.get_size()
+        else:
+            screen_width, screen_height = 800, 600  # Fallback
+        TANK_SIZE = self.size if hasattr(self, 'size') else 32
+        x = max(0, min(screen_width - TANK_SIZE, x))
+        y = max(0, min(screen_height - TANK_SIZE, y))
+        if position is None:
+            self.pos["x"], self.pos["y"] = x, y
+            return (x, y)
+        return (x, y)
+
 
 def create_enemy_by_type(
     enemy_type: str, screen_width: int, screen_height: int, model=None
