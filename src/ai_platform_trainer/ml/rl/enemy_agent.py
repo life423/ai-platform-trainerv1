@@ -5,6 +5,7 @@ This module defines a custom Gym environment that allows training an RL agent
 to control the enemy character using the Proximal Policy Optimization (PPO)
 algorithm from Stable Baselines3.
 """
+
 import gym
 from gym import spaces
 import numpy as np
@@ -20,7 +21,8 @@ class EnemyGameEnv(gym.Env):
     This environment wraps the game state and provides a reinforcement learning
     interface with observations, actions, rewards, and state transitions.
     """
-    metadata = {'render.modes': ['human']}
+
+    metadata = {"render.modes": ["human"]}
 
     def __init__(self, game_instance=None):
         """
@@ -33,18 +35,13 @@ class EnemyGameEnv(gym.Env):
 
         # Define action and observation space
         # Actions: continuous movement in x,y directions (-1 to 1)
-        self.action_space = spaces.Box(
-            low=-1, high=1, shape=(2,), dtype=np.float32
-        )
+        self.action_space = spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
 
         # Observation:
         # [player_x, player_y, enemy_x, enemy_y, distance,
         #  player_speed, time_since_last_hit]
         self.observation_space = spaces.Box(
-            low=-float('inf'),
-            high=float('inf'),
-            shape=(7,),
-            dtype=np.float32
+            low=-float("inf"), high=float("inf"), shape=(7,), dtype=np.float32
         )
 
         self.game = game_instance
@@ -72,13 +69,19 @@ class EnemyGameEnv(gym.Env):
             info: Additional information for debugging
         """
         # Apply action to enemy in the game
-        if self.game and self.game.enemy and hasattr(self.game.enemy, 'apply_rl_action'):
+        if (
+            self.game
+            and self.game.enemy
+            and hasattr(self.game.enemy, "apply_rl_action")
+        ):
             self.game.enemy.apply_rl_action(action)
         else:
-            logging.warning("Cannot apply RL action - game, enemy, or method not available")
+            logging.warning(
+                "Cannot apply RL action - game, enemy, or method not available"
+            )
 
         # Allow the game to update
-        if self.game and hasattr(self.game, 'update_once'):
+        if self.game and hasattr(self.game, "update_once"):
             self.game.update_once()
 
         # Calculate reward based on game state
@@ -117,7 +120,7 @@ class EnemyGameEnv(gym.Env):
         # Reset the game state if needed
         if self.game:
             # Only reset the enemy position, not the entire game
-            if hasattr(self.game, 'reset_enemy'):
+            if hasattr(self.game, "reset_enemy"):
                 self.game.reset_enemy()
 
         # Get initial observation
@@ -155,9 +158,9 @@ class EnemyGameEnv(gym.Env):
         player_speed = self.game.player.step / 10.0  # Normalize speed
         time_factor = time_since_hit / 10000.0  # Normalize time
 
-        obs = np.array([
-            px, py, ex, ey, dist, player_speed, time_factor
-        ], dtype=np.float32)
+        obs = np.array(
+            [px, py, ex, ey, dist, player_speed, time_factor], dtype=np.float32
+        )
 
         return obs
 
@@ -172,8 +175,8 @@ class EnemyGameEnv(gym.Env):
             return 1000.0
 
         return np.sqrt(
-            (self.game.player.position["x"] - self.game.enemy.pos["x"])**2 +
-            (self.game.player.position["y"] - self.game.enemy.pos["y"])**2
+            (self.game.player.position["x"] - self.game.enemy.pos["x"]) ** 2
+            + (self.game.player.position["y"] - self.game.enemy.pos["y"]) ** 2
         )
 
     def _calculate_reward(self) -> float:
@@ -212,7 +215,7 @@ class EnemyGameEnv(gym.Env):
 
         return reward
 
-    def render(self, mode='human'):
+    def render(self, mode="human"):
         """
         Render the environment.
 

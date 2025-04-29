@@ -1,6 +1,7 @@
 """
 Simple script to check CUDA capability in PyTorch.
 """
+
 import torch
 
 # Check CUDA
@@ -15,6 +16,8 @@ if torch.cuda.is_available():
     for i in range(torch.cuda.device_count()):
         print(f"\nDevice {i}: {torch.cuda.get_device_name(i)}")
         print(f"  Compute capability: {torch.cuda.get_device_capability(i)}")
-        print(f"  Memory: {torch.cuda.get_device_properties(i).total_memory / 1024**3:.2f} GB")
+        print(
+            f"  Memory: {torch.cuda.get_device_properties(i).total_memory / 1024**3:.2f} GB"
+        )
 else:
     print("WARNING: CUDA is not available! The training will run on CPU only.")

@@ -61,8 +61,7 @@ class PlayerPlay:
             if enemy_pos is not None:
                 # Calculate the angle toward the enemy's position
                 angle = math.atan2(
-                    enemy_pos["y"] - missile_start_y, 
-                    enemy_pos["x"] - missile_start_x
+                    enemy_pos["y"] - missile_start_y, enemy_pos["x"] - missile_start_x
                 )
                 # Add a small random deviation to simulate inaccuracy
                 angle += random.uniform(-0.1, 0.1)  # deviation in radians

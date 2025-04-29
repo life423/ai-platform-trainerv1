@@ -4,11 +4,15 @@ Main entry point for AI Platform Trainer.
 This module initializes and runs the game, handling environment setup,
 command-line arguments, and proper initialization of components.
 """
+
 import argparse
 import logging
 import sys
 
-from ai_platform_trainer.utils.environment import setup_gpu_environment, print_environment_info
+from ai_platform_trainer.utils.environment import (
+    setup_gpu_environment,
+    print_environment_info,
+)
 
 
 def setup_logging(log_level: str = "INFO") -> None:
@@ -41,21 +45,21 @@ def parse_args() -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(description="AI Platform Trainer")
     parser.add_argument(
-        "--mode", 
+        "--mode",
         choices=["play", "train", "benchmark"],
         default="play",
-        help="Game mode (play, train, or benchmark)"
+        help="Game mode (play, train, or benchmark)",
     )
     parser.add_argument(
-        "--headless", 
-        action="store_true", 
-        help="Run in headless mode (no visualization)"
+        "--headless",
+        action="store_true",
+        help="Run in headless mode (no visualization)",
     )
     parser.add_argument(
-        "--log-level", 
+        "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         default="INFO",
-        help="Logging level"
+        help="Logging level",
     )
     return parser.parse_args()
 
@@ -69,18 +73,18 @@ def main() -> int:
     """
     # Parse command-line arguments
     args = parse_args()
-    
+
     # Set up logging
     setup_logging(args.log_level)
     logger = logging.getLogger(__name__)
-    
+
     # Print environment information
     print_environment_info()
-    
+
     # Set up GPU environment
     device, cuda_working = setup_gpu_environment()
     logger.info(f"Using device: {device}")
-    
+
     # Initialize game components
     try:
         # For now, just print mode information
@@ -97,10 +101,10 @@ def main() -> int:
             logger.info("Starting benchmark mode")
             # benchmark = initialize_benchmark_mode(device)
             # return benchmark.run()
-        
+
         logger.info("Game mode placeholder executed successfully")
         return 0
-    
+
     except Exception as e:
         logger.exception(f"Error running game: {e}")
         return 1

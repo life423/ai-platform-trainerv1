@@ -4,6 +4,7 @@ Main game controller for AI Platform Trainer.
 This module defines the core Game class that manages the game loop,
 entities, and game states.
 """
+
 import logging
 import os
 import math
@@ -28,11 +29,16 @@ from ai_platform_trainer.engine.rendering.display_manager import (
     init_pygame_display,
     toggle_fullscreen_display,
 )
+
 # Missile AI updates
-from ai_platform_trainer.entities.behaviors.missile_ai_controller import update_missile_ai
+from ai_platform_trainer.entities.behaviors.missile_ai_controller import (
+    update_missile_ai,
+)
 
 # AI and model imports
-from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import EnemyMovementModel
+from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
+    EnemyMovementModel,
+)
 from ai_platform_trainer.ai.models.simple_missile_model import SimpleMissileModel
 
 # Data logger and entity imports
@@ -96,7 +102,7 @@ class Game:
         self.score = 0
         self.last_score_time = 0  # For time-based scoring
         self.survival_score_interval = 1000  # 1 second in milliseconds
-        
+
         # Reusable tensor for missile AI input
         self._missile_input = torch.zeros((1, 9), dtype=torch.float32)
 
@@ -109,7 +115,9 @@ class Game:
             logging.info("Loading missile model once...")
             try:
                 model = SimpleMissileModel()
-                model.load_state_dict(torch.load(missile_model_path, map_location="cpu"))
+                model.load_state_dict(
+                    torch.load(missile_model_path, map_location="cpu")
+                )
                 model.eval()
                 self.missile_model = model
             except Exception as e:
@@ -128,7 +136,9 @@ class Game:
                 self.menu.draw(self.screen)
             else:
                 self.update(current_time)
-                self.renderer.render(self.menu, self.player, self.enemy, self.menu_active)
+                self.renderer.render(
+                    self.menu, self.player, self.enemy, self.menu_active
+                )
 
             pygame.display.flip()
             self.clock.tick(config.FRAME_RATE)
@@ -171,13 +181,13 @@ class Game:
             raise e
 
         player = PlayerPlay(self.screen_width, self.screen_height)
-        
+
         # Create the main enemy (for backward compatibility)
         enemy = EnemyPlay(self.screen_width, self.screen_height, model)
-        
+
         # Initialize the enemies list
         self.enemies = []
-        
+
         # Check for RL model and try to load if available
         rl_model_path = "models/enemy_rl/final_model.zip"
         rl_loaded = False
@@ -186,7 +196,9 @@ class Game:
                 success = enemy.load_rl_model(rl_model_path)
                 if success:
                     rl_loaded = True
-                    logging.info("Using reinforcement learning model for enemy behavior")
+                    logging.info(
+                        "Using reinforcement learning model for enemy behavior"
+                    )
                 else:
                     logging.warning("RL model exists but couldn't be loaded.")
                     logging.warning("Falling back to neural network.")
@@ -198,18 +210,20 @@ class Game:
 
         # Create multiple enemies
         self.enemies.append(enemy)  # Add the main enemy to the list
-        
+
         # Create additional enemies
         for i in range(1, self.num_enemies):
             new_enemy = EnemyPlay(self.screen_width, self.screen_height, model)
-            
+
             # If RL model was loaded successfully for the first enemy, apply to all
             if rl_loaded:
                 new_enemy.load_rl_model(rl_model_path)
-                
+
             self.enemies.append(new_enemy)
-            
-        logging.info(f"Initialized PlayerPlay and {len(self.enemies)} enemies for play mode.")
+
+        logging.info(
+            f"Initialized PlayerPlay and {len(self.enemies)} enemies for play mode."
+        )
         return player, enemy  # Return the first enemy for backward compatibility
 
     def handle_events(self) -> None:
@@ -265,8 +279,7 @@ class Game:
         """
         was_fullscreen = self.settings["fullscreen"]
         new_display, w, h = toggle_fullscreen_display(
-            not was_fullscreen,
-            config.SCREEN_SIZE
+            not was_fullscreen, config.SCREEN_SIZE
         )
         self.settings["fullscreen"] = not was_fullscreen
         save_settings(self.settings, "settings.json")
@@ -285,13 +298,14 @@ class Game:
         if self.paused:
             # Skip updates while paused
             return
-            
+
         if self.mode == "train" and self.training_mode_manager:
             self.training_mode_manager.update()
         elif self.mode == "play":
             # If we haven't created a play_mode_manager yet, do so now
-            if not hasattr(self, 'play_mode_manager') or self.play_mode_manager is None:
+            if not hasattr(self, "play_mode_manager") or self.play_mode_manager is None:
                 from ai_platform_trainer.gameplay.modes.play_mode import PlayMode
+
                 self.play_mode_manager = PlayMode(self)
 
             self.play_mode_manager.update(current_time)
@@ -334,7 +348,7 @@ class Game:
                 self.player.position,
                 self.enemy.pos if self.enemy else None,
                 self._missile_input,
-                self.missile_model
+                self.missile_model,
             )
 
     def check_collision(self) -> bool:
@@ -347,10 +361,7 @@ class Game:
             self.player.size,
         )
         enemy_rect = pygame.Rect(
-            self.enemy.pos["x"],
-            self.enemy.pos["y"],
-            self.enemy.size,
-            self.enemy.size
+            self.enemy.pos["x"], self.enemy.pos["y"], self.enemy.size, self.enemy.size
         )
         return player_rect.colliderect(enemy_rect)
 
@@ -391,6 +402,7 @@ class Game:
         if self.enemy:
             # Place the enemy at a random location away from the player
             import random
+
             if self.player:
                 # Keep enemy away from player during resets
                 while True:
@@ -399,8 +411,8 @@ class Game:
 
                     # Calculate distance to player
                     distance = math.sqrt(
-                        (x - self.player.position["x"])**2 +
-                        (y - self.player.position["y"])**2
+                        (x - self.player.position["x"]) ** 2
+                        + (y - self.player.position["y"]) ** 2
                     )
 
                     # Ensure minimum distance
@@ -431,7 +443,7 @@ class Game:
 
         # Update based on current mode
         if self.mode == "play" and not self.menu_active:
-            if hasattr(self, 'play_mode_manager') and self.play_mode_manager:
+            if hasattr(self, "play_mode_manager") and self.play_mode_manager:
                 self.play_mode_manager.update(current_time)
             else:
                 self.play_update(current_time)

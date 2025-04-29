@@ -15,7 +15,7 @@ def spawn_entities(game):
         logging.error("Player not initialized properly.")
         game.running = False
         return
-        
+
     # Import obstacle class
     from ai_platform_trainer.entities.components.obstacle import Obstacle
 
@@ -32,16 +32,16 @@ def spawn_entities(game):
     logging.info(f"Spawned player at {player_pos}")
 
     # Handle multiple enemies if available
-    if hasattr(game, 'enemies') and game.enemies:
+    if hasattr(game, "enemies") and game.enemies:
         for i, enemy in enumerate(game.enemies):
             # Find a valid position for this enemy away from player and other enemies
             other_positions = [(game.player.position["x"], game.player.position["y"])]
-            
+
             # Also avoid other enemies that have already been placed
             for j in range(i):
                 other_enemy = game.enemies[j]
                 other_positions.append((other_enemy.pos["x"], other_enemy.pos["y"]))
-            
+
             # Find position for this enemy
             enemy_pos = find_valid_spawn_position(
                 screen_width=game.screen_width,
@@ -49,13 +49,15 @@ def spawn_entities(game):
                 entity_size=enemy.size,
                 margin=config.WALL_MARGIN,
                 min_dist=config.MIN_DISTANCE,
-                other_pos=other_positions[0],  # Use player position as primary constraint
+                other_pos=other_positions[
+                    0
+                ],  # Use player position as primary constraint
             )
-            
+
             enemy.pos["x"], enemy.pos["y"] = enemy_pos
             enemy.visible = True
-            logging.info(f"Spawned enemy {i+1} at {enemy_pos}")
-            
+            logging.info(f"Spawned enemy {i + 1} at {enemy_pos}")
+
     # For backward compatibility, handle the single enemy case
     elif game.enemy:
         enemy_pos = find_valid_spawn_position(
@@ -71,29 +73,29 @@ def spawn_entities(game):
         logging.info(f"Spawned single enemy at {enemy_pos}")
     else:
         logging.warning("No enemies to spawn")
-        
+
     # Spawn obstacles if supported
-    if hasattr(game, 'obstacles') and hasattr(game, 'num_obstacles'):
+    if hasattr(game, "obstacles") and hasattr(game, "num_obstacles"):
         # Clear any existing obstacles
         game.obstacles = []
-        
+
         # Get all existing entity positions to avoid
         avoid_positions = [(game.player.position["x"], game.player.position["y"])]
-        
-        if hasattr(game, 'enemies') and game.enemies:
+
+        if hasattr(game, "enemies") and game.enemies:
             for enemy in game.enemies:
                 avoid_positions.append((enemy.pos["x"], enemy.pos["y"]))
         elif game.enemy:
             avoid_positions.append((game.enemy.pos["x"], game.enemy.pos["y"]))
-            
+
         # Create obstacles
         obstacle_size = 40  # Default size for obstacles
         min_obstacles = min(game.num_obstacles, 8)  # Cap at 8 obstacles
-        
+
         for i in range(min_obstacles):
             # Make some obstacles destructible
-            destructible = (i % 3 == 0)  # Every third obstacle is destructible
-            
+            destructible = i % 3 == 0  # Every third obstacle is destructible
+
             # Find valid position for obstacle
             obs_pos = find_valid_spawn_position(
                 screen_width=game.screen_width,
@@ -103,21 +105,21 @@ def spawn_entities(game):
                 min_dist=config.MIN_DISTANCE,
                 other_pos=avoid_positions[0],  # Avoid player
             )
-            
+
             # Create obstacle
             obstacle = Obstacle(
                 x=obs_pos[0],
                 y=obs_pos[1],
                 size=obstacle_size,
-                destructible=destructible
+                destructible=destructible,
             )
-            
+
             # Add to game
             game.obstacles.append(obstacle)
-            
+
             # Add position to avoid list for next obstacle
             avoid_positions.append((obs_pos[0], obs_pos[1]))
-            
+
         logging.info(f"Spawned {len(game.obstacles)} obstacles")
 
 

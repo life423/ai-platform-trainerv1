@@ -4,6 +4,7 @@ Missile entity for AI Platform Trainer.
 This module defines the Missile class, which represents projectiles
 that can be fired by both the player and enemies.
 """
+
 import pygame
 
 

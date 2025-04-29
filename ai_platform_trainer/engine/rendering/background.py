@@ -4,6 +4,7 @@ Background renderer for AI Platform Trainer.
 This module provides different background styles for the game,
 including starfield, grid, and gradient effects.
 """
+
 import random
 import math
 import pygame
@@ -51,13 +52,15 @@ class BackgroundManager:
             brightness = random.randint(150, 255)
             speed = random.uniform(0.1, 0.5)
 
-            self.stars.append({
-                'x': x,
-                'y': y,
-                'size': size,
-                'color': (brightness, brightness, brightness),
-                'speed': speed
-            })
+            self.stars.append(
+                {
+                    "x": x,
+                    "y": y,
+                    "size": size,
+                    "color": (brightness, brightness, brightness),
+                    "speed": speed,
+                }
+            )
 
     def set_background(self, bg_type: str) -> None:
         """
@@ -100,25 +103,22 @@ class BackgroundManager:
         # Update and draw stars
         for star in self.stars:
             # Move star slightly (parallax effect)
-            star['y'] += star['speed']
+            star["y"] += star["speed"]
 
             # Wrap around when reaching the bottom
-            if star['y'] > self.screen_height:
-                star['y'] = 0
-                star['x'] = random.randint(0, self.screen_width)
+            if star["y"] > self.screen_height:
+                star["y"] = 0
+                star["x"] = random.randint(0, self.screen_width)
 
             # Draw star
             pygame.draw.circle(
-                screen,
-                star['color'],
-                (int(star['x']), int(star['y'])),
-                star['size']
+                screen, star["color"], (int(star["x"]), int(star["y"])), star["size"]
             )
 
             # Occasionally make stars twinkle
             if random.random() < 0.01:
                 brightness = random.randint(150, 255)
-                star['color'] = (brightness, brightness, brightness)
+                star["color"] = (brightness, brightness, brightness)
 
     def _render_grid(self, screen: pygame.Surface) -> None:
         """
@@ -131,8 +131,7 @@ class BackgroundManager:
         if "grid" not in self.background_cache:
             # Create a surface with alpha channel
             grid_surface = pygame.Surface(
-                (self.screen_width, self.screen_height),
-                pygame.SRCALPHA
+                (self.screen_width, self.screen_height), pygame.SRCALPHA
             )
 
             # Fill with dark background
@@ -141,19 +140,13 @@ class BackgroundManager:
             # Draw vertical grid lines
             for x in range(0, self.screen_width, self.grid_size):
                 pygame.draw.line(
-                    grid_surface,
-                    self.grid_color,
-                    (x, 0),
-                    (x, self.screen_height)
+                    grid_surface, self.grid_color, (x, 0), (x, self.screen_height)
                 )
 
             # Draw horizontal grid lines
             for y in range(0, self.screen_height, self.grid_size):
                 pygame.draw.line(
-                    grid_surface,
-                    self.grid_color,
-                    (0, y),
-                    (self.screen_width, y)
+                    grid_surface, self.grid_color, (0, y), (self.screen_width, y)
                 )
 
             self.background_cache["grid"] = grid_surface
@@ -186,16 +179,11 @@ class BackgroundManager:
                 color = (
                     int(10 + (r - 10) * color_ratio),
                     int(20 + (g - 20) * color_ratio),
-                    int(40 + (b - 40) * color_ratio)
+                    int(40 + (b - 40) * color_ratio),
                 )
 
                 # Draw a colored line
-                pygame.draw.line(
-                    gradient,
-                    color,
-                    (0, y),
-                    (self.screen_width, y)
-                )
+                pygame.draw.line(gradient, color, (0, y), (self.screen_width, y))
 
             self.background_cache["gradient"] = gradient
 

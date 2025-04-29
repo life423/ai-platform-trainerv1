@@ -5,6 +5,7 @@ This script reorganizes the project structure to improve modularity
 and maintainability. It creates necessary directories and moves files
 to appropriate locations.
 """
+
 import os
 import shutil
 
@@ -13,62 +14,53 @@ import shutil
 NEW_STRUCTURE = {
     "ai_platform_trainer": {
         "ai": {
-            "models": {},       # Neural network model definitions
-            "training": {},     # Training logic
-            "inference": {},    # Inference logic
-            "visualization": {}  # Training visualization
+            "models": {},  # Neural network model definitions
+            "training": {},  # Training logic
+            "inference": {},  # Inference logic
+            "visualization": {},  # Training visualization
         },
         "engine": {
-            "core": {},         # Core engine components
-            "rendering": {},    # Rendering systems
-            "input": {},        # Input handling
-            "physics": {},      # Physics and collision systems
+            "core": {},  # Core engine components
+            "rendering": {},  # Rendering systems
+            "input": {},  # Input handling
+            "physics": {},  # Physics and collision systems
         },
         "entities": {
-            "components": {},   # Entity components
-            "systems": {},      # Entity systems
-            "behaviors": {}     # Entity behaviors
+            "components": {},  # Entity components
+            "systems": {},  # Entity systems
+            "behaviors": {},  # Entity behaviors
         },
         "gameplay": {
-            "modes": {},        # Game modes
-            "mechanics": {},    # Game mechanics
-            "ui": {},           # User interface components
+            "modes": {},  # Game modes
+            "mechanics": {},  # Game mechanics
+            "ui": {},  # User interface components
         },
-        "utils": {},            # Utility functions
+        "utils": {},  # Utility functions
     },
     "assets": {
-        "sprites": {
-            "player": {},
-            "enemy": {},
-            "missile": {},
-            "effects": {},
-            "ui": {}
-        },
-        "audio": {
-            "sfx": {},
-            "music": {}
-        },
+        "sprites": {"player": {}, "enemy": {}, "missile": {}, "effects": {}, "ui": {}},
+        "audio": {"sfx": {}, "music": {}},
         "fonts": {},
     },
-    "scripts": {                # Command-line scripts
-        "training": {},         # Training scripts
-        "tools": {},            # Development tools
-        "analysis": {}          # Analysis tools
+    "scripts": {  # Command-line scripts
+        "training": {},  # Training scripts
+        "tools": {},  # Development tools
+        "analysis": {},  # Analysis tools
     },
-    "logs": {                   # Log files
-        "training": {},         # Training logs
-        "gameplay": {}          # Gameplay logs
+    "logs": {  # Log files
+        "training": {},  # Training logs
+        "gameplay": {},  # Gameplay logs
     },
-    "tests": {                  # Tests
-        "unit": {},             # Unit tests
-        "integration": {},      # Integration tests
-        "performance": {}       # Performance tests
+    "tests": {  # Tests
+        "unit": {},  # Unit tests
+        "integration": {},  # Integration tests
+        "performance": {},  # Performance tests
     },
-    "docs": {                   # Documentation
-        "api": {},              # API documentation
-        "guides": {},           # User guides
-        "design": {}            # Design documentation
-    }
+    "docs": {  # Documentation
+        "api": {},  # API documentation
+        "guides": {},  # User guides
+        "design": {},  # Design documentation
+    },
 }
 
 
@@ -82,7 +74,6 @@ FILE_MAPPINGS = {
     "ai_platform_trainer/ai_model/enemy_rl_agent.py": "ai_platform_trainer/ai/models/enemy_rl_agent.py",
     "ai_platform_trainer/ai_model/train_enemy_rl.py": "ai_platform_trainer/ai/training/train_enemy_rl.py",
     "ai_platform_trainer/ai_model/training_monitor.py": "ai_platform_trainer/ai/visualization/training_monitor.py",
-
     # Core engine components
     "ai_platform_trainer/core/config_manager.py": "ai_platform_trainer/engine/core/config_manager.py",
     "ai_platform_trainer/core/data_logger.py": "ai_platform_trainer/engine/core/data_logger.py",
@@ -92,7 +83,6 @@ FILE_MAPPINGS = {
     "ai_platform_trainer/core/launcher_refactored.py": "ai_platform_trainer/engine/core/launcher_refactored.py",
     "ai_platform_trainer/core/logging_config.py": "ai_platform_trainer/engine/core/logging_config.py",
     "ai_platform_trainer/core/service_locator.py": "ai_platform_trainer/engine/core/service_locator.py",
-
     # Entity components
     "ai_platform_trainer/entities/enemy.py": "ai_platform_trainer/entities/components/enemy.py",
     "ai_platform_trainer/entities/enemy_play.py": "ai_platform_trainer/entities/components/enemy_play.py",
@@ -102,7 +92,6 @@ FILE_MAPPINGS = {
     "ai_platform_trainer/entities/player_training.py": "ai_platform_trainer/entities/components/player_training.py",
     "ai_platform_trainer/entities/missile.py": "ai_platform_trainer/entities/components/missile.py",
     "ai_platform_trainer/entities/entity_factory.py": "ai_platform_trainer/entities/systems/entity_factory.py",
-
     # Gameplay
     "ai_platform_trainer/gameplay/ai/enemy_ai_controller.py": "ai_platform_trainer/entities/behaviors/enemy_ai_controller.py",
     "ai_platform_trainer/gameplay/missile_ai_controller.py": "ai_platform_trainer/entities/behaviors/missile_ai_controller.py",
@@ -123,11 +112,9 @@ FILE_MAPPINGS = {
     # These files remain in their current location since they're already in the right structure
     # "ai_platform_trainer/gameplay/modes/play_mode.py": "ai_platform_trainer/gameplay/modes/play_mode.py",
     # "ai_platform_trainer/gameplay/modes/training_mode.py": "ai_platform_trainer/gameplay/modes/training_mode.py",
-
     # Utilities
     "ai_platform_trainer/utils/helpers.py": "ai_platform_trainer/utils/helpers.py",
     "ai_platform_trainer/utils/sprite_manager.py": "ai_platform_trainer/engine/rendering/sprite_manager.py",
-
     # Scripts
     "train_enemy_rl_model.py": "scripts/training/train_enemy_rl.py",
     "generate_sprites.py": "scripts/tools/generate_sprites.py",
@@ -151,7 +138,9 @@ def create_directory_structure(structure, base_path=""):
         os.makedirs(path, exist_ok=True)
 
         # Create __init__.py files
-        if name.startswith("ai_platform_trainer") or (base_path and "ai_platform_trainer" in base_path):
+        if name.startswith("ai_platform_trainer") or (
+            base_path and "ai_platform_trainer" in base_path
+        ):
             init_file = os.path.join(path, "__init__.py")
             if not os.path.exists(init_file):
                 with open(init_file, "w") as f:
@@ -199,9 +188,15 @@ def update_imports(file_mappings):
             # Replace imports
             for old_module, new_module in module_mappings.items():
                 # Match various import patterns
-                content = content.replace(f"from {old_module} import", f"from {new_module} import")
-                content = content.replace(f"import {old_module}", f"import {new_module}")
-                content = content.replace(f"import {old_module} as", f"import {new_module} as")
+                content = content.replace(
+                    f"from {old_module} import", f"from {new_module} import"
+                )
+                content = content.replace(
+                    f"import {old_module}", f"import {new_module}"
+                )
+                content = content.replace(
+                    f"import {old_module} as", f"import {new_module} as"
+                )
 
             # Write updated content
             with open(new_path, "w") as f:
@@ -293,7 +288,9 @@ def main():
     create_new_main()
 
     print("Project restructuring completed!")
-    print("Note: The original files have not been deleted. After verifying that the restructured project works correctly, you may want to delete the old files.")
+    print(
+        "Note: The original files have not been deleted. After verifying that the restructured project works correctly, you may want to delete the old files."
+    )
 
 
 if __name__ == "__main__":

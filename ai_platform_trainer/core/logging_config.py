@@ -6,6 +6,7 @@ in engine/core/logging_config.py for backward compatibility.
 
 DEPRECATED: Use ai_platform_trainer.engine.core.logging_config instead.
 """
+
 import warnings
 from ai_platform_trainer.core.adapter import CoreAdapter
 
@@ -18,5 +19,5 @@ warnings.warn(
     "Importing from ai_platform_trainer.core.logging_config is deprecated. "
     "Use ai_platform_trainer.engine.core.logging_config instead.",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )

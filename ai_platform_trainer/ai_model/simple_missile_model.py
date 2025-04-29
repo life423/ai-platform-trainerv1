@@ -4,6 +4,7 @@ SimpleMissileModel: A neural network model for missile trajectory prediction.
 This module defines a simple feedforward neural network used for predicting
 missile trajectories based on game state inputs.
 """
+
 from typing import Any  # noqa: F401
 
 import torch
@@ -19,7 +20,9 @@ class SimpleMissileModel(nn.Module):
     on the hidden layers.
     """
 
-    def __init__(self, input_size: int = 9, hidden_size: int = 64, output_size: int = 1) -> None:
+    def __init__(
+        self, input_size: int = 9, hidden_size: int = 64, output_size: int = 1
+    ) -> None:
         """
         Initialize the model with configurable layer sizes.
 

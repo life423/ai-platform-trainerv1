@@ -3,6 +3,7 @@
 Launcher module for the AI Platform Trainer with dependency injection.
 Registers all services with the ServiceLocator before starting the game.
 """
+
 import pygame
 from config_manager import load_settings, save_settings
 from ai_platform_trainer.core.config_manager import get_config_manager
@@ -12,7 +13,10 @@ from ai_platform_trainer.core.service_locator import ServiceLocator
 from ai_platform_trainer.gameplay.game_di import Game
 from ai_platform_trainer.gameplay.renderer_di import Renderer
 from ai_platform_trainer.gameplay.input_handler import InputHandler
-from ai_platform_trainer.entities.entity_factory import PlayEntityFactory, TrainingEntityFactory
+from ai_platform_trainer.entities.entity_factory import (
+    PlayEntityFactory,
+    TrainingEntityFactory,
+)
 from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.display_manager import init_pygame_display
 from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
@@ -124,6 +128,7 @@ def register_services():
 
     # Register configuration (legacy config)
     from ai_platform_trainer.gameplay.config import config
+
     ServiceLocator.register("config", config)
 
     # States will be registered by the game instance itself

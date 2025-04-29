@@ -4,6 +4,7 @@ Configuration for AI Platform Trainer.
 This module defines a central Config class that stores game parameters
 and settings used throughout the application.
 """
+
 import os
 
 

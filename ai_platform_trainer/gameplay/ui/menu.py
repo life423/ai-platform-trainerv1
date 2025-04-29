@@ -169,7 +169,7 @@ class Menu:
             "• Press Enter to select menu items",
             "• Press F to toggle fullscreen",
             "• Press M to return to the menu",
-            "• Press Escape to quit help or game"
+            "• Press Escape to quit help or game",
         ]
 
         # Draw controls text
@@ -190,7 +190,7 @@ class Menu:
         # Text explaining the game modes
         modes_text = [
             "• Play Mode: Regular gameplay against AI enemy",
-            "• Train Mode: Collects missile data to train avoidance AI"
+            "• Train Mode: Collects missile data to train avoidance AI",
         ]
 
         # Draw modes text
@@ -214,7 +214,7 @@ class Menu:
             "• Enemy uses Reinforcement Learning (RL) for intelligent movement",
             "• RL trains the enemy to chase player while avoiding missiles",
             "• Missile avoidance is trained using gameplay data collection",
-            "• CUDA acceleration is used for physics simulation"
+            "• CUDA acceleration is used for physics simulation",
         ]
 
         # Draw AI text

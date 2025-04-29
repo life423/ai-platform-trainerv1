@@ -3,6 +3,7 @@
 Launcher module for the refactored AI Platform Trainer game.
 Uses the state machine architecture for game flow management.
 """
+
 from ai_platform_trainer.core.logging_config import setup_logging
 from ai_platform_trainer.gameplay.game_refactored import Game
 

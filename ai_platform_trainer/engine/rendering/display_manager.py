@@ -28,8 +28,7 @@ def init_pygame_display(fullscreen: bool) -> Tuple[pygame.Surface, int, int]:
 
 
 def toggle_fullscreen_display(
-    new_state: bool,
-    windowed_size: Tuple[int, int]
+    new_state: bool, windowed_size: Tuple[int, int]
 ) -> Tuple[pygame.Surface, int, int]:
     """
     Helper that toggles fullscreen on/off, returning (surface, width, height).

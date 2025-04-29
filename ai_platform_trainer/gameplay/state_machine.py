@@ -106,8 +106,12 @@ class PlayState(GameState):
         self.game.spawn_entities()
 
         # Initialize play mode manager if needed
-        if not hasattr(self.game, 'play_mode_manager') or self.game.play_mode_manager is None:
+        if (
+            not hasattr(self.game, "play_mode_manager")
+            or self.game.play_mode_manager is None
+        ):
             from ai_platform_trainer.gameplay.modes.play_mode import PlayMode
+
             self.game.play_mode_manager = PlayMode(self.game)
 
     def exit(self):
@@ -159,12 +163,10 @@ class TrainingState(GameState):
 
         self.game.data_logger = self.game.DataLogger(data_path)
         self.game.player = self.game.PlayerTraining(
-            self.game.screen_width,
-            self.game.screen_height
+            self.game.screen_width, self.game.screen_height
         )
         self.game.enemy = self.game.EnemyTrain(
-            self.game.screen_width,
-            self.game.screen_height
+            self.game.screen_width, self.game.screen_height
         )
 
         self.game.spawn_entities()
@@ -233,15 +235,15 @@ class PausedState(GameState):
 
         # Render instructions
         instruction_font = pygame.font.SysFont(None, 24)
-        instructions = [
-            "ESC - Resume",
-            "M - Main Menu"
-        ]
+        instructions = ["ESC - Resume", "M - Main Menu"]
 
         for i, instruction in enumerate(instructions):
             text = instruction_font.render(instruction, True, (200, 200, 200))
             text_rect = text.get_rect(
-                center=(self.game.screen_width // 2, self.game.screen_height // 2 + 50 + i * 30)
+                center=(
+                    self.game.screen_width // 2,
+                    self.game.screen_height // 2 + 50 + i * 30,
+                )
             )
             self.game.screen.blit(text, text_rect)
 
@@ -267,7 +269,7 @@ class GameOverState(GameState):
     def enter(self):
         logging.info("Game over")
         # Calculate final score
-        if hasattr(self.game.player, 'score'):
+        if hasattr(self.game.player, "score"):
             self.score = self.game.player.score
 
     def exit(self):
@@ -298,15 +300,15 @@ class GameOverState(GameState):
 
         # Instructions
         instruction_font = pygame.font.SysFont(None, 24)
-        instructions = [
-            "Press SPACE to play again",
-            "Press M for main menu"
-        ]
+        instructions = ["Press SPACE to play again", "Press M for main menu"]
 
         for i, instruction in enumerate(instructions):
             text = instruction_font.render(instruction, True, (200, 200, 200))
             text_rect = text.get_rect(
-                center=(self.game.screen_width // 2, self.game.screen_height // 2 + 100 + i * 30)
+                center=(
+                    self.game.screen_width // 2,
+                    self.game.screen_height // 2 + 100 + i * 30,
+                )
             )
             self.game.screen.blit(text, text_rect)
 

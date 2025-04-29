@@ -13,7 +13,7 @@ class Missile:
         vy: float = 0.0,
         birth_time: int = 0,
         lifespan: int = 20000,  # default 20s (doubled again from 10s to allow
-                                # even longer travel distance)
+        # even longer travel distance)
     ):
         self.size = 10
         self.color = (255, 255, 0)  # Yellow

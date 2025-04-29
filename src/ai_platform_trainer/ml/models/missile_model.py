@@ -5,6 +5,7 @@ This module defines a feedforward neural network used for predicting
 missile trajectories based on game state inputs, including player position,
 enemy position, missile position and angle, and collision information.
 """
+
 import torch
 from torch import nn
 from torch import Tensor
@@ -20,12 +21,12 @@ class SimpleMissileModel(nn.Module):
     """
 
     def __init__(
-        self, 
-        input_size: int = 9, 
-        hidden_size: int = 64, 
+        self,
+        input_size: int = 9,
+        hidden_size: int = 64,
         output_size: int = 1,
         dropout_rate: float = 0.2,
-        use_batch_norm: bool = True
+        use_batch_norm: bool = True,
     ) -> None:
         """
         Initialize the model with configurable layer sizes and regularization.
@@ -45,21 +46,21 @@ class SimpleMissileModel(nn.Module):
         """
         super().__init__()
         self.use_batch_norm = use_batch_norm
-        
+
         # First hidden layer
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.bn1 = nn.BatchNorm1d(hidden_size) if use_batch_norm else nn.Identity()
-        
+
         # Second hidden layer
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.bn2 = nn.BatchNorm1d(hidden_size) if use_batch_norm else nn.Identity()
-        
+
         # Output layer
         self.fc3 = nn.Linear(hidden_size, output_size)
-        
+
         # Dropout for regularization
         self.dropout = nn.Dropout(dropout_rate)
-        
+
         # Activation function
         self.activation = nn.ReLU()
 
@@ -81,17 +82,17 @@ class SimpleMissileModel(nn.Module):
             x = self.bn1(x)
         x = self.activation(x)
         x = self.dropout(x)
-        
+
         # Second hidden layer
         x = self.fc2(x)
         if self.use_batch_norm and x.shape[0] > 1:
             x = self.bn2(x)
         x = self.activation(x)
         x = self.dropout(x)
-        
+
         # Output layer (no activation - raw logits)
         x = self.fc3(x)
-        
+
         return x
 
     def predict(self, state: Tensor) -> float:
@@ -109,16 +110,16 @@ class SimpleMissileModel(nn.Module):
             The predicted action value as a float
         """
         self.eval()  # Set to evaluation mode
-        
+
         with torch.no_grad():
             # Ensure proper batch dimension
             if state.dim() == 1:
                 state = state.unsqueeze(0)
-                
+
             # Make prediction
             prediction = self(state)
-            
+
             # Extract the single value
             result = prediction.item()
-        
+
         return result

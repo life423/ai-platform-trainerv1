@@ -5,6 +5,7 @@ This module provides the AI control logic for in-game missiles,
 applying a trained neural network model to determine missile trajectory
 adjustments based on current game state.
 """
+
 import math
 from typing import Dict, List, Optional
 
@@ -47,8 +48,7 @@ def update_missile_ai(
             target_angle = current_angle
         else:
             target_angle = math.atan2(
-                enemy_pos["y"] - missile.pos["y"],
-                enemy_pos["x"] - missile.pos["x"]
+                enemy_pos["y"] - missile.pos["y"], enemy_pos["x"] - missile.pos["x"]
             )
 
         # Extract position values for model input
@@ -62,11 +62,19 @@ def update_missile_ai(
         dist_val = math.hypot(missile.pos["x"] - ex, missile.pos["y"] - ey)
 
         # Prepare model input tensor with current state
-        shared_input_tensor[0] = torch.tensor([
-            px, py, ex, ey,
-            missile.pos["x"], missile.pos["y"],
-            current_angle, dist_val, 0.0
-        ])
+        shared_input_tensor[0] = torch.tensor(
+            [
+                px,
+                py,
+                ex,
+                ey,
+                missile.pos["x"],
+                missile.pos["y"],
+                current_angle,
+                dist_val,
+                0.0,
+            ]
+        )
 
         # Get AI model prediction (turn rate adjustment)
         with torch.no_grad():
@@ -77,12 +85,13 @@ def update_missile_ai(
 
         # Blend between model prediction and direct targeting
         blended_turn_rate = (
-            model_blend_factor * turn_rate +
-            (1 - model_blend_factor) * angle_diff
+            model_blend_factor * turn_rate + (1 - model_blend_factor) * angle_diff
         )
 
         # Constrain turn rate to prevent unrealistic movement
-        constrained_turn_rate = max(-max_turn_rate, min(max_turn_rate, blended_turn_rate))
+        constrained_turn_rate = max(
+            -max_turn_rate, min(max_turn_rate, blended_turn_rate)
+        )
 
         # Apply the turn and update missile velocity components
         new_angle = current_angle + math.radians(constrained_turn_rate)

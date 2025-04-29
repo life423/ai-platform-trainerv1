@@ -19,7 +19,9 @@ def load_settings(config_path: str = "settings.json") -> Dict[str, bool | int]:
     return DEFAULT_SETTINGS.copy()
 
 
-def save_settings(settings: Dict[str, bool | int], config_path: str = "settings.json") -> None:
+def save_settings(
+    settings: Dict[str, bool | int], config_path: str = "settings.json"
+) -> None:
     """
     Save the settings dictionary to a JSON file.
     """

@@ -4,6 +4,7 @@ MissileDataset: Dataset class for training missile trajectory prediction models.
 This module provides a PyTorch Dataset implementation for loading and preprocessing
 game state data for missile trajectory prediction.
 """
+
 import json
 import math
 from typing import Tuple
@@ -93,5 +94,7 @@ class MissileDataset(Dataset):
         return (
             torch.tensor(state, dtype=torch.float32),
             torch.tensor(action, dtype=torch.float32),
-            torch.tensor([weight], dtype=torch.float32),  # Wrap in list to make shape (1,)
+            torch.tensor(
+                [weight], dtype=torch.float32
+            ),  # Wrap in list to make shape (1,)
         )

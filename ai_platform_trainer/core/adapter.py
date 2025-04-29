@@ -14,6 +14,7 @@ Usage:
     But if legacy code still uses the old import path, this adapter will
     forward the import to the correct location.
 """
+
 import warnings
 import importlib
 from typing import Any, Optional, Set
@@ -33,19 +34,19 @@ def _warn_once(message: str) -> None:
 class CoreAdapter:
     """
     Adapter for forwarding imports from core to engine/core.
-    
+
     This class is used to dynamically forward imports from the legacy
     'core' directory to the canonical 'engine/core' directory.
     """
-    
+
     @staticmethod
     def get_module(name: str) -> Any:
         """
         Get a module from engine/core with the given name.
-        
+
         Args:
             name: The name of the module to get
-            
+
         Returns:
             The requested module
         """
@@ -54,7 +55,7 @@ class CoreAdapter:
             f"Importing from 'ai_platform_trainer.core.{name}' is deprecated. "
             f"Use '{engine_module_name}' instead."
         )
-        
+
         try:
             return importlib.import_module(engine_module_name)
         except ImportError as e:
@@ -78,10 +79,10 @@ def get_service_locator() -> Any:
 def get_config_manager(config_path: Optional[str] = None) -> Any:
     """
     Get the ConfigManager from engine/core.
-    
+
     Args:
         config_path: Optional path to a config file
-        
+
     Returns:
         ConfigManager instance
     """

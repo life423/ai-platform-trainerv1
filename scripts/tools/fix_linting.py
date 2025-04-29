@@ -8,6 +8,7 @@ This script fixes:
 3. Removes unused imports
 4. Fixes spacing between functions and classes
 """
+
 import re
 import sys
 from pathlib import Path
@@ -25,18 +26,18 @@ def find_python_files(directory: Path) -> List[Path]:
 
 def fix_trailing_whitespace(file_path: Path) -> int:
     """Fix trailing whitespace in a file."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Replace trailing whitespace on lines
-    new_content = re.sub(r'[ \t]+$', '', content, flags=re.MULTILINE)
+    new_content = re.sub(r"[ \t]+$", "", content, flags=re.MULTILINE)
 
     # Count fixes
-    fixes = content.count('\n') - new_content.count('\n')
+    fixes = content.count("\n") - new_content.count("\n")
 
     # Only write if changes were made
     if new_content != content:
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(new_content)
 
     return fixes
@@ -44,18 +45,18 @@ def fix_trailing_whitespace(file_path: Path) -> int:
 
 def fix_blank_lines_with_whitespace(file_path: Path) -> int:
     """Fix blank lines containing whitespace."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Replace lines with only whitespace with empty lines
-    new_content = re.sub(r'^[ \t]+$', '', content, flags=re.MULTILINE)
+    new_content = re.sub(r"^[ \t]+$", "", content, flags=re.MULTILINE)
 
     # Count fixes
-    fixes = content.count('\n') - new_content.count('\n')
+    fixes = content.count("\n") - new_content.count("\n")
 
     # Only write if changes were made
     if new_content != content:
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(new_content)
 
     return fixes
@@ -63,7 +64,7 @@ def fix_blank_lines_with_whitespace(file_path: Path) -> int:
 
 def fix_double_blank_lines(file_path: Path) -> int:
     """Ensure there are exactly two blank lines between top-level definitions."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     # Track the current state of the file
@@ -73,24 +74,24 @@ def fix_double_blank_lines(file_path: Path) -> int:
 
     for i, line in enumerate(lines):
         # Detect if we're starting a new class or function
-        if re.match(r'^(class|def)\s+', line) and not in_class_or_function:
+        if re.match(r"^(class|def)\s+", line) and not in_class_or_function:
             # Check if we have exactly two blank lines before
             blank_count = 0
             j = i - 1
-            while j >= 0 and lines[j].strip() == '':
+            while j >= 0 and lines[j].strip() == "":
                 blank_count += 1
                 j -= 1
 
             # If we don't have exactly two blank lines and we're not at the start of the file
             if blank_count != 2 and i > 0 and j >= 0:
                 # Remove any existing blank lines before this
-                while new_lines and new_lines[-1].strip() == '':
+                while new_lines and new_lines[-1].strip() == "":
                     new_lines.pop()
                     fixes += 1
 
                 # Add exactly two blank lines
-                new_lines.append('\n')
-                new_lines.append('\n')
+                new_lines.append("\n")
+                new_lines.append("\n")
                 fixes += 2
 
             in_class_or_function = True
@@ -99,12 +100,16 @@ def fix_double_blank_lines(file_path: Path) -> int:
         new_lines.append(line)
 
         # If we have a line that's not a continuation and not blank, we're out of the definition
-        if line.strip() and not line.strip().endswith('\\') and not line.strip().endswith('('):
+        if (
+            line.strip()
+            and not line.strip().endswith("\\")
+            and not line.strip().endswith("(")
+        ):
             in_class_or_function = False
 
     # Only write if changes were made
     if fixes > 0:
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.writelines(new_lines)
 
     return fixes
@@ -114,9 +119,9 @@ def fix_unused_imports(file_path: Path) -> int:
     """Remove unused imports using autoflake."""
     try:
         result = subprocess.run(
-            ['autoflake', '--remove-all-unused-imports', '--in-place', str(file_path)],
+            ["autoflake", "--remove-all-unused-imports", "--in-place", str(file_path)],
             capture_output=True,
-            text=True
+            text=True,
         )
         if result.returncode != 0:
             print(f"Warning: autoflake failed on {file_path}: {result.stderr}")
@@ -145,7 +150,7 @@ def main():
     """Main function to fix linting issues in the codebase."""
     # Check if autoflake is installed
     try:
-        subprocess.run(['autoflake', '--version'], capture_output=True, check=True)
+        subprocess.run(["autoflake", "--version"], capture_output=True, check=True)
     except (subprocess.SubprocessError, FileNotFoundError):
         print("Error: autoflake is not installed. Please install it with:")
         print("pip install autoflake")
@@ -177,7 +182,9 @@ def main():
     print(f"Processed {total_files} Python files")
     print(f"Fixed {total_whitespace_fixes} instances of trailing whitespace")
     print(f"Fixed {total_blank_line_fixes} blank lines with whitespace")
-    print(f"Fixed {total_double_blank_fixes} instances of incorrect blank lines between defs")
+    print(
+        f"Fixed {total_double_blank_fixes} instances of incorrect blank lines between defs"
+    )
     print(f"Removed {total_import_fixes} unused imports")
     print("\nRemaining issues may require manual fixes.")
 

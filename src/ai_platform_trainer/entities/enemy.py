@@ -77,7 +77,9 @@ class Enemy:
             angle = random.uniform(0, 2 * math.pi)
             action_dx = math.cos(angle)
             action_dy = math.sin(angle)
-            logging.debug(f"Applied fallback random movement for enemy at position {self.pos}")
+            logging.debug(
+                f"Applied fallback random movement for enemy at position {self.pos}"
+            )
 
         speed = player_speed * 0.7
         self.pos["x"] += action_dx * speed

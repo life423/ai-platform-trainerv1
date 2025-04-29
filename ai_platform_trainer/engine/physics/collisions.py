@@ -4,6 +4,7 @@ Collision detection module for AI Platform Trainer.
 This module handles collision detection between game entities,
 particularly between missiles and enemies.
 """
+
 import pygame
 import logging
 

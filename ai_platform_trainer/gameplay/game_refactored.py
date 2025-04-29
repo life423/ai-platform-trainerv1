@@ -14,6 +14,7 @@ from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
 from ai_platform_trainer.gameplay.config import config
 from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.renderer import Renderer
+
 # These imports are used by Game class methods and by GameState subclasses
 from ai_platform_trainer.gameplay.spawner import (  # noqa: F401
     spawn_entities,  # Used in state_machine.py - PlayState.enter
@@ -23,11 +24,14 @@ from ai_platform_trainer.gameplay.display_manager import (
     init_pygame_display,
     toggle_fullscreen_display,
 )
+
 # Used in state_machine.py - PlayState.update
 from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai  # noqa: F401
 
 # AI and model imports
-from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import EnemyMovementModel
+from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
+    EnemyMovementModel,
+)
 from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
 
 # Data logger and entity imports
@@ -124,7 +128,9 @@ class Game:
             )
             try:
                 model = SimpleMissileModel()
-                model.load_state_dict(torch.load(missile_model_path, map_location="cpu"))
+                model.load_state_dict(
+                    torch.load(missile_model_path, map_location="cpu")
+                )
                 model.eval()
                 self.missile_model = model
             except Exception as e:
@@ -174,7 +180,9 @@ class Game:
             state_name: The name of the state to transition to
         """
         if state_name in self.states:
-            logging.info(f"Transitioning from {type(self.current_state).__name__} to {state_name}")
+            logging.info(
+                f"Transitioning from {type(self.current_state).__name__} to {state_name}"
+            )
             self.current_state.exit()
             self.current_state = self.states[state_name]
             self.current_state.enter()
@@ -204,8 +212,7 @@ class Game:
         """
         was_fullscreen = self.settings["fullscreen"]
         new_display, w, h = toggle_fullscreen_display(
-            not was_fullscreen,
-            config.SCREEN_SIZE
+            not was_fullscreen, config.SCREEN_SIZE
         )
         self.settings["fullscreen"] = not was_fullscreen
         save_settings(self.settings, "settings.json")
@@ -232,10 +239,7 @@ class Game:
             self.player.size,
         )
         enemy_rect = pygame.Rect(
-            self.enemy.pos["x"],
-            self.enemy.pos["y"],
-            self.enemy.size,
-            self.enemy.size
+            self.enemy.pos["x"], self.enemy.pos["y"], self.enemy.size, self.enemy.size
         )
         return player_rect.colliderect(enemy_rect)
 

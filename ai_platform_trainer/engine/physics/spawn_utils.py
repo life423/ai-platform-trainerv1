@@ -47,7 +47,7 @@ def find_enemy_spawn_position(
     screen_width: int,
     screen_height: int,
     enemy_size: int,
-    player_pos: Tuple[float, float]
+    player_pos: Tuple[float, float],
 ) -> Tuple[int, int]:
     """
     Specialized helper for spawning an enemy, ensuring min distance from the player.

@@ -9,15 +9,18 @@ if package_dir not in sys.path:
 
 try:
     from ai_platform_trainer.main import main
+
     main()
 except ImportError as e:
     print(f"Error: {e}")
     # Try alternative import
     try:
         import ai_platform_trainer
+
         print(f"AI Platform Trainer package found at: {ai_platform_trainer.__file__}")
         # Call directly through module
         import runpy
+
         runpy.run_module("ai_platform_trainer", run_name="__main__")
     except ImportError as e2:
         print(f"Failed to import the AI Platform Trainer package: {e2}")

@@ -2,6 +2,7 @@
 """
 Game class with dependency injection for the AI Platform Trainer.
 """
+
 import logging
 import os
 import pygame
@@ -105,7 +106,9 @@ class Game:
             )
             try:
                 model = SimpleMissileModel()
-                model.load_state_dict(torch.load(missile_model_path, map_location="cpu"))
+                model.load_state_dict(
+                    torch.load(missile_model_path, map_location="cpu")
+                )
                 model.eval()
                 self.missile_model = model
             except Exception as e:
@@ -120,7 +123,10 @@ class Game:
     def run(self) -> None:
         """Main game loop using state machine architecture."""
         while self.running:
-            delta_time = self.clock.tick(self.config_manager.get("display.frame_rate", 60)) / 1000.0
+            delta_time = (
+                self.clock.tick(self.config_manager.get("display.frame_rate", 60))
+                / 1000.0
+            )
 
             # Handle input through the input handler
             continue_game, events = self.input_handler.handle_input()
@@ -158,7 +164,9 @@ class Game:
             state_name: The name of the state to transition to
         """
         if state_name in self.states:
-            logging.info(f"Transitioning from {type(self.current_state).__name__} to {state_name}")
+            logging.info(
+                f"Transitioning from {type(self.current_state).__name__} to {state_name}"
+            )
             self.current_state.exit()
             self.current_state = self.states[state_name]
             self.current_state.enter()
@@ -176,14 +184,11 @@ class Game:
         # Get screen dimensions from configuration
         screen_size = (
             self.config_manager.get("display.width", 800),
-            self.config_manager.get("display.height", 600)
+            self.config_manager.get("display.height", 600),
         )
 
         # Toggle fullscreen
-        new_display, w, h = toggle_fullscreen_display(
-            not was_fullscreen,
-            screen_size
-        )
+        new_display, w, h = toggle_fullscreen_display(not was_fullscreen, screen_size)
 
         # Update configuration
         self.config_manager.set("display.fullscreen", not was_fullscreen)
@@ -227,10 +232,7 @@ class Game:
         )
 
         enemy_rect = pygame.Rect(
-            self.enemy.pos["x"],
-            self.enemy.pos["y"],
-            self.enemy.size,
-            self.enemy.size
+            self.enemy.pos["x"], self.enemy.pos["y"], self.enemy.size, self.enemy.size
         )
 
         return player_rect.colliderect(enemy_rect)
@@ -242,9 +244,7 @@ class Game:
 
         collision_service = ServiceLocator.get("collision_service")
         collision_service.check_missile_collisions(
-            self.player,
-            self.enemy,
-            self._respawn_callback
+            self.player, self.enemy, self._respawn_callback
         )
 
     def _respawn_callback(self) -> None:
@@ -272,13 +272,11 @@ class Game:
             tuple: (player, enemy) - The initialized player and enemy entities
         """
         player = self.play_entity_factory.create_player(
-            self.screen_width,
-            self.screen_height
+            self.screen_width, self.screen_height
         )
 
         enemy = self.play_entity_factory.create_enemy(
-            self.screen_width,
-            self.screen_height
+            self.screen_width, self.screen_height
         )
 
         return player, enemy
@@ -296,10 +294,7 @@ class Game:
 
             # Find a valid enemy spawn position
             enemy_pos = find_enemy_spawn_position(
-                self.screen_width,
-                self.screen_height,
-                self.enemy.size,
-                player_pos
+                self.screen_width, self.screen_height, self.enemy.size, player_pos
             )
 
             # Set the enemy position
@@ -316,6 +311,7 @@ class Game:
             A DataLogger instance
         """
         from ai_platform_trainer.core.data_logger import DataLogger
+
         return DataLogger(data_path)
 
     def PlayerTraining(self, screen_width, screen_height):
@@ -330,6 +326,7 @@ class Game:
             A PlayerTraining instance
         """
         from ai_platform_trainer.entities.player_training import PlayerTraining
+
         return PlayerTraining(screen_width, screen_height)
 
     def EnemyTrain(self, screen_width, screen_height):
@@ -344,6 +341,7 @@ class Game:
             An EnemyTrain instance
         """
         from ai_platform_trainer.entities.enemy_training import EnemyTrain
+
         return EnemyTrain(screen_width, screen_height)
 
     def TrainingMode(self, game):
@@ -357,6 +355,7 @@ class Game:
             A TrainingMode instance
         """
         from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
+
         return TrainingMode(game)
 
     def reset_game_state(self) -> None:

@@ -3,6 +3,7 @@ Training mode game logic for AI Platform Trainer.
 
 This module handles the training mode game loop and data collection mechanics.
 """
+
 import math
 import logging
 import random
@@ -81,11 +82,9 @@ class TrainingMode:
                                 "missile_x": missile.pos["x"],
                                 "missile_y": missile.pos["y"],
                                 "missile_angle": missile_angle,
-
                                 "missile_collision": False,
                                 "missile_action": missile_action,
                                 "timestamp": current_time,
-
                             }
                         )
 
@@ -142,11 +141,11 @@ class TrainingMode:
         logging.debug(
             f"Finalized missile sequence with success={success}, frames={len(frames)}"
         )
-        
+
         # If this was the last active missile, process the collected data
         if not self.missile_sequences and not self.game.player.missiles:
             self.process_collected_data()
-            
+
     def process_collected_data(self) -> None:
         """
         Process all collected training data:
@@ -154,24 +153,28 @@ class TrainingMode:
         2. Validate and append it to the existing dataset
         3. Retrain the AI models with the combined data
         """
-        if not self.game.data_logger or not hasattr(self.game.data_logger, 'data'):
+        if not self.game.data_logger or not hasattr(self.game.data_logger, "data"):
             logging.warning("No data logger available or no data collected")
             return
-            
+
         # Get the collected data
         collected_data = self.game.data_logger.data
-        
+
         if not collected_data:
             logging.warning("No training data was collected during this session")
             return
-            
-        logging.info(f"Processing {len(collected_data)} data points collected in training")
-        
+
+        logging.info(
+            f"Processing {len(collected_data)} data points collected in training"
+        )
+
         # Use our validator/trainer to process the data and retrain the models
         success = post_training_processor.process_training_sequence(collected_data)
-        
+
         if success:
-            logging.info("Successfully validated data, updated dataset, and retrained models")
+            logging.info(
+                "Successfully validated data, updated dataset, and retrained models"
+            )
             # Reset the data logger for the next training session
             self.game.data_logger.data = []
         else:

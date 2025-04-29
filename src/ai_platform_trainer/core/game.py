@@ -4,6 +4,7 @@ Main game controller for AI Platform Trainer.
 This module provides the Game class which manages game state, handles
 user events, and coordinates between various subsystems.
 """
+
 import logging
 import os
 import math
@@ -28,6 +29,7 @@ from ai_platform_trainer.rendering.display_manager import (
     init_pygame_display,
     toggle_fullscreen_display,
 )
+
 # New import for missile AI updates
 from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
 
@@ -98,7 +100,9 @@ class Game:
             logging.info("Loading missile model once...")
             try:
                 model = SimpleMissileModel()
-                model.load_state_dict(torch.load(missile_model_path, map_location="cpu"))
+                model.load_state_dict(
+                    torch.load(missile_model_path, map_location="cpu")
+                )
                 model.eval()
                 self.missile_model = model
             except Exception as e:
@@ -117,7 +121,9 @@ class Game:
                 self.menu.draw(self.screen)
             else:
                 self.update(current_time)
-                self.renderer.render(self.menu, self.player, self.enemy, self.menu_active)
+                self.renderer.render(
+                    self.menu, self.player, self.enemy, self.menu_active
+                )
 
             pygame.display.flip()
             self.clock.tick(config.FRAME_RATE)
@@ -167,7 +173,9 @@ class Game:
             try:
                 success = enemy.load_rl_model(rl_model_path)
                 if success:
-                    logging.info("Using reinforcement learning model for enemy behavior")
+                    logging.info(
+                        "Using reinforcement learning model for enemy behavior"
+                    )
                 else:
                     logging.warning("RL model exists but couldn't be loaded.")
                     logging.warning("Falling back to neural network.")
@@ -229,8 +237,7 @@ class Game:
         """
         was_fullscreen = self.settings["fullscreen"]
         new_display, w, h = toggle_fullscreen_display(
-            not was_fullscreen,
-            config.SCREEN_SIZE
+            not was_fullscreen, config.SCREEN_SIZE
         )
         self.settings["fullscreen"] = not was_fullscreen
         save_settings(self.settings, "settings.json")
@@ -250,8 +257,9 @@ class Game:
             self.training_mode_manager.update()
         elif self.mode == "play":
             # If we haven't created a play_mode_manager yet, do so now
-            if not hasattr(self, 'play_mode_manager') or self.play_mode_manager is None:
+            if not hasattr(self, "play_mode_manager") or self.play_mode_manager is None:
                 from ai_platform_trainer.gameplay.modes.play_mode import PlayMode
+
                 self.play_mode_manager = PlayMode(self)
 
             self.play_mode_manager.update(current_time)
@@ -294,7 +302,7 @@ class Game:
                 self.player.position,
                 self.enemy.pos if self.enemy else None,
                 self._missile_input,
-                self.missile_model
+                self.missile_model,
             )
 
     def check_collision(self) -> bool:
@@ -307,10 +315,7 @@ class Game:
             self.player.size,
         )
         enemy_rect = pygame.Rect(
-            self.enemy.pos["x"],
-            self.enemy.pos["y"],
-            self.enemy.size,
-            self.enemy.size
+            self.enemy.pos["x"], self.enemy.pos["y"], self.enemy.size, self.enemy.size
         )
         return player_rect.colliderect(enemy_rect)
 
@@ -351,6 +356,7 @@ class Game:
         if self.enemy:
             # Place the enemy at a random location away from the player
             import random
+
             if self.player:
                 # Keep enemy away from player during resets
                 while True:
@@ -359,8 +365,8 @@ class Game:
 
                     # Calculate distance to player
                     distance = math.sqrt(
-                        (x - self.player.position["x"])**2 +
-                        (y - self.player.position["y"])**2
+                        (x - self.player.position["x"]) ** 2
+                        + (y - self.player.position["y"]) ** 2
                     )
 
                     # Ensure minimum distance
@@ -391,7 +397,7 @@ class Game:
 
         # Update based on current mode
         if self.mode == "play" and not self.menu_active:
-            if hasattr(self, 'play_mode_manager') and self.play_mode_manager:
+            if hasattr(self, "play_mode_manager") and self.play_mode_manager:
                 self.play_mode_manager.update(current_time)
             else:
                 self.play_update(current_time)

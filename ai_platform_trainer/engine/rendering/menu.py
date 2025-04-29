@@ -5,6 +5,7 @@ This module handles the game's menu system, including the main menu,
 help screen, and AI selection screen. It processes user input and
 renders the appropriate menu screens.
 """
+
 import pygame
 
 
@@ -17,10 +18,10 @@ class Menu:
 
         # Flag to show help screen; if True, the help screen is drawn instead of the main menu
         self.show_help = False
-        
+
         # Flag to show AI selection screen
         self.show_ai_select = False
-        
+
         # AI selection options and currently selected AI
         self.ai_options = ["Supervised Learning", "Reinforcement Learning"]
         self.selected_ai = 0  # 0 = Supervised, 1 = RL
@@ -55,7 +56,7 @@ class Menu:
             ]:
                 self.show_help = False
             return None
-            
+
         # If the AI selection screen is displayed
         elif self.show_ai_select:
             # Handle navigation in the AI selection menu
@@ -71,7 +72,7 @@ class Menu:
                 elif event.key == pygame.K_ESCAPE:
                     # Go back to main menu without changing AI
                     self.show_ai_select = False
-            
+
             # Handle mouse clicks in AI selection
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -80,7 +81,7 @@ class Menu:
                         self.selected_ai = index
                         self.show_ai_select = False
                         return f"ai_{self.selected_ai}"  # Return which AI was selected
-            
+
             return None
 
         # If user presses ENTER (or NUMPAD ENTER) on the main menu
@@ -148,12 +149,12 @@ class Menu:
         if self.show_help:
             self.draw_help(screen)
             return
-            
+
         # If the AI selection screen is active, draw that
         if self.show_ai_select:
             self.draw_ai_select(screen)
             return
-        
+
         # Draw the main menu (if no special screens are active)
         # Fill the screen background
         screen.fill(self.color_background)
@@ -209,9 +210,7 @@ class Menu:
         for index, option in enumerate(self.ai_options):
             # Choose highlight color if this option is currently selected
             color = (
-                self.color_selected
-                if index == self.selected_ai
-                else self.color_option
+                self.color_selected if index == self.selected_ai else self.color_option
             )
             option_surface = self.font_option.render(option, True, color)
             option_rect = option_surface.get_rect(
@@ -221,17 +220,20 @@ class Menu:
             self.ai_option_rects[index] = option_rect
             # Draw the option
             screen.blit(option_surface, option_rect)
-            
+
             # Draw description below each option
             description = ""
             if index == 0:  # Supervised Learning
                 description = "Classic neural network trained on demonstration data"
             else:  # Reinforcement Learning
                 description = "Advanced AI that learned through trial and error"
-                
+
             desc_surface = font_info.render(description, True, self.color_option)
             desc_rect = desc_surface.get_rect(
-                center=(self.screen_width // 2, self.screen_height // 2 + index * 100 + 40)
+                center=(
+                    self.screen_width // 2,
+                    self.screen_height // 2 + index * 100 + 40,
+                )
             )
             screen.blit(desc_surface, desc_rect)
 
@@ -282,7 +284,7 @@ class Menu:
             "• Press Enter to select menu items",
             "• Press F to toggle fullscreen",
             "• Press M to return to the menu",
-            "• Press Escape to return to menu (in-game) or quit help screen"
+            "• Press Escape to return to menu (in-game) or quit help screen",
         ]
 
         # Draw controls text
@@ -303,7 +305,7 @@ class Menu:
         # Text explaining the game modes
         modes_text = [
             "• Play Mode: Regular gameplay against AI enemy",
-            "• Train Mode: Collects missile data to train avoidance AI"
+            "• Train Mode: Collects missile data to train avoidance AI",
         ]
 
         # Draw modes text
@@ -329,7 +331,7 @@ class Menu:
             "• Reinforcement Learning: AI trained through trial and error",
             "• Use 'AI Select' from main menu to choose which AI to play against",
             "• Missile avoidance is trained using gameplay data collection",
-            "• CUDA acceleration is used for physics simulation"
+            "• CUDA acceleration is used for physics simulation",
         ]
 
         # Draw AI text

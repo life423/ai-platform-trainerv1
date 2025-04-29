@@ -66,16 +66,16 @@ class Renderer:
             enemy: Enemy instance
         """
         # Draw player with sprite
-        if hasattr(player, 'position') and hasattr(player, 'size'):
+        if hasattr(player, "position") and hasattr(player, "size"):
             self._render_player(player)
 
             # Render player missiles
-            if hasattr(player, 'missiles'):
+            if hasattr(player, "missiles"):
                 for missile in player.missiles:
                     self._render_missile(missile)
 
         # Draw enemy with sprite
-        if hasattr(enemy, 'pos') and hasattr(enemy, 'size') and enemy.visible:
+        if hasattr(enemy, "pos") and hasattr(enemy, "size") and enemy.visible:
             self._render_enemy(enemy)
 
         # Render particle effects if enabled
@@ -97,7 +97,7 @@ class Renderer:
             screen=self.screen,
             entity_type="player",
             position=player.position,
-            size=size
+            size=size,
         )
 
     def _render_enemy(self, enemy) -> None:
@@ -112,7 +112,7 @@ class Renderer:
 
         # Check if the enemy is fading in
         alpha = 255
-        if hasattr(enemy, 'fading_in') and enemy.fading_in:
+        if hasattr(enemy, "fading_in") and enemy.fading_in:
             alpha = enemy.fade_alpha
 
         # Render the enemy sprite
@@ -127,7 +127,7 @@ class Renderer:
         Args:
             missile: Missile instance
         """
-        if hasattr(missile, 'position') and hasattr(missile, 'size'):
+        if hasattr(missile, "position") and hasattr(missile, "size"):
             # Determine sprite size - make it a bit more elongated
             width = missile.size
             height = int(missile.size * 1.5)
@@ -135,11 +135,12 @@ class Renderer:
 
             # Calculate rotation angle based on direction
             rotation = 0
-            if hasattr(missile, 'direction'):
+            if hasattr(missile, "direction"):
                 # Convert direction to angle in degrees
                 dx, dy = missile.direction
                 if dx != 0 or dy != 0:
                     import math
+
                     angle_rad = math.atan2(dy, dx)
                     rotation = math.degrees(angle_rad) + 90  # Adjust so 0 points up
 
@@ -149,7 +150,7 @@ class Renderer:
                 entity_type="missile",
                 position=missile.position,
                 size=size,
-                rotation=rotation
+                rotation=rotation,
             )
 
             # Add a trail effect if effects are enabled
@@ -163,7 +164,7 @@ class Renderer:
         Args:
             missile: Missile instance
         """
-        if not hasattr(missile, 'position'):
+        if not hasattr(missile, "position"):
             return
 
         # Create a small particle effect behind the missile
@@ -172,6 +173,7 @@ class Renderer:
 
         # Trail particles
         import random
+
         for _ in range(2):
             # Random offset
             offset_x = random.randint(-3, 3)
@@ -185,12 +187,12 @@ class Renderer:
 
             # Create particle
             particle = {
-                'x': x + offset_x,
-                'y': y + offset_y,
-                'size': size,
-                'color': (255, 255, 200, 200),  # Yellow-ish with alpha
-                'lifetime': lifetime,
-                'max_lifetime': lifetime
+                "x": x + offset_x,
+                "y": y + offset_y,
+                "size": size,
+                "color": (255, 255, 200, 200),  # Yellow-ish with alpha
+                "lifetime": lifetime,
+                "max_lifetime": lifetime,
             }
 
             self.particle_effects.append(particle)
@@ -201,15 +203,15 @@ class Renderer:
         updated_particles = []
         for particle in self.particle_effects:
             # Decrease lifetime
-            particle['lifetime'] -= 1
+            particle["lifetime"] -= 1
 
             # Skip dead particles
-            if particle['lifetime'] <= 0:
+            if particle["lifetime"] <= 0:
                 continue
 
             # Calculate alpha based on remaining lifetime
-            alpha = int(255 * (particle['lifetime'] / particle['max_lifetime']))
-            color = list(particle['color'])
+            alpha = int(255 * (particle["lifetime"] / particle["max_lifetime"]))
+            color = list(particle["color"])
             if len(color) > 3:
                 color[3] = min(color[3], alpha)
             else:
@@ -219,8 +221,8 @@ class Renderer:
             pygame.draw.circle(
                 self.screen,
                 color,
-                (int(particle['x']), int(particle['y'])),
-                particle['size']
+                (int(particle["x"]), int(particle["y"])),
+                particle["size"],
             )
 
             # Keep particle for next frame

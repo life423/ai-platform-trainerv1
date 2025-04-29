@@ -7,11 +7,14 @@ from typing import Tuple
 import numpy as np
 import pygame
 
-from ai_platform_trainer.entities.behaviors.enemy_ai_controller import update_enemy_movement
+from ai_platform_trainer.entities.behaviors.enemy_ai_controller import (
+    update_enemy_movement,
+)
 
 # Import optionally - will be None if not available
 try:
     from stable_baselines3 import PPO as SB3PPO
+
     RL_AVAILABLE = True
 except ImportError:
     RL_AVAILABLE = False
@@ -45,6 +48,7 @@ class EnemyPlay:
         Example wrap-around logic.
         You might unify this in a separate utils file if used by multiple entities.
         """
+
         def wrap(val: float, lower: float, upper: float) -> float:
             if val < lower:
                 return upper
@@ -56,7 +60,9 @@ class EnemyPlay:
         new_y = wrap(y, -self.size, self.screen_height)
         return new_x, new_y
 
-    def load_rl_model(self, model_path: str = "models/enemy_rl/final_model.zip") -> bool:
+    def load_rl_model(
+        self, model_path: str = "models/enemy_rl/final_model.zip"
+    ) -> bool:
         """
         Load a trained reinforcement learning model for enemy behavior.
 
@@ -101,11 +107,7 @@ class EnemyPlay:
         self.pos["x"], self.pos["y"] = self.wrap_position(self.pos["x"], self.pos["y"])
 
     def update_movement(
-        self,
-        player_x: float,
-        player_y: float,
-        player_speed: int,
-        current_time: int
+        self, player_x: float, player_y: float, player_speed: int, current_time: int
     ):
         """
         Update enemy movement based on AI model or reinforcement learning.
@@ -123,7 +125,7 @@ class EnemyPlay:
             return
 
         # Use RL model if available
-        if hasattr(self, 'using_rl') and self.using_rl and hasattr(self, 'rl_model'):
+        if hasattr(self, "using_rl") and self.using_rl and hasattr(self, "rl_model"):
             # Create observation for the model
             screen_width, screen_height = self.screen_width, self.screen_height
 
@@ -135,16 +137,16 @@ class EnemyPlay:
 
             # Calculate distance
             dist = math.sqrt(
-                (player_x - self.pos["x"])**2 + (player_y - self.pos["y"])**2
+                (player_x - self.pos["x"]) ** 2 + (player_y - self.pos["y"]) ** 2
             ) / max(screen_width, screen_height)
 
             player_speed_norm = player_speed / 10.0
             time_factor = 0.5  # Placeholder for time since last hit
 
             # Create observation array
-            obs = np.array([
-                px, py, ex, ey, dist, player_speed_norm, time_factor
-            ], dtype=np.float32)
+            obs = np.array(
+                [px, py, ex, ey, dist, player_speed_norm, time_factor], dtype=np.float32
+            )
 
             # Get action from model
             try:
@@ -152,9 +154,13 @@ class EnemyPlay:
                 self.apply_rl_action(action)
             except Exception as e:
                 # Fallback to traditional approach on error
-                logging.error(f"RL model inference failed: {e}. Falling back to neural network.")
+                logging.error(
+                    f"RL model inference failed: {e}. Falling back to neural network."
+                )
                 self.using_rl = False
-                update_enemy_movement(self, player_x, player_y, player_speed, current_time)
+                update_enemy_movement(
+                    self, player_x, player_y, player_speed, current_time
+                )
         else:
             # Use traditional neural network approach
             update_enemy_movement(

@@ -4,6 +4,7 @@ Train a missile trajectory prediction model using the SimpleMissileModel archite
 This module provides a training pipeline for the missile trajectory prediction model,
 including data loading, training loop, optimization, and model saving.
 """
+
 import os
 from typing import Optional, List, Dict
 
@@ -51,7 +52,9 @@ class MissileTrainer:
         # Initialize dataset and loader
         self.dataset = MissileDataset(json_file=self.filename)
 
-        self.dataloader = DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
+        self.dataloader = DataLoader(
+            self.dataset, batch_size=self.batch_size, shuffle=True
+        )
 
         # Initialize model and optimizer
         self.model = SimpleMissileModel(input_size=9, hidden_size=64, output_size=1)
@@ -84,7 +87,7 @@ class MissileTrainer:
                 weights = weights.view(-1)
 
                 # Weighted MSE
-                loss_per_sample = (preds - actions)**2 * weights
+                loss_per_sample = (preds - actions) ** 2 * weights
                 loss = loss_per_sample.mean()
 
                 loss.backward()

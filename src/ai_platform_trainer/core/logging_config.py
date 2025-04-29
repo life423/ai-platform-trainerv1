@@ -4,6 +4,7 @@ Logging configuration module for AI Platform Trainer.
 This module sets up the logging system for the application, including log
 levels, formatting, and output destinations.
 """
+
 import logging
 import sys
 from logging.handlers import RotatingFileHandler
@@ -48,9 +49,7 @@ def configure_logging(
         raise ValueError(f"Invalid log level: {log_level}")
 
     # Create formatter
-    formatter = logging.Formatter(
-        "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
     # Configure root logger
     root_logger = logging.getLogger()

@@ -10,6 +10,7 @@ class ServiceLocator:
     Service locator for dependency injection.
     Maintains a registry of services that can be retrieved by name.
     """
+
     _services = {}
 
     @classmethod

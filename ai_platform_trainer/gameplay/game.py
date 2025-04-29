@@ -7,7 +7,9 @@ from typing import List, Optional, Tuple
 import pygame
 import torch
 
-from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import EnemyMovementModel
+from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import (
+    EnemyMovementModel,
+)
 from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
 from ai_platform_trainer.core.data_logger import DataLogger
 from ai_platform_trainer.core.logging_config import setup_logging
@@ -27,7 +29,10 @@ from ai_platform_trainer.gameplay.menu import Menu
 from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
 from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
 from ai_platform_trainer.gameplay.renderer import Renderer
-from ai_platform_trainer.gameplay.spawner import respawn_enemy_with_fade_in, spawn_entities
+from ai_platform_trainer.gameplay.spawner import (
+    respawn_enemy_with_fade_in,
+    spawn_entities,
+)
 from config_manager import load_settings, save_settings
 
 
@@ -59,7 +64,7 @@ class Game:
         self.enemies: List[EnemyPlay] = []
         self.num_enemies: int = 3  # Default starting number of enemies
         self.enemy_types = ["standard", "fast", "tank"]  # Available enemy types
-        
+
         self.data_logger: Optional[DataLogger] = None
         self.training_mode_manager: Optional[TrainingMode] = None
 
@@ -69,7 +74,7 @@ class Game:
         self.respawn_delay = 1000
         self.respawn_timer = 0
         self.is_respawning = False
-        
+
         # Score tracking
         self.score = 0
         self.last_score_time = 0
@@ -87,7 +92,9 @@ class Game:
             logging.info("Loading missile model once...")
             try:
                 model = SimpleMissileModel()
-                model.load_state_dict(torch.load(missile_model_path, map_location="cpu"))
+                model.load_state_dict(
+                    torch.load(missile_model_path, map_location="cpu")
+                )
                 model.eval()
                 self.missile_model = model
             except Exception as e:
@@ -107,11 +114,13 @@ class Game:
             else:
                 self.update(current_time)
                 # Pass the game instance to player so it can access game.enemies
-                if self.player and not hasattr(self.player, 'game'):
+                if self.player and not hasattr(self.player, "game"):
                     self.player.game = self
-                
+
                 # Render the game with all enemies
-                self.renderer.render(self.menu, self.player, self.enemy, self.menu_active)
+                self.renderer.render(
+                    self.menu, self.player, self.enemy, self.menu_active
+                )
 
             pygame.display.flip()
             self.clock.tick(config.FRAME_RATE)
@@ -137,10 +146,10 @@ class Game:
 
         else:
             self.player, self.enemy, self.enemies = self._init_play_mode()
-            
+
             # Set player.game reference for easy access to game state
             self.player.game = self
-            
+
             # Initialize score tracking
             self.score = 0
             self.last_score_time = pygame.time.get_ticks()
@@ -160,12 +169,12 @@ class Game:
         player = PlayerPlay(self.screen_width, self.screen_height)
         # Create single enemy for backward compatibility
         enemy = EnemyPlay(self.screen_width, self.screen_height, model)
-        
+
         # Get initial enemy count from difficulty manager
         difficulty_manager = DifficultyManager()
         params = difficulty_manager.get_current_parameters()
-        self.num_enemies = params['max_enemies']
-        
+        self.num_enemies = params["max_enemies"]
+
         # Create multiple enemies of different types
         enemies = []
         for i in range(self.num_enemies):
@@ -173,19 +182,16 @@ class Game:
             # Standard: 50%, Fast: 25%, Tank: 25%
             weights = [0.5, 0.25, 0.25]
             enemy_type = random.choices(self.enemy_types, weights=weights)[0]
-            
+
             new_enemy = create_enemy_by_type(
-                enemy_type, 
-                self.screen_width, 
-                self.screen_height, 
-                model
+                enemy_type, self.screen_width, self.screen_height, model
             )
-            
+
             # Add respawn time attribute for individual enemy respawn management
             new_enemy.respawn_time = 0
             enemies.append(new_enemy)
-            
-            logging.info(f"Created {enemy_type} enemy ({i+1} of {self.num_enemies})")
+
+            logging.info(f"Created {enemy_type} enemy ({i + 1} of {self.num_enemies})")
 
         # Load RL model for all enemies if available
         rl_model_path = "models/enemy_rl/final_model.zip"
@@ -193,7 +199,9 @@ class Game:
             try:
                 success = enemy.load_rl_model(rl_model_path)
                 if success:
-                    logging.info("Using reinforcement learning model for enemy behavior")
+                    logging.info(
+                        "Using reinforcement learning model for enemy behavior"
+                    )
                     # Apply RL model to all enemies as well
                     for e in enemies:
                         e.load_rl_model(rl_model_path)
@@ -206,36 +214,35 @@ class Game:
         else:
             logging.info("No RL model found, using traditional neural network")
 
-        logging.info(f"Initialized PlayerPlay and {len(enemies)} enemies for play mode.")
+        logging.info(
+            f"Initialized PlayerPlay and {len(enemies)} enemies for play mode."
+        )
         return player, enemy, enemies
-    
+
     def spawn_random_enemy(self) -> EnemyPlay:
         """
         Create a new enemy of a random type.
-        
+
         Returns:
             EnemyPlay: A new enemy instance
         """
         # Load the model once if it doesn't exist
         model = None
-        if hasattr(self, 'enemy') and self.enemy and hasattr(self.enemy, 'model'):
+        if hasattr(self, "enemy") and self.enemy and hasattr(self.enemy, "model"):
             model = self.enemy.model
-            
+
         # Randomly select an enemy type with weighted probability
         # Standard: 50%, Fast: 25%, Tank: 25%
         weights = [0.5, 0.25, 0.25]
         enemy_type = random.choices(self.enemy_types, weights=weights)[0]
-        
+
         new_enemy = create_enemy_by_type(
-            enemy_type, 
-            self.screen_width, 
-            self.screen_height, 
-            model
+            enemy_type, self.screen_width, self.screen_height, model
         )
-        
+
         # Add respawn time attribute for individual enemy respawn management
         new_enemy.respawn_time = 0
-        
+
         # Load RL model if available
         rl_model_path = "models/enemy_rl/final_model.zip"
         if os.path.exists(rl_model_path):
@@ -243,7 +250,7 @@ class Game:
                 new_enemy.load_rl_model(rl_model_path)
             except Exception as e:
                 logging.error(f"Error loading RL model for new enemy: {e}")
-        
+
         logging.info(f"Spawned new {enemy_type} enemy")
         return new_enemy
 
@@ -281,42 +288,42 @@ class Game:
                     selected_action = self.menu.handle_menu_events(event)
                     if selected_action:
                         self.check_menu_selection(selected_action)
-                        
+
     def _get_nearest_enemy_position(self) -> Optional[dict]:
         """
         Find the nearest visible enemy to the player.
-        
+
         Returns:
             Optional[dict]: Position of the nearest enemy or None if no visible enemies
         """
         if not self.player:
             return None
-            
+
         # Check multiple enemies first
-        if hasattr(self, 'enemies') and self.enemies:
+        if hasattr(self, "enemies") and self.enemies:
             nearest_enemy = None
-            min_distance = float('inf')
-            
+            min_distance = float("inf")
+
             for enemy in self.enemies:
                 if not enemy.visible:
                     continue
-                    
+
                 # Calculate distance to player
                 dx = enemy.pos["x"] - self.player.position["x"]
                 dy = enemy.pos["y"] - self.player.position["y"]
-                distance = (dx**2 + dy**2)**0.5
-                
+                distance = (dx**2 + dy**2) ** 0.5
+
                 if distance < min_distance:
                     min_distance = distance
                     nearest_enemy = enemy
-                    
+
             if nearest_enemy:
                 return nearest_enemy.pos
-                
+
         # Fall back to single enemy
         if self.enemy and self.enemy.visible:
             return self.enemy.pos
-            
+
         return None
 
     def check_menu_selection(self, selected_action: str) -> None:
@@ -335,8 +342,7 @@ class Game:
         """
         was_fullscreen = self.settings["fullscreen"]
         new_display, w, h = toggle_fullscreen_display(
-            not was_fullscreen,
-            config.SCREEN_SIZE
+            not was_fullscreen, config.SCREEN_SIZE
         )
         self.settings["fullscreen"] = not was_fullscreen
         save_settings(self.settings, "settings.json")
@@ -355,8 +361,9 @@ class Game:
         if self.mode == "train" and self.training_mode_manager:
             self.training_mode_manager.update()
         elif self.mode == "play":
-            if not hasattr(self, 'play_mode_manager') or self.play_mode_manager is None:
+            if not hasattr(self, "play_mode_manager") or self.play_mode_manager is None:
                 from ai_platform_trainer.gameplay.modes.play_mode import PlayMode
+
                 self.play_mode_manager = PlayMode(self)
 
             self.play_mode_manager.update(current_time)
@@ -397,7 +404,7 @@ class Game:
                 self.player.position,
                 self.enemy.pos if self.enemy else None,
                 self._missile_input,
-                self.missile_model
+                self.missile_model,
             )
 
     def check_collision(self) -> bool:
@@ -410,10 +417,7 @@ class Game:
             self.player.size,
         )
         enemy_rect = pygame.Rect(
-            self.enemy.pos["x"],
-            self.enemy.pos["y"],
-            self.enemy.size,
-            self.enemy.size
+            self.enemy.pos["x"], self.enemy.pos["y"], self.enemy.size, self.enemy.size
         )
         return player_rect.colliderect(enemy_rect)
 
@@ -454,14 +458,15 @@ class Game:
         """
         if self.enemy:
             import random
+
             if self.player:
                 while True:
                     x = random.randint(0, self.screen_width - self.enemy.size)
                     y = random.randint(0, self.screen_height - self.enemy.size)
 
                     distance = math.sqrt(
-                        (x - self.player.position["x"])**2 +
-                        (y - self.player.position["y"])**2
+                        (x - self.player.position["x"]) ** 2
+                        + (y - self.player.position["y"]) ** 2
                     )
 
                     min_distance = max(self.screen_width, self.screen_height) * 0.3
@@ -488,7 +493,7 @@ class Game:
                 self.running = False
 
         if self.mode == "play" and not self.menu_active:
-            if hasattr(self, 'play_mode_manager') and self.play_mode_manager:
+            if hasattr(self, "play_mode_manager") and self.play_mode_manager:
                 self.play_mode_manager.update(current_time)
             else:
                 self.play_update(current_time)

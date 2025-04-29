@@ -8,6 +8,10 @@ from ai_platform_trainer.gameplay.config import config
 def compute_normalized_direction(
     px: float, py: float, ex: float, ey: float
 ) -> Tuple[float, float]:
+    """
+    Returns the normalized (dx, dy) direction from enemy to player (or vice versa),
+    or (0,0) if both points coincide.
+    """
     direction_x = px - ex
     direction_y = py - ey
     dist = math.hypot(direction_x, direction_y)
@@ -56,19 +60,3 @@ def find_enemy_spawn_position(
         min_dist=config.MIN_DISTANCE,
         other_pos=player_pos,
     )
-
-
-def compute_normalized_direction(
-    px: float, py: float, ex: float, ey: float
-) -> Tuple[float, float]:
-    """
-    Returns the normalized (dx, dy) direction from enemy to player (or vice versa),
-    or (0,0) if both points coincide.
-    """
-    direction_x = px - ex
-    direction_y = py - ey
-    dist = math.hypot(direction_x, direction_y)
-    if dist > 0:
-        return direction_x / dist, direction_y / dist
-    else:
-        return 0.0, 0.0

@@ -14,6 +14,7 @@ def run_game():
     try:
         # Try to run using the standard game mode
         from ai_platform_trainer.engine.core.game import Game
+
         print("Starting AI Platform Trainer in standard mode...")
         game = Game()
         game.run()
@@ -22,6 +23,7 @@ def run_game():
         # Try to run using gameplay.game directly
         try:
             from ai_platform_trainer.gameplay.game import Game
+
             print("Starting AI Platform Trainer using legacy game...")
             game = Game()
             game.run()
@@ -33,11 +35,12 @@ def run_game():
         print(f"Error running game: {e}")
         sys.exit(1)
 
+
 if __name__ == "__main__":
     # Add the project root to sys.path
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if project_root not in sys.path:
         sys.path.insert(0, project_root)
-    
+
     run_game()
     run_game()
