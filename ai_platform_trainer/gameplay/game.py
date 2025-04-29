@@ -287,7 +287,12 @@ class Game:
                 self.running = False
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_f:
+                if event.key == pygame.K_ESCAPE:
+                    # Handle Escape key universally (both in menu and gameplay)
+                    logging.info("Escape key pressed. Exiting game.")
+                    self.running = False
+                    return
+                elif event.key == pygame.K_f:
                     logging.debug("F pressed - toggling fullscreen.")
                     self._toggle_fullscreen()
 
@@ -297,10 +302,7 @@ class Game:
                     if selected_action:
                         self.check_menu_selection(selected_action)
                 else:
-                    if event.key == pygame.K_ESCAPE:
-                        logging.info("Escape key pressed. Exiting game.")
-                        self.running = False
-                    elif event.key == pygame.K_SPACE and self.player:
+                    if event.key == pygame.K_SPACE and self.player:
                         # Target the nearest visible enemy for missile
                         target_pos = self._get_nearest_enemy_position()
                         if target_pos:
