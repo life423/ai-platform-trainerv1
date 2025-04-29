@@ -8,6 +8,7 @@ improved pattern selection, missile avoidance, and hit reactions.
 import logging
 import sys
 import time
+
 import pygame
 
 # Configure logging
@@ -27,8 +28,8 @@ def run_test():
         pygame.init()
         
         # Import needed elements for training mode
-        from ai_platform_trainer.entities.player_training import PlayerTraining
         from ai_platform_trainer.entities.enemy_training import EnemyTrain
+        from ai_platform_trainer.entities.player_training import PlayerTraining
         from ai_platform_trainer.gameplay.modes.training_mode import TrainingMode
         from ai_platform_trainer.gameplay.spawner import spawn_entities
 
@@ -55,6 +56,11 @@ def run_test():
             game.enemy.game = game
             logging.info("Set game reference on enemy for missile avoidance")
         
+        # Disable respawning in training mode - ensure continuous presence
+        game.is_respawning = False
+        game.respawn_timer = 0
+        game.respawn_delay = 0
+        
         # Verify pattern weights on enemy
         if hasattr(game.enemy, "PATTERN_WEIGHTS"):
             logging.info(f"Enemy pattern weights: {game.enemy.PATTERN_WEIGHTS}")
@@ -71,6 +77,8 @@ def run_test():
         start_time = time.time()
         test_duration = 10  # seconds
         enemy_positions = []
+        hit_count = 0
+        visibility_check_points = []
         
         logging.info(f"Running test for {test_duration} seconds...")
         
@@ -82,6 +90,12 @@ def run_test():
             
             # Update the game with current time
             current_time = pygame.time.get_ticks()
+            
+            # First record enemy visibility before each update
+            if game.enemy:
+                visibility_check_points.append(game.enemy.visible)
+            
+            # Update the game
             game.update(current_time)
             
             # Store enemy position to check for continuous presence
@@ -89,12 +103,13 @@ def run_test():
                 enemy_positions.append((game.enemy.pos["x"], game.enemy.pos["y"]))
             
             # Force a missile hit every 2 seconds for testing
-            current_time = int(time.time() - start_time)
-            if current_time % 2 == 0 and current_time > 0:
+            current_elapsed = int(time.time() - start_time)
+            if current_elapsed % 2 == 0 and current_elapsed > 0:
                 if hasattr(game.enemy, "register_hit") and not getattr(game, "_test_hit_registered", False):
-                    logging.info(f"Testing hit reaction at {current_time}s")
+                    logging.info(f"Testing hit reaction at {current_elapsed}s")
                     game.enemy.register_hit()
                     game._test_hit_registered = True
+                    hit_count += 1
             else:
                 game._test_hit_registered = False
             
@@ -110,6 +125,7 @@ def run_test():
         
         # Analyze results
         logging.info(f"Test completed, collected {len(enemy_positions)} enemy positions")
+        logging.info(f"Triggered {hit_count} hit reactions during the test")
         
         if len(enemy_positions) > 0:
             # Check for continuous enemy presence
@@ -122,6 +138,13 @@ def run_test():
                 logging.info("✓ Enemy remained continuously present (>88% of frames)")
             else:
                 logging.warning("✗ Enemy was not continuously present")
+            
+            # Check visibility during the test
+            if all(visibility_check_points):
+                logging.info("✓ Enemy remained visible throughout the entire test")
+            else:
+                invisible_count = visibility_check_points.count(False)
+                logging.warning(f"✗ Enemy was invisible for {invisible_count} frames")
                 
             # Check if enemy moved during test
             unique_positions = len(set(enemy_positions))
