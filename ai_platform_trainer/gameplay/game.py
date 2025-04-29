@@ -42,12 +42,17 @@ class Game:
 
     def __init__(self) -> None:
         setup_logging()
+        # Initialize all pygame modules, including font
+        pygame.init()
         self.running: bool = True
         self.menu_active: bool = True
         self.mode: Optional[str] = None
 
-        self.settings = get_config_manager("settings.json").config        # Always start in fullscreen mode
+        self.settings = get_config_manager("settings.json").config
         self.settings["fullscreen"] = True
+        # Initialize screen dimensions from game config
+        self.screen_width = config.SCREEN_WIDTH
+        self.screen_height = config.SCREEN_HEIGHT
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
         pygame.display.set_caption(config.WINDOW_TITLE)
         self.clock = pygame.time.Clock()
