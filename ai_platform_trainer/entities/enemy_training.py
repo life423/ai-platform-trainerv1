@@ -1,6 +1,7 @@
-import random
-import math
 import logging
+import math
+import random
+
 from ai_platform_trainer.entities.enemy import Enemy
 from ai_platform_trainer.utils.helpers import wrap_position
 
@@ -20,12 +21,13 @@ class EnemyTrain(Enemy):
 
     DEFAULT_SIZE = 50
     DEFAULT_COLOR = (173, 153, 228)
-    PATTERNS = [
-        "random_walk",
-        "circle_move",
-        "diagonal_move",
-        "pursue",
-    ]  # Added "pursue"
+    # Replace patterns list with weighted dictionary for more realistic behavior
+    PATTERN_WEIGHTS = {
+        "pursue": 0.7,  # 70% probability for pursuit
+        "random_walk": 0.1,
+        "circle_move": 0.1,
+        "diagonal_move": 0.1
+    }
     WALL_MARGIN = 20
     PURSUIT_SPEED_FACTOR = 0.8  # Relative speed factor when pursuing the player
 
@@ -66,24 +68,50 @@ class EnemyTrain(Enemy):
         self.random_walk_timer = 0
         self.random_walk_angle = 0.0
         self.random_walk_speed = self.base_speed
-
+        
+        # Hit reaction system
+        self.hit_flash_timer = 0
+        self.hit_flash_duration = 15  # Frames
+        self.hit_color = (255, 100, 100)  # Reddish tint
+        self.original_color = self.color
+        
+        # Recoil effect
+        self.recoil_vector = {"x": 0, "y": 0}
+        self.recoil_duration = 0
+        
+        # Tracking recent movement for missile avoidance
+        self.recent_vx = 0
+        self.recent_vy = 0
+        self.game = None  # Will be set by the game instance
+        
         # Pick an initial pattern
         self.switch_pattern()
 
     def switch_pattern(self):
         """
-        Switch to a new movement pattern from PATTERNS, ensuring it's different
-        from the current pattern. Also resets state_timer for the new pattern.
+        Switch to a new movement pattern based on weighted probabilities,
+        ensuring it's different from the current pattern. Also resets state_timer.
         """
         if self.forced_escape_timer > 0:
             return  # If we're forcing escape from a wall, don't switch
 
+        # Choose pattern based on weights
+        patterns = list(self.PATTERN_WEIGHTS.keys())
+        weights = list(self.PATTERN_WEIGHTS.values())
+        
         new_pattern = self.current_pattern
         while new_pattern == self.current_pattern:
-            new_pattern = random.choice(self.PATTERNS)
+            new_pattern = random.choices(patterns, weights=weights, k=1)[0]
 
         self.current_pattern = new_pattern
-        self.state_timer = random.randint(120, 300)
+        
+        # Different durations based on pattern type
+        if self.current_pattern == "pursue":
+            # Longer pursuit periods
+            self.state_timer = random.randint(180, 240)
+        else:
+            # Shorter non-pursuit periods
+            self.state_timer = random.randint(60, 120)
 
         if self.current_pattern == "circle_move":
             self.circle_center = (self.pos["x"], self.pos["y"])
@@ -97,10 +125,33 @@ class EnemyTrain(Enemy):
 
     def update_movement(self, player_x, player_y, player_speed):
         """
-        Primary movement logic, choosing from the current pattern:
-        random_walk, circle_move, diagonal_move, or pursue.
+        Primary movement logic, with missile avoidance and hit reactions.
         """
-        if self.forced_escape_timer > 0:
+        # Handle hit flash visual effect
+        if self.hit_flash_timer > 0:
+            # Alternate between normal and hit color
+            if self.hit_flash_timer % 2 == 0:
+                self.color = self.hit_color
+            else:
+                self.color = self.original_color
+            self.hit_flash_timer -= 1
+            if self.hit_flash_timer <= 0:
+                self.color = self.original_color
+        
+        # Apply recoil if active
+        if self.recoil_duration > 0:
+            self.apply_recoil()
+            # Skip other movement if strong recoil is active
+            if self.recoil_duration > 5:
+                return
+        
+        # First check for incoming missiles and dodge if needed
+        missile_threat = self.check_missile_threat()
+        
+        if missile_threat:
+            # Override pattern with dodge behavior
+            self.dodge_missile(missile_threat)
+        elif self.forced_escape_timer > 0:
             # Forced escape mode takes precedence over pattern-based movement
             self.forced_escape_timer -= 1
             self.apply_forced_escape_movement()
@@ -244,12 +295,112 @@ class EnemyTrain(Enemy):
         self.pos["x"] += self.diagonal_direction[0] * speed
         self.pos["y"] += self.diagonal_direction[1] * speed
 
+    def register_hit(self):
+        """
+        Visual and movement reaction to being hit, without despawning.
+        Replacing the hide/respawn mechanism with a more realistic hit effect.
+        """
+        # Ensure enemy remains completely visible during hit reaction
+        self.visible = True
+        
+        # Flash effect
+        self.hit_flash_timer = self.hit_flash_duration
+        self.original_color = self.color
+        
+        # Calculate recoil direction (away from the closest player missile)
+        if hasattr(self, "game") and self.game and self.game.player and self.game.player.missiles:
+            # Get the closest missile
+            missile = self.game.player.missiles[0]
+            dx = self.pos["x"] - missile.pos["x"]
+            dy = self.pos["y"] - missile.pos["y"]
+            dist = math.hypot(dx, dy) or 1.0
+            
+            # Set recoil vector (away from missile)
+            self.recoil_vector = {
+                "x": (dx / dist) * 5.0,  # Recoil strength
+                "y": (dy / dist) * 5.0
+            }
+            self.recoil_duration = 10  # Frames
+        else:
+            # Default recoil in random direction
+            angle = random.uniform(0, 2 * math.pi)
+            self.recoil_vector = {
+                "x": math.cos(angle) * 5.0,
+                "y": math.sin(angle) * 5.0
+            }
+            self.recoil_duration = 10
+            
+        logging.info("Enemy registered hit reaction (visual effect without despawning)")
+
+    def apply_recoil(self):
+        """Apply recoil movement from being hit"""
+        if self.recoil_duration > 0:
+            self.pos["x"] += self.recoil_vector["x"]
+            self.pos["y"] += self.recoil_vector["y"]
+            self.recoil_duration -= 1
+            
+            # Gradually reduce recoil strength
+            self.recoil_vector["x"] *= 0.8
+            self.recoil_vector["y"] *= 0.8
+
+    def check_missile_threat(self):
+        """Check if there's an incoming missile that poses a threat"""
+        if not hasattr(self, "game") or not self.game or not hasattr(self.game, "player") or not self.game.player.missiles:
+            return None
+           
+        for missile in self.game.player.missiles:
+            # Calculate distance to missile
+            dx = missile.pos["x"] - self.pos["x"]
+            dy = missile.pos["y"] - self.pos["y"]
+            dist = math.hypot(dx, dy)
+            
+            # Project missile trajectory
+            future_x = missile.pos["x"] + missile.vx * 10  # Look ahead 10 frames
+            future_y = missile.pos["y"] + missile.vy * 10
+            
+            future_dx = future_x - self.pos["x"]
+            future_dy = future_y - self.pos["y"]
+            future_dist = math.hypot(future_dx, future_dy)
+            
+            # If missile is approaching and getting close
+            if future_dist < dist and dist < 150:
+                return missile
+               
+        return None
+       
+    def dodge_missile(self, missile):
+        """Execute a dodge maneuver away from missile path"""
+        # Calculate perpendicular direction to missile velocity
+        perp_x = -missile.vy
+        perp_y = missile.vx
+        
+        # Normalize
+        mag = math.hypot(perp_x, perp_y) or 1.0
+        perp_x = perp_x / mag
+        perp_y = perp_y / mag
+        
+        # Choose dodge direction (randomly pick one side)
+        if random.random() < 0.5:
+            perp_x = -perp_x
+            perp_y = -perp_y
+            
+        # Apply dodge impulse
+        dodge_speed = self.base_speed * 2.0
+        self.pos["x"] += perp_x * dodge_speed
+        self.pos["y"] += perp_y * dodge_speed
+        
+        # Reset pattern timer to allow more natural movement after dodge
+        self.state_timer = min(self.state_timer, 30)
+        
+    # Keeping the original hide/show methods for backward compatibility
     def hide(self):
         """
         Immediately hide EnemyTrain (no fade). Typically called upon collision.
+        Now just delegates to register_hit for a visual effect without despawning.
         """
-        self.visible = False
-        logging.info("EnemyTrain hidden due to collision.")
+        # Instead of hiding, register a hit reaction
+        self.register_hit()
+        logging.info("EnemyTrain hit reaction - not hiding for continuity")
 
     def show(self, current_time: int = None):
         """

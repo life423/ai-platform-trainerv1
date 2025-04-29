@@ -182,6 +182,7 @@ class EnemyGameEnv(gym.Env):
     def _calculate_reward(self) -> float:
         """
         Calculate the reward based on the current game state.
+        Balances player engagement with missile avoidance.
 
         Returns:
             The calculated reward value
@@ -190,29 +191,45 @@ class EnemyGameEnv(gym.Env):
             return 0.0
 
         reward = 0.0
-
-        # Current distance to player
         current_dist = self._get_distance()
-
-        # Reward for getting closer to the player (or penalty for moving away)
-        dist_change = self.last_distance - current_dist
-        reward += dist_change * 0.1
-        self.last_distance = current_dist
-
-        # Base reward for being close to player (encourages chasing)
-        proximity_reward = 10.0 / (current_dist + 1.0)
-        reward += proximity_reward * 0.05
-
-        # Big reward for hitting player
+        
+        # --- Engagement rewards ---
+        
+        # Progressive reward for being in the ideal combat range
+        ideal_range = 150  # Combat sweet spot (neither too far nor too close)
+        dist_factor = max(0, 1.0 - abs(current_dist - ideal_range) / 300)
+        reward += dist_factor * 0.2  # Substantial reward for good positioning
+        
+        # Reward for actively closing distance when too far
+        if current_dist > ideal_range + 50:
+            dist_change = self.last_distance - current_dist
+            reward += dist_change * 0.15  # Reward for closing distance
+        
+        # Reward for maintaining ideal combat range
+        if abs(current_dist - ideal_range) < 50:
+            reward += 0.05  # Small continuous reward for good positioning
+        
+        # --- Combat outcomes ---
+        
+        # Significant reward for hitting player
         if self.game.check_collision():
-            reward += 10.0
+            reward += 5.0  # Significant but not overwhelming
             self.last_hit_time = pygame.time.get_ticks()
-
-        # Penalty for being hit by missile
+        
+        # Reduced penalty for being hit by missile to encourage engagement
         if self.game.enemy and not self.game.enemy.visible:
-            reward -= 5.0
+            reward -= 2.0  # Less punitive to reduce extreme avoidance behavior
             self.reset_needed = True
-
+        
+        # --- Behavior shaping ---
+        
+        # Small penalty for extreme passivity/disengagement
+        if current_dist > 400:  # Very far from player
+            reward -= 0.03  # Small continuous penalty
+        
+        # Store current distance for next frame
+        self.last_distance = current_dist
+        
         return reward
 
     def render(self, mode="human"):

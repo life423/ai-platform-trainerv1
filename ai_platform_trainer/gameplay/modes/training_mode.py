@@ -11,6 +11,12 @@ class TrainingMode:
         self.missile_cooldown = 0
         self.missile_lifespan = {}
         self.missile_sequences = {}
+        self.frame_count = 0
+        self.session_id = f"{pygame.time.get_ticks():x}"
+        
+        # Set game reference on enemy for missile avoidance
+        if hasattr(self.game, "enemy") and hasattr(self.game.enemy, "game"):
+            self.game.enemy.game = self.game
 
     def update(self):
         current_time = pygame.time.get_ticks()
@@ -29,10 +35,14 @@ class TrainingMode:
             if self.missile_cooldown > 0:
                 self.missile_cooldown -= 1
 
-            if random.random() < getattr(self, "missile_fire_prob", 0.1):
-                if self.missile_cooldown <= 0 and len(self.game.player.missiles) == 0:
+            # Tactical missile firing instead of random
+            if self.missile_cooldown <= 0 and len(self.game.player.missiles) == 0:
+                can_fire = self.check_tactical_shot(enemy_x, enemy_y)
+                
+                if can_fire:
                     self.game.player.shoot_missile(enemy_x, enemy_y)
-                    self.missile_cooldown = 120
+                    # Variable cooldown for more natural timing
+                    self.missile_cooldown = random.randint(90, 150)
 
                     if self.game.player.missiles:
                         missile = self.game.player.missiles[0]
@@ -93,11 +103,22 @@ class TrainingMode:
                             self.game.player.missiles.remove(missile)
                             del self.missile_lifespan[missile]
 
-                            self.game.enemy.hide()
-                            self.game.is_respawning = True
-                            self.game.respawn_timer = (
-                                current_time + self.game.respawn_delay
-                            )
+                            # Instead of hiding/respawning, register hit
+                            self.game.enemy.register_hit()
+                            
+                            # Optional: Reposition enemy for variety
+                            # But don't hide or use respawn delay
+                            if getattr(self, "reposition_on_hit", True):
+                                from ai_platform_trainer.gameplay.spawn_utils import find_valid_spawn_position
+                                new_pos = find_valid_spawn_position(
+                                    self.game.screen_width, 
+                                    self.game.screen_height,
+                                    self.game.enemy.size,
+                                    margin=20,
+                                    min_dist=100,
+                                    other_pos=(self.game.player.position["x"], self.game.player.position["y"])
+                                )
+                                self.game.enemy.pos["x"], self.game.enemy.pos["y"] = new_pos
                             break
 
                     if not (
@@ -109,9 +130,12 @@ class TrainingMode:
                         del self.missile_lifespan[missile]
                         logging.debug("Training Mode: Missile left the screen.")
 
-        if self.game.is_respawning and current_time >= self.game.respawn_timer:
-            if self.game.enemy:
-                self.game.handle_respawn(current_time)
+        # Track frames for continuous recording
+        self.frame_count += 1
+        
+        # Periodically record state regardless of missile activity
+        if self.frame_count % 10 == 0:  # Every 10th frame
+            self.record_game_state(current_time)
 
     def finalize_missile_sequence(self, missile, success: bool) -> None:
         """
@@ -138,6 +162,86 @@ class TrainingMode:
         if not self.missile_sequences and not self.game.player.missiles:
             self.process_collected_data()
 
+    def check_tactical_shot(self, enemy_x: float, enemy_y: float) -> bool:
+        """
+        Determine if current position is good for shooting based on tactical
+        considerations rather than random chance.
+        """
+        if not self.game.player or not self.game.enemy:
+            return False
+            
+        player_x = self.game.player.position["x"]
+        player_y = self.game.player.position["y"]
+        
+        # Calculate distance and direction
+        dx = enemy_x - player_x
+        dy = enemy_y - player_y
+        dist = math.hypot(dx, dy)
+        
+        # 1. Check if enemy is within reasonable range
+        if dist > 400 or dist < 50:  # Too far or too close
+            return False
+            
+        # 2. Check if player is "facing" the enemy
+        # (Using player's recent movement as an indicator of facing direction)
+        if hasattr(self.game.player, "velocity"):
+            player_vx = self.game.player.velocity["x"]
+            player_vy = self.game.player.velocity["y"]
+            
+            # Dot product - positive when moving toward enemy
+            facing_score = (dx * player_vx + dy * player_vy)
+            
+            # Don't shoot if strongly moving away from enemy
+            if facing_score < -0.5:  
+                return False
+        
+        # 3. Introduce tactical timing
+        # More likely to shoot when enemy is moving predictably
+        enemy_pattern = getattr(self.game.enemy, "current_pattern", None)
+        if enemy_pattern == "pursue":
+            # Higher chance when enemy is pursuing (predictable path)
+            return random.random() < 0.15
+        else:
+            # Lower chance for other patterns
+            return random.random() < 0.08
+    
+    def record_game_state(self, current_time: int) -> None:
+        """
+        Record current game state regardless of missile activity.
+        This ensures continuous data collection even between missile sequences.
+        """
+        if not self.game.data_logger:
+            return
+            
+        if not self.game.enemy or not self.game.player:
+            return
+            
+        # Basic state data
+        state_data = {
+            "timestamp": current_time,
+            "session_id": self.session_id,
+            "frame": self.frame_count,
+            "player_x": self.game.player.position["x"],
+            "player_y": self.game.player.position["y"],
+            "enemy_x": self.game.enemy.pos["x"],
+            "enemy_y": self.game.enemy.pos["y"],
+            "player_has_missile": len(self.game.player.missiles) > 0,
+            "enemy_pattern": getattr(self.game.enemy, "current_pattern", "unknown"),
+            "missile_x": None,
+            "missile_y": None,
+            "missile_angle": None,
+            "missile_collision": False,
+        }
+        
+        # Add missile data if present
+        if self.game.player.missiles:
+            missile = self.game.player.missiles[0]
+            state_data["missile_x"] = missile.pos["x"]
+            state_data["missile_y"] = missile.pos["y"]
+            state_data["missile_angle"] = math.atan2(missile.vy, missile.vx)
+            
+        self.game.data_logger.log(state_data)
+    
     def process_collected_data(self) -> None:
         """
         Process all collected training data:
