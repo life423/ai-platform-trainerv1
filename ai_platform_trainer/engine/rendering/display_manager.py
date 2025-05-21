@@ -1,4 +1,4 @@
-# file: ai_platform_trainer/gameplay/display_manager.py
+# file: ai_platform_trainer/engine/rendering/display_manager.py
 import pygame
 from typing import Tuple
 
