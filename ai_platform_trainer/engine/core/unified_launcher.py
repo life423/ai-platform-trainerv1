@@ -1,7 +1,7 @@
 """
 Unified Launcher Module for AI Platform Trainer
 
-DEPRECATED: This module is deprecated. Use the root unified_launcher.py instead.
+DEPRECATED: This module is deprecated. Use unified_launcher.py in the project root instead.
 """
 import warnings
 import sys
