@@ -1,5 +1,5 @@
 {
-    "fullscreen": true,
+    "fullscreen": false,
     "launcher_mode": "DI",
     "launcher_options": {
         "comment": "Valid values for launcher_mode: STANDARD, DI, STATE_MACHINE",
