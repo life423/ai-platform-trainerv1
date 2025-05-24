@@ -67,10 +67,14 @@ class GameCore:
 
         # Load user settings
         self.settings = load_settings("settings.json")
+        
+        # Always start in fullscreen mode regardless of settings
+        self.settings["fullscreen"] = True
+        save_settings(self.settings, "settings.json")
 
         # Initialize Pygame and the display
         (self.screen, self.screen_width, self.screen_height) = init_pygame_display(
-            fullscreen=self.settings.get("fullscreen", False)
+            fullscreen=True  # Force fullscreen
         )
 
         # Create clock, menu, and renderer
