@@ -36,6 +36,8 @@ class Config:
     # Game mechanics
     RESPAWN_DELAY = 1000  # milliseconds
     MIN_SPAWN_DISTANCE = 300  # pixels
+    WALL_MARGIN = 50  # pixels
+    MIN_DISTANCE = 200  # minimum distance between entities
     
     # Training settings
     TRAINING_EPISODES = 1000

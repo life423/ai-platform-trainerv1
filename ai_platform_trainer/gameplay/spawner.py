@@ -66,7 +66,7 @@ def respawn_enemy(game):
         return
 
     new_pos = respawn_enemy_at_position(game)
-    game.enemy.show()
+    game.enemy.visible = True  # Use visible property instead of show() method
     game.is_respawning = False
     logging.info(f"Enemy respawned at {new_pos}.")
 
@@ -81,8 +81,6 @@ def respawn_enemy_with_fade_in(game, current_time):
     new_pos = respawn_enemy_at_position(game)
     # Show the enemy with fade-in behavior
     game.enemy.show(current_time)
-    # If the double show call is intentional for the fade effect, keep it:
-    game.enemy.show(current_time)
-
+    
     game.is_respawning = False
     logging.info(f"Enemy respawned at {new_pos} with fade-in.")
