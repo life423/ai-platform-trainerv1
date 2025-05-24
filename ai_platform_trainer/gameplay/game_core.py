@@ -317,7 +317,8 @@ class GameCore:
                     if event.key == pygame.K_ESCAPE:
                         logging.info("Escape key pressed. Exiting game.")
                         self.running = False
-                    elif event.key == pygame.K_SPACE and self.player:
+                    elif event.key == pygame.K_SPACE and self.player and self.enemy:
+                        logging.debug("Space key pressed in event handler")
                         self.player.shoot_missile(self.enemy.pos)
                     elif event.key == pygame.K_m:
                         logging.info("M key pressed. Returning to menu.")

@@ -1,6 +1,7 @@
 # ai_platform_trainer/entities/missile.py
 
 import pygame
+import math
 
 
 class Missile:
@@ -26,6 +27,7 @@ class Missile:
         # New fields for matching training logic:
         self.birth_time = birth_time
         self.lifespan = lifespan
+        self.last_action = 0.0  # Store last AI action for training
 
     def update(self) -> None:
         """
@@ -36,11 +38,31 @@ class Missile:
 
     def draw(self, screen: pygame.Surface) -> None:
         """Draw the missile on the screen."""
-        pygame.draw.circle(
+        # Draw missile as a small triangle pointing in the direction of movement
+        angle = math.atan2(self.vy, self.vx)
+        
+        # Calculate triangle points
+        center_x, center_y = int(self.pos["x"]), int(self.pos["y"])
+        
+        # Front point (nose of missile)
+        front_x = center_x + int(self.size * math.cos(angle))
+        front_y = center_y + int(self.size * math.sin(angle))
+        
+        # Back points (tail of missile)
+        back_angle1 = angle + math.pi * 0.8  # 144 degrees from front
+        back_angle2 = angle - math.pi * 0.8  # -144 degrees from front
+        
+        back_x1 = center_x + int(self.size * 0.6 * math.cos(back_angle1))
+        back_y1 = center_y + int(self.size * 0.6 * math.sin(back_angle1))
+        
+        back_x2 = center_x + int(self.size * 0.6 * math.cos(back_angle2))
+        back_y2 = center_y + int(self.size * 0.6 * math.sin(back_angle2))
+        
+        # Draw the triangle
+        pygame.draw.polygon(
             screen,
             self.color,
-            (int(self.pos["x"]), int(self.pos["y"])),
-            self.size,
+            [(front_x, front_y), (back_x1, back_y1), (back_x2, back_y2)]
         )
 
     def get_rect(self) -> pygame.Rect:

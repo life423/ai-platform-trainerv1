@@ -15,10 +15,13 @@ class PlayerPlay:
         self.position = {"x": screen_width // 4, "y": screen_height // 2}
         self.step = 5
         self.missiles: List[Missile] = []
+        self.missile_cooldown = 500  # Cooldown in milliseconds
+        self.last_missile_time = 0
 
     def reset(self) -> None:
         self.position = {"x": self.screen_width // 4, "y": self.screen_height // 2}
         self.missiles.clear()
+        self.last_missile_time = 0
         logging.info("Player has been reset to the initial position.")
 
     def handle_input(self) -> bool:
@@ -47,44 +50,54 @@ class PlayerPlay:
         return True
 
     def shoot_missile(self, enemy_pos: Optional[Dict[str, float]] = None) -> None:
-        # Shoot only if no missile is active, or allow multiple—up to you
-        if len(self.missiles) == 0:
-            missile_start_x = self.position["x"] + self.size // 2
-            missile_start_y = self.position["y"] + self.size // 2
+        current_time = pygame.time.get_ticks()
+        
+        # Check if cooldown has elapsed
+        if current_time - self.last_missile_time < self.missile_cooldown:
+            logging.debug("Missile on cooldown")
+            return
+            
+        # Allow multiple missiles (up to 3)
+        if len(self.missiles) >= 3:
+            logging.debug("Maximum number of missiles already active")
+            return
+            
+        missile_start_x = self.position["x"] + self.size // 2
+        missile_start_y = self.position["y"] + self.size // 2
 
-            birth_time = pygame.time.get_ticks()
-            # Random lifespan from 8-12s (significantly increased to allow longer travel distance)
-            random_lifespan = random.randint(8000, 12000)
-            missile_speed = 5.0
+        birth_time = current_time
+        # Random lifespan from 8-12s
+        random_lifespan = random.randint(8000, 12000)
+        missile_speed = 5.0
 
-            # Determine initial velocity based on enemy position if available
-            if enemy_pos is not None:
-                # Calculate the angle toward the enemy's position
-                dy = enemy_pos["y"] - missile_start_y
-                dx = enemy_pos["x"] - missile_start_x
-                angle = math.atan2(dy, dx)
-                # Add a small random deviation to simulate inaccuracy
-                angle += random.uniform(-0.1, 0.1)  # deviation in radians
-                vx = missile_speed * math.cos(angle)
-                vy = missile_speed * math.sin(angle)
-            else:
-                vx = missile_speed
-                vy = 0.0
-
-            # Create a new missile object with calculated initial velocity and random lifespan
-            missile = Missile(
-                x=missile_start_x,
-                y=missile_start_y,
-                speed=missile_speed,
-                vx=vx,
-                vy=vy,
-                birth_time=birth_time,
-                lifespan=random_lifespan,
-            )
-            self.missiles.append(missile)
-            logging.info("Play mode: Shot a missile with increased travel distance.")
+        # Determine initial velocity based on enemy position if available
+        if enemy_pos is not None:
+            # Calculate the angle toward the enemy's position
+            dy = enemy_pos["y"] - missile_start_y
+            dx = enemy_pos["x"] - missile_start_x
+            angle = math.atan2(dy, dx)
+            # Add a small random deviation to simulate inaccuracy
+            angle += random.uniform(-0.1, 0.1)  # deviation in radians
+            vx = missile_speed * math.cos(angle)
+            vy = missile_speed * math.sin(angle)
         else:
-            logging.debug("Attempted to shoot missile, but one is already active.")
+            # If no enemy position, shoot forward
+            vx = missile_speed
+            vy = 0.0
+
+        # Create a new missile object with calculated initial velocity and random lifespan
+        missile = Missile(
+            x=missile_start_x,
+            y=missile_start_y,
+            speed=missile_speed,
+            vx=vx,
+            vy=vy,
+            birth_time=birth_time,
+            lifespan=random_lifespan,
+        )
+        self.missiles.append(missile)
+        self.last_missile_time = current_time
+        logging.info("Play mode: Shot a missile with increased travel distance.")
 
     def update_missiles(self) -> None:
         current_time = pygame.time.get_ticks()

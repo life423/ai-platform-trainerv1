@@ -6,6 +6,7 @@ applying a trained neural network model to determine missile trajectory
 adjustments based on current game state.
 """
 import math
+import logging
 from typing import Dict, List, Optional
 
 import torch
@@ -38,54 +39,69 @@ def update_missile_ai(
         model_blend_factor: Weight between model output and direct targeting (0-1)
         max_turn_rate: Maximum degrees per update a missile can turn
     """
+    if not missiles:
+        return
+        
+    if enemy_pos is None:
+        logging.debug("No enemy position available for missile guidance")
+        return
+        
     for missile in missiles:
-        # Calculate current missile direction
-        current_angle = math.atan2(missile.vy, missile.vx)
+        try:
+            # Calculate current missile direction
+            current_angle = math.atan2(missile.vy, missile.vx)
 
-        # Determine target angle (direct path to enemy or continue current trajectory)
-        if enemy_pos is None:
-            target_angle = current_angle
-        else:
+            # Determine target angle (direct path to enemy or continue current trajectory)
             target_angle = math.atan2(
                 enemy_pos["y"] - missile.pos["y"],
                 enemy_pos["x"] - missile.pos["x"]
             )
 
-        # Extract position values for model input
-        px, py = player_pos["x"], player_pos["y"]
+            # Extract position values for model input
+            px, py = player_pos["x"], player_pos["y"]
+            ex, ey = enemy_pos["x"], enemy_pos["y"]
 
-        # If enemy doesn't exist, use projected position based on missile velocity
-        ex = enemy_pos["x"] if enemy_pos else missile.pos["x"] + missile.vx
-        ey = enemy_pos["y"] if enemy_pos else missile.pos["y"] + missile.vy
+            # Calculate distance to target (used as model input feature)
+            dist_val = math.hypot(missile.pos["x"] - ex, missile.pos["y"] - ey)
 
-        # Calculate distance to target (used as model input feature)
-        dist_val = math.hypot(missile.pos["x"] - ex, missile.pos["y"] - ey)
+            # Prepare model input tensor with current state
+            shared_input_tensor[0] = torch.tensor([
+                px, py, ex, ey,
+                missile.pos["x"], missile.pos["y"],
+                current_angle, dist_val, 0.0
+            ])
 
-        # Prepare model input tensor with current state
-        shared_input_tensor[0] = torch.tensor([
-            px, py, ex, ey,
-            missile.pos["x"], missile.pos["y"],
-            current_angle, dist_val, 0.0
-        ])
+            # Get AI model prediction (turn rate adjustment)
+            with torch.no_grad():
+                turn_rate = missile_model(shared_input_tensor).item()
 
-        # Get AI model prediction (turn rate adjustment)
-        with torch.no_grad():
-            turn_rate = missile_model(shared_input_tensor).item()
+            # Calculate angle difference for direct targeting
+            angle_diff = math.degrees(target_angle - current_angle)
+            
+            # Normalize angle difference to be between -180 and 180 degrees
+            if angle_diff > 180:
+                angle_diff -= 360
+            elif angle_diff < -180:
+                angle_diff += 360
 
-        # Calculate angle difference for direct targeting
-        angle_diff = math.degrees(target_angle - current_angle)
+            # Blend between model prediction and direct targeting
+            blended_turn_rate = (
+                model_blend_factor * turn_rate +
+                (1 - model_blend_factor) * angle_diff
+            )
 
-        # Blend between model prediction and direct targeting
-        blended_turn_rate = (
-            model_blend_factor * turn_rate +
-            (1 - model_blend_factor) * angle_diff
-        )
+            # Constrain turn rate to prevent unrealistic movement
+            constrained_turn_rate = max(-max_turn_rate, min(max_turn_rate, blended_turn_rate))
 
-        # Constrain turn rate to prevent unrealistic movement
-        constrained_turn_rate = max(-max_turn_rate, min(max_turn_rate, blended_turn_rate))
-
-        # Apply the turn and update missile velocity components
-        new_angle = current_angle + math.radians(constrained_turn_rate)
-        missile.vx = missile.speed * math.cos(new_angle)
-        missile.vy = missile.speed * math.sin(new_angle)
-        missile.last_action = turn_rate  # Store for training data collection
+            # Apply the turn and update missile velocity components
+            new_angle = current_angle + math.radians(constrained_turn_rate)
+            missile.vx = missile.speed * math.cos(new_angle)
+            missile.vy = missile.speed * math.sin(new_angle)
+            
+            # Store for training data collection
+            if hasattr(missile, 'last_action'):
+                missile.last_action = turn_rate
+                
+        except Exception as e:
+            logging.error(f"Error updating missile AI: {e}")
+            continue
