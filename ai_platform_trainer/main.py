@@ -1,23 +1,18 @@
 """
 Main entry point for AI Platform Trainer.
+
+This module forwards to the unified launcher for consistency.
 """
 import os
 import sys
-import pygame
 
-def main():
-    # Add the project root to sys.path
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
-    
-    # Import and run the game directly
-    from ai_platform_trainer.gameplay.game import Game
-    
-    game = Game()
-    game.run()
+# Add the project root to sys.path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+# Import and use the unified launcher
+from unified_launcher import main
 
 if __name__ == "__main__":
-    # Initialize pygame
-    pygame.init()
     main()

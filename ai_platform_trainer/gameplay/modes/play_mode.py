@@ -4,8 +4,9 @@ Play mode game logic for AI Platform Trainer.
 This module handles the play mode game loop and mechanics.
 """
 import logging
+import pygame
 
-from ai_platform_trainer.entities.behaviors.missile_ai_controller import update_missile_ai
+from ai_platform_trainer.ai.inference.missile_controller import update_missile_ai
 
 
 class PlayMode:
@@ -19,6 +20,10 @@ class PlayMode:
         """
         The main update loop for 'play' mode, replacing old play_update() logic in game.py.
         """
+        # Check for space bar press to shoot missile
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE] and self.game.player and self.game.enemy:
+            self.game.player.shoot_missile(self.game.enemy.pos)
 
         # 1) Player movement & input
         if self.game.player and not self.game.player.handle_input():

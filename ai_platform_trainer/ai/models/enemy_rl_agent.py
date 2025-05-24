@@ -5,12 +5,13 @@ This module defines a custom Gym environment that allows training an RL agent
 to control the enemy character using the Proximal Policy Optimization (PPO)
 algorithm from Stable Baselines3.
 """
-import gym
-from gym import spaces
+import logging
+from typing import Dict, Tuple, Optional, Any
+
+import gymnasium as gym
+from gymnasium import spaces
 import numpy as np
 import pygame
-import logging
-from typing import Dict, Tuple
 
 
 class EnemyGameEnv(gym.Env):
@@ -20,7 +21,7 @@ class EnemyGameEnv(gym.Env):
     This environment wraps the game state and provides a reinforcement learning
     interface with observations, actions, rewards, and state transitions.
     """
-    metadata = {'render.modes': ['human']}
+    metadata = {'render_modes': ['human'], 'render_fps': 60}
 
     def __init__(self, game_instance=None):
         """
@@ -97,7 +98,7 @@ class EnemyGameEnv(gym.Env):
 
         return self.current_state, reward, done, truncated, info
 
-    def reset(self, seed=None, options=None) -> Tuple[np.ndarray, Dict]:
+    def reset(self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, Dict]:
         """
         Reset the environment state.
 
@@ -212,14 +213,19 @@ class EnemyGameEnv(gym.Env):
 
         return reward
 
-    def render(self, mode='human'):
+    def render(self) -> Optional[np.ndarray]:
         """
         Render the environment.
 
         Since the actual rendering is handled by the game, this is a no-op.
+        
+        Returns:
+            None as rendering is handled by the game
         """
+        return None
 
-    def close(self):
+    def close(self) -> None:
         """
         Clean up environment resources.
         """
+        pass

@@ -23,12 +23,10 @@ from ai_platform_trainer.gameplay.display_manager import (
     init_pygame_display,
     toggle_fullscreen_display,
 )
-# New import for missile AI updates
-from ai_platform_trainer.gameplay.missile_ai_controller import update_missile_ai
-
-# AI and model imports
-from ai_platform_trainer.ai_model.model_definition.enemy_movement_model import EnemyMovementModel
-from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
+# AI imports
+from ai_platform_trainer.ai.inference.missile_controller import update_missile_ai
+from ai_platform_trainer.ai.models.enemy_movement_model import EnemyMovementModel
+from ai_platform_trainer.ai.models.missile_model import MissileModel
 
 # Data logger and entity imports
 from ai_platform_trainer.core.data_logger import DataLogger
@@ -73,7 +71,7 @@ class Game:
         self.training_mode_manager: Optional[TrainingMode] = None  # For train mode
 
         # 5) Load missile model once
-        self.missile_model: Optional[SimpleMissileModel] = None
+        self.missile_model: Optional[MissileModel] = None
         self._load_missile_model_once()
 
         # 6) Additional logic
@@ -92,7 +90,7 @@ class Game:
             logging.info(f"Found missile model at '{missile_model_path}'.")
             logging.info("Loading missile model once...")
             try:
-                model = SimpleMissileModel()
+                model = MissileModel()
                 model.load_state_dict(torch.load(missile_model_path, map_location="cpu"))
                 model.eval()
                 self.missile_model = model
