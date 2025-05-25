@@ -5,23 +5,27 @@ This module defines a custom Gym environment that allows training an RL agent
 to control the enemy character using the Proximal Policy Optimization (PPO)
 algorithm from Stable Baselines3.
 """
-import logging
-from typing import Dict, Tuple, Optional, Any
-
-import gymnasium as gym
+import gym
+import gymnasium
 from gymnasium import spaces
 import numpy as np
 import pygame
+import logging
+from typing import Dict, Tuple, List, Optional, Any, Union
 
+# Configure logging
+logging.basicConfig(level=logging.INFO, 
+                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("EnemyGameEnv")
 
-class EnemyGameEnv(gym.Env):
+class EnemyGameEnv(gymnasium.Env):
     """
     Custom Environment that follows gym interface for training the enemy AI.
 
     This environment wraps the game state and provides a reinforcement learning
     interface with observations, actions, rewards, and state transitions.
     """
-    metadata = {'render_modes': ['human'], 'render_fps': 60}
+    metadata = {'render_modes': ['human']}
 
     def __init__(self, game_instance=None):
         """
@@ -55,8 +59,14 @@ class EnemyGameEnv(gym.Env):
         self.last_distance = 0
         self.steps_since_reset = 0
         self.max_steps = 1000  # Maximum steps per episode
-
-        logging.info("EnemyGameEnv initialized")
+        
+        # For standalone training without game instance
+        if self.game is None:
+            self.screen_width = 1280
+            self.screen_height = 720
+            self.player_pos = np.array([self.screen_width // 4, self.screen_height // 2], dtype=np.float32)
+            self.enemy_pos = np.array([self.screen_width // 2, self.screen_height // 2], dtype=np.float32)
+            self.player_speed = 5.0
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
         """
@@ -72,15 +82,33 @@ class EnemyGameEnv(gym.Env):
             truncated: Whether the episode was truncated (e.g., max steps)
             info: Additional information for debugging
         """
-        # Apply action to enemy in the game
+        # If we have a game instance, use it
         if self.game and self.game.enemy and hasattr(self.game.enemy, 'apply_rl_action'):
             self.game.enemy.apply_rl_action(action)
+            
+            # Allow the game to update
+            if hasattr(self.game, 'update_once'):
+                self.game.update_once()
+                
+        # Otherwise, simulate the environment
         else:
-            logging.warning("Cannot apply RL action - game, enemy, or method not available")
-
-        # Allow the game to update
-        if self.game and hasattr(self.game, 'update_once'):
-            self.game.update_once()
+            # Scale action to actual movement
+            move_x = action[0] * 5.0  # Base speed
+            move_y = action[1] * 5.0
+            
+            # Update enemy position
+            self.enemy_pos[0] += move_x
+            self.enemy_pos[1] += move_y
+            
+            # Wrap around screen edges
+            self.enemy_pos[0] = self.enemy_pos[0] % self.screen_width
+            self.enemy_pos[1] = self.enemy_pos[1] % self.screen_height
+            
+            # Move player randomly
+            random_move = np.random.uniform(-2, 2, size=2).astype(np.float32)
+            self.player_pos += random_move
+            self.player_pos[0] = self.player_pos[0] % self.screen_width
+            self.player_pos[1] = self.player_pos[1] % self.screen_height
 
         # Calculate reward based on game state
         reward = self._calculate_reward()
@@ -98,7 +126,7 @@ class EnemyGameEnv(gym.Env):
 
         return self.current_state, reward, done, truncated, info
 
-    def reset(self, *, seed: Optional[int] = None, options: Optional[Dict[str, Any]] = None) -> Tuple[np.ndarray, Dict]:
+    def reset(self, seed=None, options=None) -> Tuple[np.ndarray, Dict]:
         """
         Reset the environment state.
 
@@ -120,6 +148,28 @@ class EnemyGameEnv(gym.Env):
             # Only reset the enemy position, not the entire game
             if hasattr(self.game, 'reset_enemy'):
                 self.game.reset_enemy()
+        else:
+            # Reset positions for standalone mode
+            self.player_pos = np.array([
+                np.random.randint(0, self.screen_width),
+                np.random.randint(0, self.screen_height)
+            ], dtype=np.float32)
+            
+            # Place enemy away from player
+            while True:
+                self.enemy_pos = np.array([
+                    np.random.randint(0, self.screen_width),
+                    np.random.randint(0, self.screen_height)
+                ], dtype=np.float32)
+                
+                # Calculate distance to player
+                dx = self.player_pos[0] - self.enemy_pos[0]
+                dy = self.player_pos[1] - self.enemy_pos[1]
+                distance = np.sqrt(dx*dx + dy*dy)
+                
+                # Ensure minimum distance
+                if distance >= 200:  # Minimum distance
+                    break
 
         # Get initial observation
         self.current_state = self._get_observation()
@@ -134,27 +184,35 @@ class EnemyGameEnv(gym.Env):
         Returns:
             numpy array with the observation features
         """
-        if not self.game or not self.game.player or not self.game.enemy:
-            return np.zeros(7, dtype=np.float32)
+        if self.game and self.game.player and self.game.enemy:
+            current_time = pygame.time.get_ticks()
+            time_since_hit = current_time - self.last_hit_time
 
-        current_time = pygame.time.get_ticks()
-        time_since_hit = current_time - self.last_hit_time
+            # Cap the time since last hit to avoid very large values
+            time_since_hit = min(time_since_hit, 10000)
 
-        # Cap the time since last hit to avoid very large values
-        time_since_hit = min(time_since_hit, 10000)
+            # Normalize values to help with training stability
+            screen_width = self.game.screen_width
+            screen_height = self.game.screen_height
 
-        # Normalize values to help with training stability
-        screen_width = self.game.screen_width
-        screen_height = self.game.screen_height
+            px = self.game.player.position["x"] / screen_width
+            py = self.game.player.position["y"] / screen_height
+            ex = self.game.enemy.pos["x"] / screen_width
+            ey = self.game.enemy.pos["y"] / screen_height
 
-        px = self.game.player.position["x"] / screen_width
-        py = self.game.player.position["y"] / screen_height
-        ex = self.game.enemy.pos["x"] / screen_width
-        ey = self.game.enemy.pos["y"] / screen_height
-
-        dist = self._get_distance() / max(screen_width, screen_height)
-        player_speed = self.game.player.step / 10.0  # Normalize speed
-        time_factor = time_since_hit / 10000.0  # Normalize time
+            dist = self._get_distance() / max(screen_width, screen_height)
+            player_speed = self.game.player.step / 10.0  # Normalize speed
+            time_factor = time_since_hit / 10000.0  # Normalize time
+        else:
+            # Standalone mode
+            px = self.player_pos[0] / self.screen_width
+            py = self.player_pos[1] / self.screen_height
+            ex = self.enemy_pos[0] / self.screen_width
+            ey = self.enemy_pos[1] / self.screen_height
+            
+            dist = self._get_distance() / max(self.screen_width, self.screen_height)
+            player_speed = self.player_speed / 10.0
+            time_factor = 0.5  # Default value
 
         obs = np.array([
             px, py, ex, ey, dist, player_speed, time_factor
@@ -169,13 +227,17 @@ class EnemyGameEnv(gym.Env):
         Returns:
             Euclidean distance between player and enemy
         """
-        if not self.game or not self.game.player or not self.game.enemy:
-            return 1000.0
-
-        return np.sqrt(
-            (self.game.player.position["x"] - self.game.enemy.pos["x"])**2 +
-            (self.game.player.position["y"] - self.game.enemy.pos["y"])**2
-        )
+        if self.game and self.game.player and self.game.enemy:
+            return np.sqrt(
+                (self.game.player.position["x"] - self.game.enemy.pos["x"])**2 +
+                (self.game.player.position["y"] - self.game.enemy.pos["y"])**2
+            )
+        else:
+            # Standalone mode
+            return np.sqrt(
+                (self.player_pos[0] - self.enemy_pos[0])**2 +
+                (self.player_pos[1] - self.enemy_pos[1])**2
+            )
 
     def _calculate_reward(self) -> float:
         """
@@ -184,17 +246,12 @@ class EnemyGameEnv(gym.Env):
         Returns:
             The calculated reward value
         """
-        if not self.game or not self.game.player or not self.game.enemy:
-            return 0.0
-
-        reward = 0.0
-
         # Current distance to player
         current_dist = self._get_distance()
 
         # Reward for getting closer to the player (or penalty for moving away)
         dist_change = self.last_distance - current_dist
-        reward += dist_change * 0.1
+        reward = dist_change * 0.1
         self.last_distance = current_dist
 
         # Base reward for being close to player (encourages chasing)
@@ -202,12 +259,19 @@ class EnemyGameEnv(gym.Env):
         reward += proximity_reward * 0.05
 
         # Big reward for hitting player
-        if self.game.check_collision():
+        if self.game and self.game.check_collision():
             reward += 10.0
             self.last_hit_time = pygame.time.get_ticks()
+            
+        # In standalone mode, check for collision
+        elif not self.game:
+            # Simple collision check (within 50 pixels)
+            if current_dist < 50:
+                reward += 10.0
+                self.reset_needed = True
 
         # Penalty for being hit by missile
-        if self.game.enemy and not self.game.enemy.visible:
+        if self.game and self.game.enemy and not self.game.enemy.visible:
             reward -= 5.0
             self.reset_needed = True
 

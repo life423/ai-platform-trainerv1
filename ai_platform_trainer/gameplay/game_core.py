@@ -391,19 +391,33 @@ class GameCore:
         """
         if not (self.player and self.enemy):
             return False
-        player_rect = pygame.Rect(
-            self.player.position["x"],
-            self.player.position["y"],
-            self.player.size,
-            self.player.size,
-        )
-        enemy_rect = pygame.Rect(
-            self.enemy.pos["x"],
-            self.enemy.pos["y"],
-            self.enemy.size,
-            self.enemy.size
-        )
-        return player_rect.colliderect(enemy_rect)
+            
+        # Make sure enemy is visible
+        if not self.enemy.visible:
+            return False
+            
+        # Ensure pos is a dictionary with x and y keys
+        if not isinstance(self.enemy.pos, dict) or "x" not in self.enemy.pos or "y" not in self.enemy.pos:
+            logging.error(f"Invalid enemy position format: {self.enemy.pos}")
+            return False
+            
+        try:
+            player_rect = pygame.Rect(
+                self.player.position["x"],
+                self.player.position["y"],
+                self.player.size,
+                self.player.size,
+            )
+            enemy_rect = pygame.Rect(
+                self.enemy.pos["x"],
+                self.enemy.pos["y"],
+                self.enemy.size,
+                self.enemy.size
+            )
+            return player_rect.colliderect(enemy_rect)
+        except TypeError as e:
+            logging.error(f"Error in collision detection: {e}")
+            return False
 
     def check_missile_collisions(self) -> None:
         """Check for collisions between missiles and enemy."""
