@@ -1,0 +1,218 @@
+#!/usr/bin/env python
+"""
+Unified RL training script for AI Platform Trainer.
+
+This script provides a single entry point for training RL models,
+supporting both GPU-accelerated and CPU-only training.
+"""
+import os
+import argparse
+import torch
+import numpy as np
+import logging
+from tqdm import tqdm
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, 
+                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("RL-Training")
+
+# Import our environment
+from ai_platform_trainer.core.render_mode import RenderMode
+from ai_platform_trainer.ai.models.game_environment import GameEnvironment
+from ai_platform_trainer.ai.models.policy_network import PolicyNetwork
+
+def train_with_stable_baselines(env, output_path, timesteps=50000, device="auto"):
+    """
+    Train using Stable Baselines 3 (if available).
+    
+    Args:
+        env: The game environment
+        output_path: Path to save the model
+        timesteps: Number of timesteps to train for
+        device: Device to train on ("auto", "cuda", or "cpu")
+    """
+    try:
+        from stable_baselines3 import PPO
+        from stable_baselines3.common.vec_env import DummyVecEnv
+        
+        # Create vectorized environment
+        vec_env = DummyVecEnv([lambda: env])
+        
+        # Initialize agent
+        model = PPO("MlpPolicy", vec_env, verbose=1,
+                    learning_rate=0.0003,
+                    n_steps=2048,
+                    batch_size=64,
+                    n_epochs=10,
+                    gamma=0.99,
+                    gae_lambda=0.95,
+                    clip_range=0.2,
+                    device=device)
+        
+        # Train the agent
+        logger.info(f"Starting Stable Baselines 3 training on {device}...")
+        model.learn(total_timesteps=timesteps)
+        
+        # Save the trained model
+        model.save(output_path)
+        logger.info(f"Model saved to {output_path}")
+        return True
+    except ImportError:
+        logger.warning("Stable Baselines 3 not available. Falling back to PyTorch training.")
+        return False
+
+def train_with_pytorch(env, output_path, num_episodes=500, device="cpu"):
+    """
+    Train using PyTorch directly.
+    
+    Args:
+        env: The game environment
+        output_path: Path to save the model
+        num_episodes: Number of episodes to train for
+        device: Device to train on ("cuda" or "cpu")
+    """
+    # Create policy network
+    input_size = env.observation_space.shape[0]
+    output_size = env.action_space.shape[0]
+    policy_net = PolicyNetwork(input_size, 64, output_size)
+    policy_net.to(device)
+    
+    # Create optimizer
+    optimizer = torch.optim.Adam(policy_net.parameters(), lr=0.001)
+    
+    # Training loop
+    episode_rewards = []
+    
+    for episode in tqdm(range(num_episodes), desc="Training"):
+        # Reset environment
+        state, _ = env.reset()
+        episode_reward = 0
+        
+        # Lists to store episode data
+        log_probs = []
+        rewards = []
+        
+        # Episode loop
+        done = False
+        truncated = False
+        while not (done or truncated):
+            # Convert state to tensor
+            state_tensor = torch.FloatTensor(state).unsqueeze(0).to(device)
+            
+            # Get action from policy network
+            action_mean = policy_net(state_tensor)
+            
+            # Add exploration noise
+            action_std = torch.ones_like(action_mean) * 0.1
+            action_dist = torch.distributions.Normal(action_mean, action_std)
+            action = action_dist.sample()
+            action = torch.clamp(action, -1.0, 1.0)
+            
+            # Store log probability
+            log_prob = action_dist.log_prob(action).sum()
+            log_probs.append(log_prob)
+            
+            # Take action in environment
+            action_np = action.squeeze().detach().cpu().numpy()
+            next_state, reward, done, truncated, _ = env.step(action_np)
+            
+            # Store reward
+            rewards.append(reward)
+            episode_reward += reward
+            
+            # Update state
+            state = next_state
+        
+        # Update policy network
+        optimizer.zero_grad()
+        
+        # Calculate returns
+        returns = []
+        R = 0
+        for r in reversed(rewards):
+            R = r + 0.99 * R  # Gamma = 0.99
+            returns.insert(0, R)
+        
+        if len(returns) > 0:  # Only proceed if we have returns
+            returns = torch.tensor(returns, device=device)
+            
+            # Normalize returns
+            if len(returns) > 1:
+                returns = (returns - returns.mean()) / (returns.std() + 1e-8)
+            
+            # Calculate loss
+            policy_loss = []
+            for log_prob, R in zip(log_probs, returns):
+                policy_loss.append(-log_prob * R)
+            
+            if policy_loss:  # Only proceed if we have policy losses
+                policy_loss = torch.stack(policy_loss).sum()
+                
+                # Backpropagate
+                policy_loss.backward()
+                optimizer.step()
+        
+        # Log progress
+        episode_rewards.append(episode_reward)
+        if episode % 10 == 0:
+            logger.info(f"Episode {episode}: Reward = {episode_reward:.2f}")
+    
+    # Save trained model
+    policy_net.save(output_path)
+    logger.info(f"Model saved to {output_path}")
+    return True
+
+def main():
+    """Train an RL model for enemy behavior."""
+    parser = argparse.ArgumentParser(description="Train RL model for enemy behavior")
+    parser.add_argument("--method", choices=["auto", "sb3", "pytorch"], default="auto",
+                      help="Training method to use (default: auto)")
+    parser.add_argument("--device", choices=["auto", "cuda", "cpu"], default="auto",
+                      help="Device to train on (default: auto)")
+    parser.add_argument("--episodes", type=int, default=500,
+                      help="Number of episodes for PyTorch training (default: 500)")
+    parser.add_argument("--timesteps", type=int, default=50000,
+                      help="Number of timesteps for Stable Baselines training (default: 50000)")
+    parser.add_argument("--output", type=str, default="models/enemy_rl/final_model",
+                      help="Output path prefix (default: models/enemy_rl/final_model)")
+    args = parser.parse_args()
+    
+    # Create directory for saving models
+    os.makedirs(os.path.dirname(args.output), exist_ok=True)
+    
+    # Determine device
+    if args.device == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    else:
+        device = args.device
+    
+    # Log device info
+    if device == "cuda":
+        logger.info(f"Using CUDA: {torch.cuda.get_device_name(0)}")
+        logger.info(f"CUDA version: {torch.version.cuda}")
+    else:
+        logger.info("Using CPU for training")
+    
+    # Create environment
+    env = GameEnvironment(render_mode='none')
+    
+    # Determine training method
+    if args.method == "auto":
+        # Try Stable Baselines first, fall back to PyTorch
+        sb3_path = f"{args.output}.zip"
+        pytorch_path = f"{args.output}.pth"
+        
+        if not train_with_stable_baselines(env, sb3_path, args.timesteps, device):
+            train_with_pytorch(env, pytorch_path, args.episodes, device)
+    elif args.method == "sb3":
+        # Force Stable Baselines
+        sb3_path = f"{args.output}.zip"
+        train_with_stable_baselines(env, sb3_path, args.timesteps, device)
+    else:
+        # Force PyTorch
+        pytorch_path = f"{args.output}.pth"
+        train_with_pytorch(env, pytorch_path, args.episodes, device)
+
+if __name__ == "__main__":
+    main()

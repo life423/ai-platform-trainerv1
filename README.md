@@ -1,75 +1,90 @@
 # AI Platform Trainer
 
-An enterprise-grade platform for training and evaluating AI agents using reinforcement learning in a game environment.
-
-## Overview
-
-AI Platform Trainer is a 2D game environment designed for training and evaluating AI agents using deep reinforcement learning. The platform includes neural network-based enemy AI, reinforcement learning training capabilities, real-time visualizations, and a high-performance C++/CUDA backend for accelerated training.
-
-## Quick Start
-
-The simplest way to run the application:
-
-```bash
-python unified_launcher.py
-```
+A game-based platform for training and testing AI models, with a focus on reinforcement learning.
 
 ## Features
 
-- **Game Environment**: A 2D game environment built with PyGame where entities can interact
-- **Neural Network Models**: Pre-trained models for missile trajectory prediction and enemy movement
-- **Reinforcement Learning**: GPU-accelerated reinforcement learning using PPO for training enemy behaviors
-- **C++/CUDA Integration**: High-performance physics simulation with Python bindings
-- **Visualizations**: Real-time training visualizations and performance metrics
-- **Cross-platform**: Support for both CPU and GPU environments with automatic detection
+- Play mode with AI-controlled enemy
+- Training mode for collecting data
+- Reinforcement learning integration
+- CUDA acceleration for training (when available)
+- Headless training mode for faster iterations
 
-## Installation
+## Getting Started
 
-### Basic Installation
+### Prerequisites
+
+- Python 3.8+
+- PyTorch
+- Pygame
+- Stable Baselines 3 (optional, for RL training)
+
+### Installation
 
 ```bash
-# Install the package in development mode
-pip install -e .
+# Clone the repository
+git clone https://github.com/yourusername/ai-platform-trainerv1.git
+cd ai-platform-trainerv1
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### CPU Environment
+### Running the Game
 
 ```bash
-# Create a conda environment
-conda env create -f config/environment-cpu.yml
-conda activate ai-platform-cpu
-
-# Install the package
-pip install -e .
+python run_game.py
 ```
 
-### GPU Environment (recommended for training)
+## Training AI Models
+
+### Training with Reinforcement Learning
 
 ```bash
-# Create a conda environment with CUDA support
-conda env create -f config/environment-gpu.yml
-conda activate ai-platform-gpu
+# Train with unified script (auto-selects best method)
+python train_rl.py
 
-# Install the package
-pip install -e .
+# Train with specific options
+python train_rl.py --method pytorch --device cuda --episodes 500
+```
 
-# Build the C++ extensions
+Options:
+- `--method`: Training method (`auto`, `sb3`, or `pytorch`)
+- `--device`: Device to train on (`auto`, `cuda`, or `cpu`)
+- `--episodes`: Number of episodes for PyTorch training
+- `--timesteps`: Number of timesteps for Stable Baselines training
+- `--output`: Output path prefix for the model
+
+### CUDA Acceleration
+
+If you have an NVIDIA GPU, you can build the CUDA extensions for faster training:
+
+```bash
 cd ai_platform_trainer/cpp
 python setup.py build_ext --inplace
 ```
 
-## Game Controls
+## Controls
 
-- **Arrow Keys/WASD**: Move the player
-- **Space**: Shoot missiles
+- **Arrow keys** or **WASD**: Move player
+- **Spacebar**: Shoot missile
 - **F**: Toggle fullscreen
 - **M**: Return to menu
 - **Escape**: Exit game
 
-## Development
+## Project Structure
 
-This project is currently undergoing a major cleanup and refactoring. See `cleanup_plan.md` for details on the ongoing improvements.
+- `ai_platform_trainer/`: Main package
+  - `ai/`: AI models and training code
+  - `core/`: Core game functionality
+  - `cpp/`: C++/CUDA extensions
+  - `entities/`: Game entities (player, enemy, missiles)
+  - `gameplay/`: Game mechanics and modes
+  - `utils/`: Utility functions
+- `models/`: Saved AI models
+- `train_rl.py`: Unified RL training script
+- `run_game.py`: Game launcher
 
 ## License
 
-[MIT License](LICENSE)
+This project is licensed under the MIT License - see the LICENSE file for details.

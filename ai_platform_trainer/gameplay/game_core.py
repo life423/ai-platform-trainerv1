@@ -52,18 +52,20 @@ class GameCore:
     extended by other game classes.
     """
 
-    def __init__(self, use_state_machine: bool = False) -> None:
+    def __init__(self, use_state_machine: bool = False, render_mode=None) -> None:
         """
         Initialize the game.
         
         Args:
             use_state_machine: Whether to use the state machine for game flow control
+            render_mode: Rendering mode (FULL or HEADLESS)
         """
         setup_logging()
         self.running: bool = True
         self.menu_active: bool = True
         self.mode: Optional[str] = None
         self.paused: bool = False
+        self.render_mode = render_mode
 
         # Load user settings
         self.settings = load_settings("settings.json")
@@ -72,16 +74,34 @@ class GameCore:
         self.settings["fullscreen"] = True
         save_settings(self.settings, "settings.json")
 
-        # Initialize Pygame and the display
-        (self.screen, self.screen_width, self.screen_height) = init_pygame_display(
-            fullscreen=True  # Force fullscreen
-        )
+        # Initialize Pygame
+        pygame.init()
+        
+        # Initialize display based on render mode
+        if self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS:
+            # Headless mode - use dummy video driver
+            os.environ['SDL_VIDEODRIVER'] = 'dummy'
+            self.screen = pygame.Surface((1280, 720))
+            self.screen_width = 1280
+            self.screen_height = 720
+        else:
+            # Normal mode with display
+            (self.screen, self.screen_width, self.screen_height) = init_pygame_display(
+                fullscreen=True  # Force fullscreen
+            )
 
         # Create clock, menu, and renderer
-        pygame.display.set_caption(config.WINDOW_TITLE)
-        self.clock = pygame.time.Clock()
-        self.menu = Menu(self.screen_width, self.screen_height)
-        self.renderer = Renderer(self.screen)
+        if self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS:
+            # Headless mode - minimal initialization
+            self.clock = pygame.time.Clock()
+            self.menu = None
+            self.renderer = None
+        else:
+            # Normal mode with full rendering
+            pygame.display.set_caption(config.WINDOW_TITLE)
+            self.clock = pygame.time.Clock()
+            self.menu = Menu(self.screen_width, self.screen_height)
+            self.renderer = Renderer(self.screen)
 
         # Entities and managers
         self.player: Optional[PlayerPlay] = None
@@ -164,12 +184,23 @@ class GameCore:
             self.handle_events()
 
             if self.menu_active:
-                self.menu.draw(self.screen)
+                if self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS:
+                    # Skip menu rendering in headless mode
+                    pass
+                else:
+                    self.menu.draw(self.screen)
             else:
                 self.update(current_time)
-                self.renderer.render(self.menu, self.player, self.enemy, self.menu_active)
+                if self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS:
+                    # Skip rendering in headless mode
+                    pass
+                else:
+                    self.renderer.render(self.menu, self.player, self.enemy, self.menu_active)
 
-            pygame.display.flip()
+            # Only flip display in full render mode
+            if not (self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS):
+                pygame.display.flip()
+                
             self.clock.tick(config.FRAME_RATE)
 
         # Save data if we were training
@@ -298,6 +329,10 @@ class GameCore:
 
     def handle_events(self) -> None:
         """Handle pygame events."""
+        # Skip event handling in headless mode
+        if self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS:
+            return
+            
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 logging.info("Quit event detected. Exiting game.")
@@ -491,6 +526,29 @@ class GameCore:
             self.enemy.set_position(x, y)
             self.enemy.visible = True
             logging.debug(f"Enemy reset to position ({x}, {y})")
+            
+    def update_once(self) -> None:
+        """
+        Process a single update frame for the game.
+        
+        This is used during RL training to advance the game state
+        without relying on the main game loop.
+        """
+        current_time = pygame.time.get_ticks()
+
+        # Process pending events to avoid queue overflow
+        if not (self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS):
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+        # Update based on current mode
+        if self.mode == "play" and not self.menu_active:
+            if self.play_mode_manager:
+                self.play_mode_manager.update(current_time)
+            else:
+                self.play_mode_manager = PlayMode(self)
+                self.play_mode_manager.update(current_time)
 
     def update_once(self) -> None:
         """
