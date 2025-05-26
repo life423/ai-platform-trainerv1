@@ -9,9 +9,9 @@ if(CMAKE_CUDA_COMPILER)
   set(CUDA_ENABLED TRUE)
   message(STATUS "CUDA found: ${CMAKE_CUDA_COMPILER_VERSION}")
   
-  # Set CUDA architectures for modern GPUs (RTX 30xx, 40xx, 50xx)
-  set(CMAKE_CUDA_ARCHITECTURES 86 89)
-  message(STATUS "Using CUDA architectures: ${CMAKE_CUDA_ARCHITECTURES}")
+  # Set CUDA architectures for RTX 5070 (Ada Lovelace architecture)
+  set(CMAKE_CUDA_ARCHITECTURES 89)
+  message(STATUS "Using CUDA architecture: ${CMAKE_CUDA_ARCHITECTURES}")
 else()
   set(CUDA_ENABLED FALSE)
   message(STATUS "CUDA not found, using CPU-only build")
@@ -29,25 +29,24 @@ endif()
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 # Set pybind11 directory manually
-set(pybind11_DIR "${Python_SITELIB}/pybind11/share/cmake/pybind11")
-message(STATUS "Setting pybind11_DIR to: ${pybind11_DIR}")
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" -c "import pybind11; print(pybind11.get_cmake_dir())"
+  OUTPUT_VARIABLE PYBIND11_CMAKE_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(PYBIND11_CMAKE_DIR)
+  set(pybind11_DIR "${PYBIND11_CMAKE_DIR}")
+  message(STATUS "Found pybind11 via Python: ${pybind11_DIR}")
+else()
+  message(STATUS "Could not find pybind11 via Python, trying default paths")
+  set(pybind11_DIR "${Python_SITELIB}/pybind11/share/cmake/pybind11")
+  message(STATUS "Setting pybind11_DIR to: ${pybind11_DIR}")
+endif()
 
 # Find PyBind11
 find_package(pybind11 QUIET)
 if(NOT pybind11_FOUND)
-  # Try alternative approach
-  execute_process(
-    COMMAND "${Python_EXECUTABLE}" -c "import pybind11; print(pybind11.get_cmake_dir())"
-    OUTPUT_VARIABLE PYBIND11_CMAKE_DIR
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if(PYBIND11_CMAKE_DIR)
-    set(pybind11_DIR "${PYBIND11_CMAKE_DIR}")
-    message(STATUS "Found pybind11 via Python: ${pybind11_DIR}")
-    find_package(pybind11 REQUIRED)
-  else()
-    message(FATAL_ERROR "Could not find pybind11. Please install it with: pip install pybind11")
-  endif()
+  message(FATAL_ERROR "Could not find pybind11. Please install it with: pip install pybind11")
 endif()
 
 # Include directories
@@ -68,7 +67,7 @@ set(SOURCES
 # Conditionally add CUDA-specific files
 if(CUDA_ENABLED)
     set(CUDA_SOURCES
-        src/physics.cu
+        src/physics_fix.cu
     )
     list(APPEND SOURCES ${CUDA_SOURCES})
     add_definitions(-DWITH_CUDA)
