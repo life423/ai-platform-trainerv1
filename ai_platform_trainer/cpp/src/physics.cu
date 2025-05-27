@@ -769,3 +769,60 @@ std::pair<float, float> PhysicsEngine::calculate_evasion_vector(
     // Create device vectors for missile data
     thrust::device_vector<float> d_missiles_x(missiles.x.begin(), missiles.x.end());
     thrust::device_vector<float> d_missiles_y(missiles.y.begin(), missiles.y.end());
+    thrust::device_vector<float> d_missiles_vx(missiles.vx.begin(), missiles.vx.end());
+    thrust::device_vector<float> d_missiles_vy(missiles.vy.begin(), missiles.vy.end());
+    
+    // Output variables
+    float evasion_x = 0.0f;
+    float evasion_y = 0.0f;
+    
+    // Call the CUDA kernel launcher
+    cuda_calculate_evasion_vector(
+        enemy_x, enemy_y,
+        thrust::raw_pointer_cast(d_missiles_x.data()),
+        thrust::raw_pointer_cast(d_missiles_y.data()),
+        thrust::raw_pointer_cast(d_missiles_vx.data()),
+        thrust::raw_pointer_cast(d_missiles_vy.data()),
+        static_cast<int>(missile_count),
+        prediction_steps,
+        &evasion_x, &evasion_y
+    );
+    
+    return std::make_pair(evasion_x, evasion_y);
+}
+
+void PhysicsEngine::allocate_device_memory(size_t size) {
+    // Free existing memory if any
+    if (d_temp_float_array1_ != nullptr) {
+        free_device_memory();
+    }
+    
+    // Allocate new memory
+    CUDA_CHECK(cudaMalloc(&d_temp_float_array1_, size * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&d_temp_float_array2_, size * sizeof(float)));
+    CUDA_CHECK(cudaMalloc(&d_temp_bool_array_, size * sizeof(bool)));
+    
+    // Update size
+    d_temp_array_size_ = size;
+}
+
+void PhysicsEngine::free_device_memory() {
+    if (d_temp_float_array1_ != nullptr) {
+        CUDA_CHECK(cudaFree(d_temp_float_array1_));
+        d_temp_float_array1_ = nullptr;
+    }
+    
+    if (d_temp_float_array2_ != nullptr) {
+        CUDA_CHECK(cudaFree(d_temp_float_array2_));
+        d_temp_float_array2_ = nullptr;
+    }
+    
+    if (d_temp_bool_array_ != nullptr) {
+        CUDA_CHECK(cudaFree(d_temp_bool_array_));
+        d_temp_bool_array_ = nullptr;
+    }
+    
+    d_temp_array_size_ = 0;
+}
+
+} // namespace gpu_env

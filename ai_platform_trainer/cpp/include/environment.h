@@ -105,9 +105,18 @@ private:
     void update_player(const std::vector<float>& player_action = {});
     void update_enemy(const std::vector<float>& enemy_action);
     void update_missiles();
-    void check_collisions();
+    void check_collisions(bool& enemy_hit_player, bool& player_missile_hit_enemy);
     std::vector<float> get_observation() const;
-    float calculate_reward();
+    float calculate_reward(
+        const Player& player,
+        const Enemy& enemy,
+        const MissileBatch& missiles,
+        float current_time,
+        float last_distance,
+        bool enemy_hit_player,
+        bool player_missile_hit_enemy,
+        const EnvironmentConfig& config
+    );
     void spawn_enemy();
     void spawn_player();
     std::pair<float, float> calculate_evasion_vector();

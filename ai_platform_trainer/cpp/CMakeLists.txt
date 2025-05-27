@@ -9,9 +9,9 @@ if(CMAKE_CUDA_COMPILER)
   set(CUDA_ENABLED TRUE)
   message(STATUS "CUDA found: ${CMAKE_CUDA_COMPILER_VERSION}")
   
-  # Set CUDA architectures for modern GPUs including RTX 5070
-  set(CMAKE_CUDA_ARCHITECTURES "86;89")
-  message(STATUS "Using CUDA architectures: ${CMAKE_CUDA_ARCHITECTURES}")
+  # Set CUDA architecture specifically for RTX 5070 (Ada Lovelace)
+  set(CMAKE_CUDA_ARCHITECTURES 89)
+  message(STATUS "Using CUDA architecture: ${CMAKE_CUDA_ARCHITECTURES}")
 else()
   set(CUDA_ENABLED FALSE)
   message(STATUS "CUDA not found, using CPU-only build")
