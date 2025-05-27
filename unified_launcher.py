@@ -21,6 +21,7 @@ def setup_logging():
         ]
     )
 
+
 def main():
     """Main entry point for the AI Platform Trainer."""
     # Setup logging

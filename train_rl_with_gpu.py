@@ -144,8 +144,8 @@ def main():
     else:
         logger.info("Using CPU for training")
     
-    # Create environment
-    env = GameEnvironment(render_mode='none')
+    # Create environment with proper headless mode
+    env = GameEnvironment(render_mode=RenderMode.HEADLESS)
     
     # Create policy network
     input_size = env.observation_space.shape[0]

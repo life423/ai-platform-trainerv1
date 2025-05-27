@@ -9,9 +9,9 @@ if(CMAKE_CUDA_COMPILER)
   set(CUDA_ENABLED TRUE)
   message(STATUS "CUDA found: ${CMAKE_CUDA_COMPILER_VERSION}")
   
-  # Set CUDA architectures for RTX 5070 (Ada Lovelace architecture)
-  set(CMAKE_CUDA_ARCHITECTURES 89)
-  message(STATUS "Using CUDA architecture: ${CMAKE_CUDA_ARCHITECTURES}")
+  # Set CUDA architectures for modern GPUs including RTX 5070
+  set(CMAKE_CUDA_ARCHITECTURES "86;89")
+  message(STATUS "Using CUDA architectures: ${CMAKE_CUDA_ARCHITECTURES}")
 else()
   set(CUDA_ENABLED FALSE)
   message(STATUS "CUDA not found, using CPU-only build")
@@ -21,7 +21,7 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(CUDA_ENABLED)
-  set(CMAKE_CUDA_STANDARD 14)
+  set(CMAKE_CUDA_STANDARD 17)  # Updated to C++17 for better compatibility
   set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 endif()
 
@@ -67,7 +67,7 @@ set(SOURCES
 # Conditionally add CUDA-specific files
 if(CUDA_ENABLED)
     set(CUDA_SOURCES
-        src/physics_fix.cu
+        src/physics.cu  # Using the original file name
     )
     list(APPEND SOURCES ${CUDA_SOURCES})
     add_definitions(-DWITH_CUDA)

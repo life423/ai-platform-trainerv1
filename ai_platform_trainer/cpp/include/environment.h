@@ -5,6 +5,8 @@
 #include <random>
 #include <string>
 #include <array>
+#include <unordered_map> // Added missing include
+#include <tuple>         // Added missing include
 
 #include "entity.h"
 #include "physics.h"
