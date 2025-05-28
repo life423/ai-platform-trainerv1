@@ -15,9 +15,9 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
-from ai_platform_trainer.ai_model.enemy_rl_agent import EnemyGameEnv
-from ai_platform_trainer.ai_model.training_monitor import TrainingMonitor
-from ai_platform_trainer.gameplay.game import Game
+from ai_platform_trainer.ai.models.enemy_rl_agent import EnemyGameEnv
+from ai_platform_trainer.ai.visualization.training_monitor import TrainingMonitor
+from ai_platform_trainer.gameplay.game_core import Game
 
 
 class TrainingCallback(BaseCallback):

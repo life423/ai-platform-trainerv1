@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 from ai_platform_trainer.entities.components.player_play import PlayerPlay
 from ai_platform_trainer.entities.components.enemy_play import EnemyPlay
 from ai_platform_trainer.entities.behaviors.enemy_ai_controller import EnemyAIController
-from ai_platform_trainer.engine.physics.collisions import handle_missile_collisions
+from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
 
 
 @pytest.fixture
