@@ -872,3 +872,125 @@ Your `.gitignore` already properly excludes build artifacts and temporary files,
 
 ---
 
+_**User**_
+
+(.venv) PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1> python test_fixed_wrapper.py                                                                                                                    "
+Testing fixed GPU environment wrapper...
+✓ Import successful! HAS_GPU_ENV: True
+
+1. Testing single environment...
+✓ Environment created
+✓ Reset successful, obs shape: (10,)
+✓ Observation space: Box(-inf, inf, (10,), float32)
+✓ Action space: Box(-1.0, 1.0, (2,), float32)
+  Step 0: reward=0.144, done=False, info_keys=['enemy_x', 'player_y', 'steps', 'enemy_y', 'player_x', 'missile_avoidance', 'distance', 'missile_count', 'enemy_hit_player', 'player_missile_hit_enemy', 'episode_reward']
+  Step 1: reward=-0.613, done=False, info_keys=['enemy_x', 'player_y', 'steps', 'enemy_y', 'player_x', 'missile_avoidance', 'distance', 'missile_count', 'enemy_hit_player', 'player_missile_hit_enemy', 'episode_reward']
+  Step 2: reward=0.028, done=False, info_keys=['enemy_x', 'player_y', 'steps', 'enemy_y', 'player_x', 'missile_avoidance', 'distance', 'missile_count', 'enemy_hit_player', 'player_missile_hit_enemy', 'episode_reward']
+✓ Single environment test passed!
+
+2. Testing vectorized environment...
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1\.venv\Lib\site-packages\stable_baselines3\common\vec_env\patch_gym.py:49: UserWarning: You provided an OpenAI Gym environment. We strongly recommend transitioning to Gymnasium environments. Stable-Baselines3 is automatically wrapping your environments in a compatibility layer, which could potentially cause issues.
+  warnings.warn(
+✓ Vectorized environment created
+❌ Error: GPUGameEnv.reset() got an unexpected keyword argument 'options'
+Traceback (most recent call last):
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\test_fixed_wrapper.py", line 36, in <module>
+    obs = vec_env.reset()
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\.venv\Lib\site-packages\stable_baselines3\common\vec_env\dummy_vec_env.py", line 78, in reset
+    obs, self.reset_infos[env_idx] = self.envs[env_idx].reset(seed=self._seeds[env_idx], **maybe_options)
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\.venv\Lib\site-packages\shimmy\openai_gym_compatibility.py", line 105, in reset
+    return self.gym_env.reset(seed=seed, options=options)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: GPUGameEnv.reset() got an unexpected keyword argument 'options'
+(.venv) PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1> 
+
+---
+
+_**Assistant**_
+
+The error is occurring because your `GPUGameEnv.reset()` method doesn't accept the `options` parameter that newer Gym/Gymnasium versions expect. Here's the fix:
+
+````python
+// ...existing code...
+
+def reset(self, seed=None, options=None):
+    """Reset the environment and return initial observation"""
+    seed = seed if seed is not None else np.random.randint(0, 2**31 - 1)
+    
+    try:
+        self.current_obs = self.env.reset(int(seed))
+        self.steps = 0
+        self.episode_reward = 0.0
+        
+        # Return observation and info dict for newer Gym API compatibility
+        info = {}
+        if options:
+            info.update(options)
+            
+        return self.current_obs, info
+    except Exception as e:
+        logger.error(f"Failed to reset environment: {e}")
+        raise
+
+// ...existing code...
+````
+
+However, there's also a compatibility issue with the return format. You need to handle both the old and new Gym API. Here's a more complete fix:
+
+````python
+// ...existing code...
+
+class GPUGameEnv(gym.Env):
+    """
+    A gym environment that wraps the CUDA-accelerated game environment.
+    
+    This class provides a standard gym interface for training RL agents
+    with GPU-accelerated physics simulations for missile avoidance.
+    """
+    metadata = {'render.modes': ['human', 'rgb_array']}
+    
+    def __init__(self, config=None, render_mode=None):
+        """
+        Initialize the GPU game environment.
+        
+        Args:
+            config: Configuration parameters for the environment
+            render_mode: Rendering mode for compatibility
+        """
+        if not HAS_GPU_ENV:
+            logger.warning("GPU environment extension not available - using CPU fallback")
+        
+        self.render_mode = render_mode
+        
+        # Create config object if none provided
+        if config is None:
+            config = self._default_config()
+            
+        # Create the native environment
+        try:
+            self.env = native_env.Environment(config)
+            logger.info("Created GPU-accelerated environment")
+        except Exception as e:
+            logger.error(f"Failed to create environment: {e}")
+            raise RuntimeError(f"Failed to create GPU environment: {e}")
+        
+        # Set up gym spaces
+        obs_shape = self.env.get_observation_shape()
+        action_shape = self.env.get_action_shape()
+        
+        self.observation_space = gym.spaces.Box(
+            low=-float('inf'),
+            high=float('inf'),
+            shape=obs_shape,
+            dtype=np.float32
+        )
+        
+        self.action_space = gym.spaces.Box(
+            low=-1.0,
+            high=1.0,
+            shape=action_shape,
+            dtype=np.float32
+
+---
+

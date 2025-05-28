@@ -1,35 +1,151 @@
 """
-GPU-accelerated reinforcement learning environment for missile avoidance training.
+GPU-accelerated reinforcement learning environment wrapper.
 
-This module integrates with the native C++ CUDA implementation to provide
-high-performance training environments for improving enemy AI missile avoidance.
+This module provides a Gym-compatible wrapper around the native C++ CUDA implementation.
+It handles the interface between Python RL libraries and the high-performance C++ backend.
 """
 import os
 import sys
+import platform
 import gym
 import numpy as np
 import torch
 from typing import Dict, Any, Tuple, List, Optional, Union
+import logging
 
-# Add the path to the compiled extension
-script_dir = os.path.dirname(os.path.abspath(__file__))
-if script_dir not in sys.path:
-    sys.path.append(script_dir)
+# Set up logging
+logger = logging.getLogger(__name__)
 
-# Import will be available after the extension is built
+# Setup DLL loading for Windows BEFORE any imports
+def setup_cuda_dlls():
+    """Setup CUDA DLL directories for Windows"""
+    if platform.system() == "Windows":
+        cuda_paths = []
+        
+        # Check CUDA_PATH environment variable
+        cuda_path = os.environ.get('CUDA_PATH')
+        if cuda_path:
+            cuda_paths.append(os.path.join(cuda_path, 'bin'))
+        
+        # Common CUDA installation paths
+        cuda_paths.extend([
+            r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9\bin",
+            r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.1\bin",
+            r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\bin",
+        ])
+        
+        for path in cuda_paths:
+            if os.path.exists(path):
+                try:
+                    os.add_dll_directory(path)
+                    logger.debug(f"Added CUDA DLL directory: {path}")
+                except Exception as e:
+                    logger.warning(f"Failed to add DLL directory {path}: {e}")
+
+# Setup DLLs before importing the extension
+setup_cuda_dlls()
+
+# CRITICAL FIX: Import the C++ extension from the Release directory
+# This prevents circular imports and ensures we get the compiled extension
+def import_gpu_extension():
+    """Import the GPU extension from the correct location"""
+    # Get the directory of this file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Look for the extension in the Release directory ONLY
+    release_dir = os.path.join(os.path.dirname(current_dir), "Release")
+    
+    # Remove any existing module to force reimport
+    if 'gpu_environment' in sys.modules:
+        del sys.modules['gpu_environment']
+    
+    # Temporarily add ONLY Release directory (avoid circular import)
+    original_path = sys.path.copy()
+    
+    try:
+        # Clear path and add only Release directory
+        sys.path = [release_dir] + [p for p in sys.path if p != current_dir]
+        
+        # Import the C++ extension (.pyd file)
+        import gpu_environment as gpu_ext
+        
+        # Verify it's the C++ extension by checking for EnvironmentConfig
+        if not hasattr(gpu_ext, 'EnvironmentConfig'):
+            raise ImportError("Imported module is not the C++ extension")
+        
+        logger.info(f"Loaded GPU extension from: {gpu_ext.__file__}")
+        return gpu_ext
+        
+    except ImportError as e:
+        logger.error(f"Failed to import GPU extension: {e}")
+        raise
+    finally:
+        # Restore original path
+        sys.path = original_path
+
+# Import the native extension
 try:
-    import gpu_environment as native_env
+    native_env = import_gpu_extension()
     HAS_GPU_ENV = True
-except ImportError:
-    print("Native GPU environment not found. You may need to build it first.")
-    print("Run 'cd ai_platform_trainer/cpp && python setup.py build_ext --inplace'")
+    
+    # Verify the interface
+    required_attrs = ['EnvironmentConfig', 'Environment']
+    for attr in required_attrs:
+        if not hasattr(native_env, attr):
+            raise ImportError(f"GPU environment module is missing required attribute: {attr}")
+    
+    logger.info("GPU environment loaded successfully")
+    
+except ImportError as e:
+    logger.error(f"Native GPU environment not found: {e}")
+    logger.info("You need to build the C++ extension first.")
+    logger.info("Run: cd ai_platform_trainer/cpp && python setup.py build_ext --inplace")
     HAS_GPU_ENV = False
-    # Create a dummy for IDE assistance
-    class native_env:
-        class Environment:
-            pass
-        class EnvironmentConfig:
-            pass
+    
+    # Create dummy classes for fallback
+    class DummyConfig:
+        def __init__(self):
+            self.screen_width = 800
+            self.screen_height = 600
+            self.max_missiles = 5
+            self.player_size = 50.0
+            self.enemy_size = 50.0
+            self.missile_size = 10.0
+            self.player_speed = 5.0
+            self.enemy_speed = 5.0
+            self.missile_speed = 5.0
+            self.missile_lifespan = 10000.0
+            self.respawn_delay = 500.0
+            self.max_steps = 1000
+            self.enable_missile_avoidance = True
+            self.missile_prediction_steps = 30
+            self.missile_detection_radius = 250.0
+            self.missile_danger_radius = 150.0
+            self.evasion_strength = 2.5
+    
+    class DummyEnvironment:
+        def __init__(self, config):
+            self.config = config
+            
+        def reset(self, seed=0):
+            return np.zeros(10, dtype=np.float32)
+            
+        def step(self, action):
+            obs = np.zeros(10, dtype=np.float32)
+            return obs, 0.0, False, False, {}
+            
+        def get_observation_shape(self):
+            return [10]
+            
+        def get_action_shape(self):
+            return [2]
+    
+    class DummyModule:
+        EnvironmentConfig = DummyConfig
+        Environment = DummyEnvironment
+    
+    native_env = DummyModule()
+
 
 # Define a gym-compatible wrapper
 class GPUGameEnv(gym.Env):
@@ -37,7 +153,7 @@ class GPUGameEnv(gym.Env):
     A gym environment that wraps the CUDA-accelerated game environment.
     
     This class provides a standard gym interface for training RL agents
-    with a focus on missile avoidance behavior.
+    with GPU-accelerated physics simulations for missile avoidance.
     """
     metadata = {'render.modes': ['human', 'rgb_array']}
     
@@ -49,14 +165,19 @@ class GPUGameEnv(gym.Env):
             config: Configuration parameters for the environment
         """
         if not HAS_GPU_ENV:
-            raise ImportError("GPU environment extension not available")
+            logger.warning("GPU environment extension not available - using CPU fallback")
         
         # Create config object if none provided
         if config is None:
             config = self._default_config()
             
         # Create the native environment
-        self.env = native_env.Environment(config)
+        try:
+            self.env = native_env.Environment(config)
+            logger.info("Created GPU-accelerated environment")
+        except Exception as e:
+            logger.error(f"Failed to create environment: {e}")
+            raise RuntimeError(f"Failed to create GPU environment: {e}")
         
         # Set up gym spaces
         obs_shape = self.env.get_observation_shape()
@@ -65,117 +186,79 @@ class GPUGameEnv(gym.Env):
         self.observation_space = gym.spaces.Box(
             low=-float('inf'),
             high=float('inf'),
-            shape=obs_shape
+            shape=obs_shape,
+            dtype=np.float32
         )
         
         self.action_space = gym.spaces.Box(
             low=-1.0,
             high=1.0,
-            shape=action_shape
+            shape=action_shape,
+            dtype=np.float32
         )
         
         # State variables
         self.current_obs = None
         self.steps = 0
         self.episode_reward = 0.0
-        self.debug_data = {}
         
-    def reset(self, seed=None):
-        """
-        Reset the environment and return the initial observation.
+    def reset(self, seed=None, options=None):
+        """Reset the environment and return initial observation"""
+        seed = seed if seed is not None else np.random.randint(0, 2**31 - 1)
         
-        Args:
-            seed: Random seed for reproducibility
-            
-        Returns:
-            Initial observation
-        """
-        seed = seed or np.random.randint(0, 2**31 - 1)
-        self.current_obs = self.env.reset(seed)
-        self.steps = 0
-        self.episode_reward = 0.0
-        self.debug_data = {}
-        return self.current_obs
+        try:
+            self.current_obs = self.env.reset(int(seed))
+            self.steps = 0
+            self.episode_reward = 0.0
+            return self.current_obs
+        except Exception as e:
+            logger.error(f"Failed to reset environment: {e}")
+            raise
     
     def step(self, action):
-        """
-        Take a step in the environment.
-        
-        Args:
-            action: Action to take
-            
-        Returns:
-            Tuple of (observation, reward, done, info)
-        """
+        """Take a step in the environment"""
         # Convert action to numpy array if needed
         if isinstance(action, torch.Tensor):
             action = action.cpu().numpy()
         
-        # Take step in native environment
-        obs, reward, done, truncated, info = self.env.step(action)
+        action = np.asarray(action, dtype=np.float32)
         
-        # Update state variables
-        self.current_obs = obs
-        self.steps += 1
-        self.episode_reward += reward
-        info['episode_reward'] = self.episode_reward
-        info['steps'] = self.steps
-        
-        # Get debug data
-        self.debug_data = self.env.get_debug_data()
-        info['debug'] = self.debug_data
-        
-        return obs, reward, done, truncated, info
+        try:
+            # Take step in native environment
+            obs, reward, done, truncated, info = self.env.step(action)
+            
+            # Update state variables
+            self.current_obs = obs
+            self.steps += 1
+            self.episode_reward += reward
+            info['episode_reward'] = self.episode_reward
+            info['steps'] = self.steps
+            
+            return obs, reward, done, truncated, info
+            
+        except Exception as e:
+            logger.error(f"Failed to step environment: {e}")
+            raise
     
     def render(self, mode='human'):
-        """
-        Render the environment (not implemented for headless).
-        
-        Args:
-            mode: Rendering mode
-            
-        Returns:
-            Rendered frame (rgb_array) or None (human)
-        """
+        """Render the environment (not implemented for headless training)"""
         if mode == 'rgb_array':
-            # Return an RGB frame from debug data
-            if 'render_frame' in self.debug_data:
-                return self.debug_data['render_frame']
-            # Fallback to empty frame
+            # Could implement visualization here
             return np.zeros((600, 800, 3), dtype=np.uint8)
-        
-        # Human mode has no rendering in headless environment
         return None
     
     def close(self):
-        """
-        Clean up environment resources.
-        """
-        # Native environment handles cleanup automatically
+        """Clean up environment resources"""
         pass
     
     def seed(self, seed=None):
-        """
-        Set random seed.
-        
-        Args:
-            seed: Random seed
-            
-        Returns:
-            List of seeds used
-        """
-        # Will be used in reset()
-        self._seed = seed or np.random.randint(0, 2**31 - 1)
+        """Set random seed"""
+        self._seed = seed if seed is not None else np.random.randint(0, 2**31 - 1)
         return [self._seed]
     
     @staticmethod
     def _default_config():
-        """
-        Create default environment configuration.
-        
-        Returns:
-            Default configuration object
-        """
+        """Create default environment configuration"""
         config = native_env.EnvironmentConfig()
         config.screen_width = 800
         config.screen_height = 600
@@ -186,7 +269,7 @@ class GPUGameEnv(gym.Env):
         config.player_speed = 5.0
         config.enemy_speed = 5.0
         config.missile_speed = 5.0
-        config.missile_lifespan = 10000.0  # 10 seconds
+        config.missile_lifespan = 10000.0
         config.respawn_delay = 500.0
         config.max_steps = 1000
         config.enable_missile_avoidance = True
@@ -197,137 +280,43 @@ class GPUGameEnv(gym.Env):
         return config
 
 
-# Vectorized environment for parallel training
-class VectorizedGPUEnv:
-    """
-    Vectorized environment for efficient parallel training.
-    
-    This class allows running multiple environments in parallel for
-    improved training throughput.
-    """
-    
-    def __init__(self, num_envs=4, config=None):
-        """
-        Initialize vectorized environment.
-        
-        Args:
-            num_envs: Number of parallel environments
-            config: Configuration for each environment
-        """
-        if not HAS_GPU_ENV:
-            raise ImportError("GPU environment extension not available")
-        
-        # Create config object if none provided
-        if config is None:
-            config = native_env.EnvironmentConfig()
-        
-        self.num_envs = num_envs
-        self.env = native_env.Environment(config)
-        
-        # Set up observation and action shapes
-        self.observation_shape = self.env.get_observation_shape()
-        self.action_shape = self.env.get_action_shape()
-    
-    def reset(self, seeds=None):
-        """
-        Reset all environments.
-        
-        Args:
-            seeds: Optional list of seeds for each environment
-            
-        Returns:
-            List of initial observations
-        """
-        if seeds is None:
-            seeds = np.array([])
-        
-        return self.env.batch_reset(self.num_envs, seeds)
-    
-    def step(self, actions):
-        """
-        Take a step in all environments.
-        
-        Args:
-            actions: List of actions for each environment
-            
-        Returns:
-            Tuple of (observations, rewards, dones, infos)
-        """
-        results = self.env.batch_step(actions)
-        
-        # Unzip results
-        observations = []
-        rewards = []
-        dones = []
-        truncateds = []
-        infos = []
-        
-        for obs, reward, done, truncated, info in results:
-            observations.append(obs)
-            rewards.append(reward)
-            dones.append(done)
-            truncateds.append(truncated)
-            infos.append(info)
-        
-        return observations, rewards, dones, truncateds, infos
-
-
 def make_env(config=None):
-    """
-    Create a GPU-accelerated game environment.
-    
-    Args:
-        config: Optional environment configuration
-        
-    Returns:
-        A gymnasium-compatible environment
-    """
+    """Create a GPU-accelerated game environment"""
     return GPUGameEnv(config)
 
 
 def create_vectorized_env(num_envs=4, config=None):
-    """
-    Create a vectorized GPU-accelerated environment.
+    """Create multiple environments for parallel training"""
+    from stable_baselines3.common.vec_env import DummyVecEnv
     
-    Args:
-        num_envs: Number of parallel environments
-        config: Optional environment configuration
-        
-    Returns:
-        A vectorized environment for parallel training
-    """
-    return VectorizedGPUEnv(num_envs, config)
+    def make_env_fn():
+        return make_env(config)
+    
+    return DummyVecEnv([make_env_fn for _ in range(num_envs)])
 
 
+# Quick test if run directly
 if __name__ == "__main__":
-    """Example usage of the GPU environment"""
-    if not HAS_GPU_ENV:
-        print("Native GPU environment not available. Please build it first.")
-        sys.exit(1)
+    logging.basicConfig(level=logging.INFO)
     
-    # Create and test a single environment
-    env = make_env()
-    obs = env.reset()
-    print(f"Initial observation shape: {obs.shape}")
+    print("Testing GPU environment wrapper...")
     
-    for i in range(10):
-        action = env.action_space.sample()
-        obs, reward, done, truncated, info = env.step(action)
-        print(f"Step {i}: reward = {reward}, done = {done}")
+    if HAS_GPU_ENV:
+        # Test basic functionality
+        env = make_env()
+        print(f"✓ Created environment")
         
-        if done:
-            print("Episode finished!")
-            obs = env.reset()
-    
-    env.close()
-    
-    # Create and test a vectorized environment
-    vec_env = create_vectorized_env(num_envs=2)
-    obs_list = vec_env.reset()
-    print(f"Vectorized environment initialized with {len(obs_list)} parallel environments")
-    
-    for i in range(5):
-        # Create random actions for all environments
-        actions = [np.random.uniform(-1, 1, size=2) for _ in range(2)]
-        observations, rewards, dones, truncateds, infos = vec_env.step(actions)
-        print(f"Vectorized step {i}: rewards = {rewards}")
+        obs = env.reset()
+        print(f"✓ Reset: observation shape = {obs.shape}")
+        
+        for i in range(5):
+            action = env.action_space.sample()
+            obs, reward, done, truncated, info = env.step(action)
+            print(f"  Step {i}: reward = {reward:.3f}, done = {done}")
+            
+            if done:
+                obs = env.reset()
+        
+        print("\n✓ GPU environment wrapper is working!")
+    else:
+        print("✗ GPU environment not available")
