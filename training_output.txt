@@ -1,0 +1,15 @@
+Running EnemyTrainer with actual data.
+Starting enemy model training for 10 epochs.
+Epoch 1/10, Avg Loss: 0.060152
+Epoch 2/10, Avg Loss: 0.130734
+Epoch 3/10, Avg Loss: 0.081173
+Epoch 4/10, Avg Loss: 0.224394
+Epoch 5/10, Avg Loss: 0.279070
+Epoch 6/10, Avg Loss: 0.255776
+Epoch 7/10, Avg Loss: 0.229855
+Epoch 8/10, Avg Loss: 0.243803
+Epoch 9/10, Avg Loss: 0.220448
+Epoch 10/10, Avg Loss: 0.210863
+Saved new enemy model to 'models/enemy_ai_model.pth'.
+Enemy model training completed.
+Loss history: [0.06015194579958916, 0.13073375821113586, 0.08117324113845825, 0.22439372539520264, 0.2790702283382416, 0.25577643513679504, 0.22985520958900452, 0.24380314350128174, 0.22044792771339417, 0.21086308360099792]

@@ -76,3 +76,514 @@ To debug why the enemy does not chase the player, you need to inspect the C++ en
 
 ---
 
+_**User**_
+
+@workspace what file puts code in the training_data.json file?
+
+---
+
+_**Assistant**_
+
+The file responsible for writing data to `training_data.json` is `data_logger.py`. The `DataLogger.save` method writes the logged data to this JSON file.
+
+---
+
+_**User**_
+
+@workspace what file do I run now that I have data in training_data.json to make the enemy model?
+
+---
+
+_**Assistant**_
+
+To train the enemy model using the data in `training_data.json`, you should run `train_enemy_model.py`. This script is responsible for training the enemy movement prediction model and saving it (typically as `enemy_ai_model.pth`). 
+
+You can run it with:
+
+```sh
+python ai_platform_trainer/ai/training/train_enemy_model.py
+```
+
+---
+
+_**User**_
+
+PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1> python ai_platform_trainer/ai/training/train_enemy_model.py
+Traceback (most recent call last):
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\ai\training\train_enemy_model.py", line 19, in <module>
+    from ai_platform_trainer.ai.models.enemy_movement_model import EnemyMovementModel
+ModuleNotFoundError: No module named 'ai_platform_trainer'
+PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1> 
+
+---
+
+_**Assistant**_
+
+The error `ModuleNotFoundError: No module named 'ai_platform_trainer'` means Python cannot find your package. This is usually because your current directory is not on the Python path.
+
+**To fix this, run the script as a module from the project root:**
+
+```sh
+python -m ai_platform_trainer.ai.training.train_enemy_model
+```
+
+Make sure you are in the `` directory when you run this command. This will let Python find the `` package and import modules correctly.
+
+---
+
+_**User**_
+
+PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1> python unified_launcher.py
+pygame 2.6.1 (SDL 2.28.4, Python 3.13.3)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+2025-05-28 08:41:53,383 - root - INFO - Logging configured successfully
+2025-05-28 08:41:53,383 - root - INFO - Configuration loaded from config.json
+2025-05-28 08:41:53,384 - root - INFO - Configuration file user_settings.json not found. Skipping.
+2025-05-28 08:41:53,384 - root - INFO - Configuration manager initialized
+2025-05-28 08:41:53,440 - root - INFO - Configuration saved to config.json
+2025-05-28 08:41:53,618 - root - INFO - Game loop coordinator initialized.
+2025-05-28 08:41:55,710 - root - INFO - Processing menu action: play_sl
+2025-05-28 08:41:55,710 - root - INFO - Starting supervised learning game mode.
+2025-05-28 08:41:56,672 - root - INFO - Logging configured successfully
+2025-05-28 08:41:56,673 - root - INFO - Configuration saved to config.json
+2025-05-28 08:41:56,677 - root - INFO - Found missile model at 'models/missile_model.pth'.
+2025-05-28 08:41:56,677 - root - INFO - Loading missile model once...
+2025-05-28 08:41:56,680 - root - INFO - Game initialized.
+2025-05-28 08:41:56,680 - root - INFO - Starting game in 'play' mode.
+2025-05-28 08:41:56,690 - root - ERROR - Failed to load enemy model: Error(s) in loading state_dict for EnemyMovementModel:
+        size mismatch for fc1.weight: copying a param with shape torch.Size([128, 5]) from checkpoint, the shape in current model is torch.Size([64, 5]).
+        size mismatch for fc1.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc2.weight: copying a param with shape torch.Size([128, 128]) from checkpoint, the shape in current model is torch.Size([64, 64]).
+        size mismatch for fc2.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc3.weight: copying a param with shape torch.Size([128, 128]) from checkpoint, the shape in current model is torch.Size([64, 64]).
+        size mismatch for fc3.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc4.weight: copying a param with shape torch.Size([2, 128]) from checkpoint, the shape in current model is torch.Size([2, 64]).
+        size mismatch for bn1.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+2025-05-28 08:41:56,690 - root - CRITICAL - Fatal error: Error(s) in loading state_dict for EnemyMovementModel:
+        size mismatch for fc1.weight: copying a param with shape torch.Size([128, 5]) from checkpoint, the shape in current model is torch.Size([64, 5]).
+        size mismatch for fc1.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc2.weight: copying a param with shape torch.Size([128, 128]) from checkpoint, the shape in current model is torch.Size([64, 64]).
+        size mismatch for fc2.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc3.weight: copying a param with shape torch.Size([128, 128]) from checkpoint, the shape in current model is torch.Size([64, 64]).
+        size mismatch for fc3.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc4.weight: copying a param with shape torch.Size([2, 128]) from checkpoint, the shape in current model is torch.Size([2, 64]).
+        size mismatch for bn1.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+2025-05-28 08:41:56,690 - root - ERROR - Exception details:
+Traceback (most recent call last):
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\unified_launcher.py", line 31, in main
+    game_loop.run()
+    ~~~~~~~~~~~~~^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\ui\game_loop.py", line 87, in run
+    self._handle_events()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\ui\game_loop.py", line 126, in _handle_events
+    self._process_menu_action(action)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\ui\game_loop.py", line 177, in _process_menu_action
+    self._start_supervised_game()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\ui\game_loop.py", line 197, in _start_supervised_game
+    self.game_instance.start_game("play")
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\gameplay\game_core.py", line 286, in start_game
+    self.player, self.enemy = self._init_play_mode()
+                              ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\gameplay\game_core.py", line 306, in _init_play_mode
+    raise e
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\gameplay\game_core.py", line 301, in _init_play_mode
+    model.load_state_dict(torch.load(config.MODEL_PATH, map_location="cpu"))
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\aiand\AppData\Local\Programs\Python\Python313\Lib\site-packages\torch\nn\modules\module.py", line 2593, in load_state_dict
+    raise RuntimeError(
+    ...<3 lines>...
+    )
+RuntimeError: Error(s) in loading state_dict for EnemyMovementModel:
+        size mismatch for fc1.weight: copying a param with shape torch.Size([128, 5]) from checkpoint, the shape in current model is torch.Size([64, 5]).
+        size mismatch for fc1.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc2.weight: copying a param with shape torch.Size([128, 128]) from checkpoint, the shape in current model is torch.Size([64, 64]).
+        size mismatch for fc2.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc3.weight: copying a param with shape torch.Size([128, 128]) from checkpoint, the shape in current model is torch.Size([64, 64]).
+        size mismatch for fc3.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for fc4.weight: copying a param with shape torch.Size([2, 128]) from checkpoint, the shape in current model is torch.Size([2, 64]).
+        size mismatch for bn1.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn1.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn2.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.weight: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.bias: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.running_mean: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+        size mismatch for bn3.running_var: copying a param with shape torch.Size([128]) from checkpoint, the shape in current model is torch.Size([64]).
+PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1> 
+
+---
+
+_**Assistant**_
+
+Your error is caused by a **model architecture mismatch** between the saved enemy model (`enemy_ai_model.pth`) and the current `EnemyMovementModel` code.
+
+**What happened?**
+- The saved model was trained with a network where layers (like `fc1`, `fc2`, `fc3`, `fc4`, and batch norms) had size 128.
+- Your current code defines these layers with size 64.
+- When loading, PyTorch sees the shape mismatch and throws an error.
+
+**How to fix:**
+
+1. **Option 1: Retrain the Model (Recommended)**
+   - Delete or move the old `enemy_ai_model.pth`.
+   - Make sure your code and `EnemyMovementModel` definition are correct and match your intended architecture (with 64 units).
+   - Retrain the enemy model using your training script:
+     ```sh
+     python -m ai_platform_trainer.ai.training.train_enemy_model
+     ```
+   - This will save a new model with the correct architecture.
+
+2. **Option 2: Restore Old Model Code**
+   - If you want to use the old model, revert your `EnemyMovementModel` code to use 128 units in each layer (matching the old checkpoint).
+   - But this is not recommended unless you have a reason to keep the old architecture.
+
+**Summary:**  
+You must retrain your enemy model so the saved weights match your current code. After retraining, the error will go away and the enemy will be able to use the new model.
+
+Let me know if you want the code to check or update your model definition!
+
+---
+
+_**User**_
+
+where do I move it to? and show me the code in my options
+
+---
+
+_**Assistant**_
+
+You should move your `training_data.json` file to the location where your enemy model training script expects to find it.  
+Typically, this is referenced in the training script (likely `train_enemy_model.py`) or in a config file.
+
+### 1. **Check the Training Script for Data Path**
+
+Open `train_enemy_model.py` and look for a line like:
+
+```python
+DATA_PATH = "data/raw/training_data.json"
+```
+or
+```python
+with open("data/raw/training_data.json") as f:
+```
+
+If you see `"data/raw/training_data.json"`, your file is already in the correct place.
+
+---
+
+### 2. **If You Want to Move It**
+
+If the script expects a different path, move the file using this PowerShell command:
+
+```powershell
+Move-Item -Path .\data\raw\training_data.json -Destination .\ai_platform_trainer\ai\training\training_data.json
+```
+
+Or to another location, just change the `-Destination` path.
+
+---
+
+### 3. **How to Change the Path in Code**
+
+If you want to keep the file in `` but the script expects a different path, update the code in your training script:
+
+````python
+# ...existing code...
+DATA_PATH = "data/raw/training_data.json"  # Update this path if needed
+with open(DATA_PATH, "r") as f:
+    data = json.load(f)
+# ...existing code...
+````
+
+Change `DATA_PATH` to match the actual location of your file.
+
+---
+
+**Summary:**  
+- If your script uses `"data/raw/training_data.json"`, you do not need to move the file.
+- If it expects a different location, either move the file or update the path in your script as shown above.
+
+Let me know if you want to see the exact code from your training script!
+
+---
+
+_**User**_
+
+import os
+import json
+import sys
+from enemy_teacher import EnemyTeacher
+from enemy_trainer import EnemyTrainer
+
+class DataValidatorAndTrainer:
+    def __init__(self, config):
+        self.config = config
+        self.trainer = EnemyTrainer(config['model'], EnemyTeacher())
+        self.model_path = config['model']['path']
+
+    def run(self):
+        data = self.trainer.generate_training_data(self.config['episodes'])
+        if len(data) < 10:
+            raise ValueError("Insufficient training data")
+        self.trainer.train_model(data, self.config['epochs'])
+        self.trainer.save_model(self.model_path)
+        print(f"✅ Model saved to {self.model_path}")
+
+print("--- Starting Enemy Agent Training Orchestration ---")
+
+print("\nStep 1: Generating dummy data for NumPy model...")
+os.system("python scripts/tools/generate_dummy_enemy_data.py")
+print("Dummy data generation complete.")
+
+print("\nStep 2: Running NumPy-based training...")
+try:
+    with open("config.json") as f:
+        config = json.load(f)
+    trainer = DataValidatorAndTrainer(config)
+    trainer.run()
+    print("✅ Enemy AI model training complete.")
+except Exception as e:
+    print("❌ NumPy-based training failed:", str(e))
+    sys.exit(1)
+
+print("\n--- Enemy Agent Training Orchestration Finished ---")
+
+
+---
+
+_**Assistant**_
+
+Here are your options for ensuring your training data is in the right place and used by your training script:
+
+---
+
+### **Option 1: Move the File**
+
+If your code expects the data at a specific path (e.g., `training_data.json`), move it there:
+
+```powershell
+Move-Item -Path .\training_data.json -Destination .\data\raw\training_data.json
+```
+
+---
+
+### **Option 2: Change the Path in Code**
+
+If you want to keep the file elsewhere, update your data loading code in your training script (for example, in `enemy_trainer.py` or wherever you load the data):
+
+````python
+# ...existing code...
+DATA_PATH = "data/raw/training_data.json"  # Change this to your file's location if needed
+with open(DATA_PATH, "r") as f:
+    data = json.load(f)
+# ...existing code...
+````
+
+---
+
+### **Option 3: Pass Path via Config**
+
+If your `config.json` supports specifying the data path, set it there:
+
+```json
+// config.json
+{
+    "model": {
+        "path": "models/enemy_ai_model.pth"
+    },
+    "data_path": "data/raw/training_data.json",
+    "epochs": 20,
+    "episodes": 100
+}
+```
+
+And in your code, use:
+
+````python
+# ...existing code...
+with open(config['data_path'], "r") as f:
+    data = json.load(f)
+# ...existing code...
+````
+
+---
+
+**Summary:**  
+- Move the file to where your code expects it, or  
+- Change your code/config to point to the file’s actual location.
+
+Let me know if you want to see the exact data loading code in your trainer!
+
+---
+
+_**User**_
+
+import os
+import sys
+import json
+import numpy as np
+
+# ===== Enemy Teacher (Expert Policy) =====
+class EnemyTeacher:
+    def reset(self):
+        # Not used when loading dummy data
+        return np.random.rand(5)
+
+    def decide_action(self, state):
+        dx = state[2] - state[0]
+        dy = state[3] - state[1]
+        # Action mapping: 0=left,1=right,2=down,3=up
+        if abs(dx) > abs(dy):
+            return 1 if dx > 0 else 0
+        else:
+            return 3 if dy > 0 else 2
+
+    def step(self, action):
+        # Not used when loading dummy data
+        next_state = np.random.rand(5)
+        done = np.random.rand() < 0.1
+        return next_state, done
+
+
+# ===== Enemy Trainer =====
+class EnemyTrainer:
+    def __init__(self, config, teacher):
+        self.config = config
+        self.teacher = teacher
+        in_dim = config['input_size']
+        hid_dim = config['hidden_size']
+        out_dim = config['output_size']
+        self.W1 = np.random.randn(in_dim, hid_dim) * 0.1
+        self.b1 = np.zeros(hid_dim)
+        self.W2 = np.random.randn(hid_dim, out_dim) * 0.1
+        self.b2 = np.zeros(out_dim)
+        self.learning_rate = config['learning_rate']
+
+    def generate_training_data(self, episodes=100):
+        static_path = "data/raw/enemy_training_data.npz"
+        if episodes == 0 and os.path.exists(static_path):
+            print(f"Loading dummy data from {static_path}")
+            archive = np.load(static_path)
+            states, actions = archive['states'], archive['actions']
+            return list(zip(states, actions))
+        print("Generating data with teacher agent...")
+        data = []
+        for _ in range(episodes):
+            state = self.teacher.reset()
+            done = False
+            while not done:
+                action = self.teacher.decide_action(state)
+                data.append((state, action))
+                state, done = self.teacher.step(action)
+        return data
+
+    def train_model(self, data, epochs=10):
+        for _ in range(epochs):
+            np.random.shuffle(data)
+            for state, action in data:
+                # Forward pass
+                z1 = state.dot(self.W1) + self.b1
+                h1 = np.maximum(0, z1)  # ReLU
+                z2 = h1.dot(self.W2) + self.b2
+                # Softmax
+                exp_z = np.exp(z2 - np.max(z2))
+                probs = exp_z / np.sum(exp_z)
+                # One-hot target
+                target = np.zeros_like(probs)
+                target[action] = 1.0
+                # Backprop
+                grad_z2 = probs - target
+                grad_W2 = np.outer(h1, grad_z2)
+                grad_b2 = grad_z2
+                grad_h1 = self.W2.dot(grad_z2)
+                grad_z1 = grad_h1 * (z1 > 0)
+                grad_W1 = np.outer(state, grad_z1)
+                grad_b1 = grad_z1
+                # Update
+                self.W1 -= self.learning_rate * grad_W1
+                self.b1 -= self.learning_rate * grad_b1
+                self.W2 -= self.learning_rate * grad_W2
+                self.b2 -= self.learning_rate * grad_b2
+
+    def save_model(self, path):
+        np.savez(path, W1=self.W1, b1=self.b1, W2=self.W2, b2=self.b2)
+
+
+# ===== Data Validator & Trainer Orchestration =====
+class DataValidatorAndTrainer:
+    def __init__(self, config):
+        self.config = config
+        self.trainer = EnemyTrainer(config['model'], EnemyTeacher())
+        self.model_path = config['model']['path']
+
+    def run(self):
+        data = self.trainer.generate_training_data(self.config['episodes'])
+        if len(data) < 10:
+            raise ValueError("Insufficient training data")
+        self.trainer.train_model(data, self.config['epochs'])
+        self.trainer.save_model(self.model_path)
+        print(f"Model saved to {self.model_path}")
+
+
+# ===== Main Entrypoint =====
+if __name__ == "__main__":
+    print("--- Starting Enemy Agent Training Orchestration ---\n")
+    # Step 1: Generate Dummy Data
+    print("Step 1: Generating dummy data for NumPy model...")
+    result = os.system("python scripts/tools/generate_dummy_enemy_data.py")
+    if result != 0:
+        print("Dummy data generation failed. Aborting.")
+        sys.exit(1)
+    print("Dummy data generation complete.\n")
+    # Step 2: Train the Model
+    print("Step 2: Running NumPy-based training...")
+    try:
+        with open("config.json") as f:
+            config = json.load(f)
+        pipeline = DataValidatorAndTrainer(config)
+        pipeline.run()
+        print("Enemy AI model training complete.")
+    except Exception as e:
+        print("NumPy-based training failed:", e)
+        sys.exit(1)
+    print("\n--- Enemy Agent Training Orchestration Finished ---")
+
+
+---
+
+_**Assistant**_
+
+
+
+---
+

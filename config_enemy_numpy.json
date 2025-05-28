@@ -1,0 +1,20 @@
+{
+  "model": {
+    "input_size": 5,
+    "hidden_size": 16,
+    "output_size": 4, 
+    "learning_rate": 0.01,
+    "path": "models/numpy_enemy_model.npz"
+  },
+  "training": {
+    "episodes": 0,
+    "epochs": 20,
+    "min_data_samples": 100,
+    "static_data_path": "data/raw/enemy_training_data.npz",
+    "teacher_config": {
+        "screen_width": 800,
+        "screen_height": 600
+    },
+    "max_steps_per_episode": 200
+  }
+}

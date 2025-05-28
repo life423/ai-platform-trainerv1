@@ -33,6 +33,8 @@ from ai_platform_trainer.gameplay.display_manager import (
 from ai_platform_trainer.ai.inference.missile_controller import update_missile_ai
 from ai_platform_trainer.ai.models.enemy_movement_model import EnemyMovementModel
 from ai_platform_trainer.ai.models.missile_model import MissileModel
+from ai_platform_trainer.ai.models.numpy_enemy_model import NumpyEnemyModel # Import Numpy model
+from ai_platform_trainer.gameplay.ai.enemy_ai_controller import enemy_controller # Import the singleton controller
 
 # Data logger and entity imports
 from ai_platform_trainer.core.data_logger import DataLogger
@@ -295,18 +297,63 @@ class GameCore:
         Returns:
             Tuple of (player, enemy) entities
         """
-        # Load the traditional neural network model
-        model = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
-        try:
-            model.load_state_dict(torch.load(config.MODEL_PATH, map_location="cpu"))
-            model.eval()
-            logging.info("Enemy AI model loaded for play mode.")
-        except Exception as e:
-            logging.error(f"Failed to load enemy model: {e}")
-            raise e
-
         player = PlayerPlay(self.screen_width, self.screen_height)
-        enemy = EnemyPlay(self.screen_width, self.screen_height, model)
+        
+        # Attempt to load and use NumPy model first
+        numpy_model_path = "models/numpy_enemy_model.npz"
+        loaded_numpy_model: Optional[NumpyEnemyModel] = None
+        pytorch_model_instance: Optional[EnemyMovementModel] = None
+
+        if os.path.exists(numpy_model_path):
+            try:
+                # Use the global enemy_controller's instance if already loaded, or load fresh
+                if enemy_controller.numpy_model:
+                    loaded_numpy_model = enemy_controller.numpy_model
+                    logging.info(f"Using pre-loaded NumPy enemy model from global controller for EnemyPlay.")
+                else:
+                    loaded_numpy_model = NumpyEnemyModel(numpy_model_path)
+                    enemy_controller.numpy_model = loaded_numpy_model # Assign to global controller too
+                    logging.info(f"Successfully loaded NumPy enemy model from {numpy_model_path} for EnemyPlay.")
+                # Ensure the controller prioritizes it
+                enemy_controller.use_numpy_model_if_available = True
+            except Exception as e:
+                logging.warning(f"Found NumPy model at {numpy_model_path}, but failed to load: {e}. Falling back to PyTorch.")
+                loaded_numpy_model = None
+        else:
+            logging.info(f"NumPy model not found at {numpy_model_path}. Attempting to load PyTorch model.")
+
+        if not loaded_numpy_model:
+            # Fallback to PyTorch model
+            enemy_controller.use_numpy_model_if_available = False # Ensure PyTorch model is used
+            try:
+                pytorch_model_instance = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
+                pytorch_model_instance.load_state_dict(torch.load(config.MODEL_PATH, map_location="cpu"))
+                pytorch_model_instance.eval()
+                logging.info(f"Successfully loaded PyTorch enemy model from {config.MODEL_PATH} for EnemyPlay.")
+            except Exception as e:
+                logging.error(f"Failed to load PyTorch enemy model from {config.MODEL_PATH}: {e}. Enemy AI may not function.")
+                # We can still create EnemyPlay, it will use random movement if controller has no model
+                pytorch_model_instance = None 
+        
+        # EnemyPlay constructor expects an optional PyTorch model.
+        # EnemyPlay's update_movement delegates to the global enemy_controller.
+        # The global enemy_controller attempts to load its own NumPy model at startup.
+        # Here, we ensure the PyTorch model is loaded if NumPy isn't, and EnemyPlay gets it.
+        # The enemy_controller will then decide which to use based on its state.
+
+        enemy = EnemyPlay(self.screen_width, self.screen_height, model=pytorch_model_instance)
+        
+        # Ensure the global enemy_controller's flags are set based on what was loaded here.
+        # This is important if GameCore's load attempt is the primary one.
+        if loaded_numpy_model:
+            # If GameCore successfully loaded/confirmed NumPy model, ensure controller knows to use it.
+            # This also handles if the controller's initial load failed but GameCore's succeeded.
+            enemy_controller.numpy_model = loaded_numpy_model 
+            enemy_controller.use_numpy_model_if_available = True
+        elif pytorch_model_instance:
+            # If only PyTorch model is available, ensure controller knows not to try NumPy.
+            enemy_controller.use_numpy_model_if_available = False
+        # If neither model loaded, enemy_controller will use random movement.
 
         logging.info("Initialized PlayerPlay and EnemyPlay for play mode.")
         return player, enemy

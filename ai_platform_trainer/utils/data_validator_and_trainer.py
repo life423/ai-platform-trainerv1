@@ -1,271 +1,90 @@
-"""
-Data validation, appending, and model retraining utility.
-
-This module provides functionality to:
-1. Validate new training data format compatibility
-2. Append new data to existing training data
-3. Trigger retraining of AI models
-"""
+# enemy_trainer.py
+import numpy as np
 import os
-import json
-import logging
-import time
-from typing import Dict, List, Any, Tuple
 
-# Import training modules
-from ai_platform_trainer.ai.training.train_missile_model import MissileTrainer
+class EnemyModel:
+    def __init__(self, path):
+        weights = np.load(path)
+        self.W1 = weights['W1']
+        self.b1 = weights['b1']
+        self.W2 = weights['W2']
+        self.b2 = weights['b2']
 
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-
-class DataValidatorAndTrainer:
-    """
-    Handles validation of new training data, appending to existing data,
-    and retraining of AI models when appropriate.
-    """
-
-    # Define expected data schema for validation
-    EXPECTED_SCHEMA = {
-        "player_x": float,
-        "player_y": float,
-        "enemy_x": float,
-        "enemy_y": float,
-        "missile_x": float,
-        "missile_y": float,
-        "missile_angle": float,
-        "missile_collision": bool,
-        "missile_action": float,
-        "timestamp": int
-    }
-
-    def __init__(
-        self,
-        training_data_path: str = "data/raw/training_data.json",
-        missile_model_path: str = "models/missile_model.pth",
-        backup_dir: str = "data/backups"
-    ):
-        """
-        Initialize the validator and trainer.
-
-        Args:
-            training_data_path: Path to the main training data JSON file
-            missile_model_path: Path to save the missile model
-            backup_dir: Directory to store data backups
-        """
-        self.training_data_path = training_data_path
-        self.missile_model_path = missile_model_path
-        self.backup_dir = backup_dir
-        
-        # Create directories if they don't exist
-        os.makedirs(os.path.dirname(self.training_data_path), exist_ok=True)
-        os.makedirs(self.backup_dir, exist_ok=True)
-
-    def validate_data_format(self, new_data: List[Dict[str, Any]]) -> Tuple[bool, str]:
-        """
-        Validate that new data matches the expected format.
-
-        Args:
-            new_data: List of data points to validate
-
-        Returns:
-            Tuple of (is_valid, error_message)
-        """
-        if not new_data:
-            return False, "New data is empty"
-        
-        # Check each data point for required fields and types
-        for i, data_point in enumerate(new_data):
-            # Check for missing keys
-            for key in self.EXPECTED_SCHEMA:
-                if key not in data_point:
-                    return False, f"Data point {i} missing required key: {key}"
-            
-            # Check for correct types
-            for key, expected_type in self.EXPECTED_SCHEMA.items():
-                actual_value = data_point[key]
-                # Handle None values (decide if they should be allowed)
-                if actual_value is None:
-                    expected_name = expected_type.__name__
-                    return False, f"Data point {i}: {key} is None but should be {expected_name}"
-                
-                # Type checking with special handling for numeric types
-                if expected_type in (float, int):
-                    if not isinstance(actual_value, (float, int)):
-                        type_name = type(actual_value).__name__
-                        expected = expected_type.__name__
-                        msg = f"Data point {i}: {key} has type {type_name} but should be {expected}"
-                        return False, msg
-                elif not isinstance(actual_value, expected_type):
-                    type_name = type(actual_value).__name__
-                    expected = expected_type.__name__
-                    msg = f"Data point {i}: {key} has type {type_name} but should be {expected}"
-                    return False, msg
-        
-        return True, ""
-
-    def backup_existing_data(self) -> bool:
-        """
-        Create a backup of the existing training data.
-
-        Returns:
-            Success status
-        """
-        if not os.path.exists(self.training_data_path):
-            path = self.training_data_path
-            logger.info(f"No existing data file at {path} to backup")
-            return True
-        
-        try:
-            # Create a timestamped backup filename
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-            backup_filename = f"training_data_backup_{timestamp}.json"
-            backup_path = os.path.join(self.backup_dir, backup_filename)
-            
-            # Copy the file
-            with open(self.training_data_path, 'r') as source:
-                data = json.load(source)
-                with open(backup_path, 'w') as target:
-                    json.dump(data, target, indent=4)
-            
-            logger.info(f"Created backup at {backup_path}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to create backup: {e}")
-            return False
-
-    def load_existing_data(self) -> List[Dict[str, Any]]:
-        """
-        Load existing training data from file.
-
-        Returns:
-            List of data points or empty list if file doesn't exist
-        """
-        if not os.path.exists(self.training_data_path):
-            path = self.training_data_path
-            logger.info(f"No existing data file at {path}")
-            return []
-        
-        try:
-            with open(self.training_data_path, 'r') as f:
-                data = json.load(f)
-                count = len(data)
-                logger.info(f"Loaded {count} existing data points")
-                return data
-        except json.JSONDecodeError:
-            logger.error("Existing data file is not valid JSON. Creating new file.")
-            return []
-        except Exception as e:
-            error = str(e)
-            logger.error(f"Error loading existing data: {error}")
-            return []
-
-    def merge_and_save_data(self, existing_data: List[Dict[str, Any]], new_data: List[Dict[str, Any]]) -> bool:
-        """
-        Merge new data with existing data and save to file.
-
-        Args:
-            existing_data: Existing data points
-            new_data: New data points to append
-
-        Returns:
-            Success status
-        """
-        try:
-            # Combine the data
-            combined_data = existing_data + new_data
-            total = len(combined_data)
-            logger.info(f"Combined data now has {total} entries")
-            
-            # Save to file
-            with open(self.training_data_path, 'w') as f:
-                json.dump(combined_data, f, indent=4)
-            
-            data_path = self.training_data_path
-            msg = f"Successfully saved combined data to {data_path}"
-            logger.info(msg)
-            return True
-        except Exception as e:
-            logger.error(f"Error merging and saving data: {e}")
-            return False
-
-    def train_missile_model(self) -> bool:
-        """
-        Train the missile trajectory prediction model.
-
-        Returns:
-            Success status
-        """
-        try:
-            logger.info("Starting missile model training...")
-            trainer = MissileTrainer(
-                filename=self.training_data_path,
-                model_save_path=self.missile_model_path
-            )
-            trainer.run_training()
-            model_path = self.missile_model_path
-            logger.info(f"Missile model training completed and saved to {model_path}")
-            return True
-        except Exception as e:
-            logger.error(f"Error training missile model: {e}")
-            return False
+    def predict(self, state):
+        z1 = np.dot(state, self.W1) + self.b1
+        h1 = np.maximum(0, z1)
+        z2 = np.dot(h1, self.W2) + self.b2
+        return int(np.argmax(z2))
 
 
-    def process_new_data(self, new_data: List[Dict[str, Any]]) -> bool:
-        """
-        Main workflow: validate new data, append to existing data, and retrain models.
+class EnemyTrainer:
+    def __init__(self, config, teacher):
+        self.config = config
+        self.teacher = teacher
+        in_dim = config['input_size']
+        hid_dim = config['hidden_size']
+        out_dim = config['output_size']
 
-        Args:
-            new_data: New training data to process
+        self.W1 = np.random.randn(in_dim, hid_dim) * 0.1
+        self.b1 = np.zeros(hid_dim)
+        self.W2 = np.random.randn(hid_dim, out_dim) * 0.1
+        self.b2 = np.zeros(out_dim)
+        self.learning_rate = config['learning_rate']
 
-        Returns:
-            Overall success status
-        """
-        # Step 1: Validate data format
-        valid, error_msg = self.validate_data_format(new_data)
-        if not valid:
-            msg = f"Data validation failed: {error_msg}"
-            logger.error(msg)
-            return False
-        
-        logger.info(f"Validated {len(new_data)} new data points")
-        
-        # Step 2: Backup existing data
-        if not self.backup_existing_data():
-            logger.warning("Proceeding without backup")
-        
-        # Step 3: Load existing data
-        existing_data = self.load_existing_data()
-        
-        # Step 4: Merge and save the combined data
-        if not self.merge_and_save_data(existing_data, new_data):
-            return False
-        
-        # Step 5: Retrain missile model
-        missile_success = self.train_missile_model()
-        
-        return missile_success
+    def generate_training_data(self, episodes=100):
+        static_data_path = "data/raw/enemy_training_data.npz"
+        if episodes == 0 and os.path.exists(static_data_path):
+            print("Loading dummy data from", static_data_path)
+            archive = np.load(static_data_path)
+            states, actions = archive['states'], archive['actions']
+            return list(zip(states, actions))
 
+        print("Generating data with teacher agent...")
+        data = []
+        for _ in range(episodes):
+            state = self.teacher.reset()
+            done = False
+            while not done:
+                action = self.teacher.decide_action(state)
+                data.append((state, action))
+                state, done = self.teacher.step(action)
+        return data
 
-# Convenience function for external use
-def process_new_training_data(new_data: List[Dict[str, Any]]) -> bool:
-    """
-    Validate, append, and retrain models with new training data.
+    def train_model(self, data, epochs=10):
+        for _ in range(epochs):
+            np.random.shuffle(data)
+            for state, action in data:
+                z1 = np.dot(state, self.W1) + self.b1
+                h1 = np.maximum(0, z1)
+                z2 = np.dot(h1, self.W2) + self.b2
+                exp_z = np.exp(z2 - np.max(z2))
+                probs = exp_z / np.sum(exp_z)
 
-    Args:
-        new_data: New training data to process
+                target = np.zeros_like(probs)
+                target[action] = 1.0
+                grad_z2 = probs - target
+                grad_W2 = np.outer(h1, grad_z2)
+                grad_b2 = grad_z2
+                grad_h1 = np.dot(self.W2, grad_z2)
+                grad_z1 = grad_h1 * (z1 > 0)
+                grad_W1 = np.outer(state, grad_z1)
+                grad_b1 = grad_z1
 
-    Returns:
-        Success status
-    """
-    processor = DataValidatorAndTrainer()
-    return processor.process_new_data(new_data)
+                self.W1 -= self.learning_rate * grad_W1
+                self.b1 -= self.learning_rate * grad_b1
+                self.W2 -= self.learning_rate * grad_W2
+                self.b2 -= self.learning_rate * grad_b2
 
+    def save_model(self, path):
+        np.savez(path, W1=self.W1, b1=self.b1, W2=self.W2, b2=self.b2)
 
-if __name__ == "__main__":
-    # Example usage
-    logger.info("This module is meant to be imported, not run directly.")
+    def load_model(self, path):
+        weights = np.load(path)
+        self.W1, self.b1 = weights['W1'], weights['b1']
+        self.W2, self.b2 = weights['W2'], weights['b2']
+
+    def predict(self, state):
+        z1 = np.dot(state, self.W1) + self.b1
+        h1 = np.maximum(0, z1)
+        z2 = np.dot(h1, self.W2) + self.b2
+        return np.argmax(z2)

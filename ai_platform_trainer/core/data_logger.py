@@ -10,8 +10,8 @@ class DataLogger:
 
     def __init__(self, filename: str) -> None:
         """
-        Initialize the DataLogger with the given filename. If file exists, it is removed
-        and replaced with an empty JSON file.
+        Initialize the DataLogger. If the file exists and contains valid JSON,
+        it loads the existing data. Otherwise, it starts with an empty data list.
 
         :param filename: path to the JSON file where data will be logged
         """
@@ -21,17 +21,31 @@ class DataLogger:
         # Ensure parent directory exists
         os.makedirs(os.path.dirname(self.filename), exist_ok=True)
 
-        # Remove existing file
         if os.path.isfile(self.filename):
             try:
-                os.remove(self.filename)
-            except OSError as e:
-                print(f"Error deleting existing file {self.filename}: {e}")
+                with open(self.filename, "r") as f:
+                    existing_data = json.load(f)
+                    if isinstance(existing_data, list):
+                        self.data = existing_data
+                        print(f"Loaded {len(self.data)} existing records from {self.filename}")
+                    else:
+                        print(f"Warning: Existing file {self.filename} does not contain a JSON list. Starting fresh.")
+                        self._create_empty_file()
+            except json.JSONDecodeError:
+                print(f"Warning: Could not decode JSON from {self.filename}. Starting fresh.")
+                self._create_empty_file()
+            except IOError as e:
+                print(f"Error reading file {self.filename}: {e}. Starting fresh.")
+                self._create_empty_file()
+        else:
+            self._create_empty_file()
 
-        # Create an empty JSON file
+    def _create_empty_file(self) -> None:
+        """Creates an empty JSON file (or overwrites with an empty list)."""
         try:
             with open(self.filename, "w") as f:
-                json.dump(self.data, f, indent=4)
+                json.dump([], f, indent=4)
+            print(f"Initialized empty data log at {self.filename}")
         except IOError as e:
             print(f"Error creating file {self.filename}: {e}")
 

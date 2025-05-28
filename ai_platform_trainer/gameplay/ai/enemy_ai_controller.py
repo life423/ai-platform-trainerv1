@@ -8,8 +8,13 @@ import random
 import logging
 import time
 import torch
-from typing import Tuple, Dict, List
+import numpy as np # Added for NumPy model
+from typing import Tuple, Dict, List, Optional # Union removed as it's unused
 
+# Assuming NumpyEnemyModel will be in this path
+from ai_platform_trainer.ai.models.numpy_enemy_model import NumpyEnemyModel
+
+logger = logging.getLogger(__name__) # Added logger definition
 
 class EnemyAIController:
     """
@@ -37,6 +42,17 @@ class EnemyAIController:
         self.missile_danger_radius = 80.0      # When to start emergency evasion
         self.evasion_strength = 1.5            # How strongly to evade (multiplier)
         self.prediction_time = 10              # How many frames to predict missile movement
+        self.numpy_model: Optional[NumpyEnemyModel] = None # For the NumPy model instance
+        self.use_numpy_model_if_available = True # Flag to switch between torch and numpy
+
+    def load_numpy_model(self, model_path: str = "models/numpy_enemy_model.npz"):
+        """Attempts to load the NumPy-based model."""
+        try:
+            self.numpy_model = NumpyEnemyModel(model_path)
+            logger.info(f"Successfully loaded NumPy enemy model from {model_path}")
+        except Exception as e:
+            logger.error(f"Failed to load NumPy enemy model from {model_path}: {e}")
+            self.numpy_model = None # Ensure it's None if loading fails
 
     def _detect_missiles(self, enemy, player) -> List[Dict]:
         """
@@ -177,141 +193,143 @@ class EnemyAIController:
     
     def update_enemy_movement(
         self,
-        enemy,
+        enemy, # EnemyPlay instance
         player_x: float,
         player_y: float,
         player_speed: float,
-        current_time: int
+        current_time: int,
+        # Allow passing a pre-loaded numpy_model, or it will use its own instance
+        numpy_model_instance: Optional[NumpyEnemyModel] = None 
     ) -> None:
         """
         Handle the enemy's AI-driven movement using neural networks.
+        Can use either PyTorch model from enemy instance or a NumPy model.
 
         Args:
-            enemy: EnemyPlay instance
+            enemy: EnemyPlay instance (expected to have a 'model' attribute for PyTorch)
             player_x: Player's x position
             player_y: Player's y position
             player_speed: Player's movement speed
             current_time: Current game time
+            numpy_model_instance: Optional pre-loaded NumpyEnemyModel instance.
         """
-        # If the enemy is not visible, skip
         if not enemy.visible:
             return
 
-        # Throttle updates for better performance
         current_time_sec = time.time()
         if current_time_sec - self.last_action_time < self.action_interval:
             return
         self.last_action_time = current_time_sec
 
-        # Track position history to detect if enemy is stuck
         self._update_position_history(enemy.pos)
         
-        # Get base movement direction using neural network
-        action_dx, action_dy = self._get_nn_action(enemy, player_x, player_y)
+        # Determine which model to use
+        active_numpy_model = numpy_model_instance if numpy_model_instance else self.numpy_model
 
-        # Check if enemy is stuck and apply special behavior if needed
+        if self.use_numpy_model_if_available and active_numpy_model:
+            action_dx, action_dy = self._get_numpy_nn_action(active_numpy_model, enemy, player_x, player_y)
+        elif hasattr(enemy, 'model') and enemy.model: # Fallback to PyTorch model if available
+            action_dx, action_dy = self._get_pytorch_nn_action(enemy, player_x, player_y)
+        else: # No model available, use random or simple chase
+            logger.warning("No suitable AI model found for enemy. Using random movement.")
+            action_dx, action_dy = self._get_random_direction()
+
+
         if self._is_enemy_stuck():
             action_dx, action_dy = self._handle_stuck_enemy(player_x, player_y, enemy.pos)
         
-        # Get player object from enemy's game reference (if available)
         player = None
         if hasattr(enemy, 'game') and hasattr(enemy.game, 'player'):
             player = enemy.game.player
             
-        # Detect missiles and calculate evasion if player is available
         evasion_dx, evasion_dy = 0, 0
         evasion_weight = 0
         
         if player:
-            # Detect nearby missiles
             nearby_missiles = self._detect_missiles(enemy, player)
-            
-            # If missiles detected, calculate evasion vector
             if nearby_missiles:
                 evasion_dx, evasion_dy = self._calculate_evasion_vector(enemy.pos, nearby_missiles)
-                
-                # Calculate evasion weight based on closest missile
                 closest_missile = min(nearby_missiles, key=lambda m: m["distance"])
                 closest_distance = closest_missile["distance"]
-                
-                # Closer missiles mean stronger evasion weight
                 if closest_distance < self.missile_danger_radius:
                     evasion_weight = min(1.0, self.missile_danger_radius / closest_distance) * 0.8
                 else:
-                    # Gradual increase in evasion weight as missiles get closer
                     ratio = closest_distance / self.missile_detection_radius
                     evasion_weight = max(0, 0.5 * (1 - ratio))
-                
                 logging.debug(
                     f"Missile detected! Distance: {closest_distance:.1f}, "
                     f"Evasion weight: {evasion_weight:.2f}"
                 )
-                
-            # Blend chasing and evasion behaviors
             action_dx, action_dy = self._blend_behaviors(
                 (action_dx, action_dy), 
                 (evasion_dx, evasion_dy), 
                 evasion_weight
             )
 
-        # Apply smoothing
         action_dx = self.smoothing_factor * action_dx + (1 - self.smoothing_factor) * self.prev_dx
         action_dy = self.smoothing_factor * action_dy + (1 - self.smoothing_factor) * self.prev_dy
 
-        # Normalize direction vector
         action_dx, action_dy = self._normalize_vector(action_dx, action_dy)
-
-        # Store for next frame's smoothing
         self.prev_dx, self.prev_dy = action_dx, action_dy
 
-        # Move enemy at 100% of the player's speed (increased from 70%)
         speed = player_speed * 1.0
         enemy.pos["x"] += action_dx * speed
         enemy.pos["y"] += action_dy * speed
-
-        # Wrap-around logic
         enemy.pos["x"], enemy.pos["y"] = enemy.wrap_position(enemy.pos["x"], enemy.pos["y"])
 
-    def _get_nn_action(
+    def _get_numpy_nn_action(
         self,
+        model: NumpyEnemyModel, # Expects a NumpyEnemyModel instance
         enemy,
         player_x: float,
         player_y: float
     ) -> Tuple[float, float]:
-        """
-        Get action from neural network model.
-
-        Args:
-            enemy: Enemy instance
-            player_x: Player's x position
-            player_y: Player's y position
-
-        Returns:
-            Tuple of (dx, dy) movement direction
-        """
-        # Construct input state for the model
+        """Get action from the NumPy-based neural network model."""
         dist = math.sqrt((player_x - enemy.pos["x"])**2 + (player_y - enemy.pos["y"])**2)
-        state = torch.tensor(
-            [[player_x, player_y, enemy.pos["x"], enemy.pos["y"], dist]],
+        # State for NumPy model: [enemy_x, enemy_y, player_x, player_y, distance]
+        # Assuming positions are already normalized if required by the model, or handle normalization here.
+        # For now, using raw positions as per the dummy data generator.
+        state_np = np.array(
+            [enemy.pos["x"], enemy.pos["y"], player_x, player_y, dist],
+            dtype=np.float32
+        )
+        try:
+            action_id = model.predict(state_np)
+            # Convert action ID to dx, dy. This mapping depends on your NumpyEnemyTeacher's action definitions.
+            # ACTION_LEFT = 0, ACTION_RIGHT = 1, ACTION_UP = 2, ACTION_DOWN = 3
+            if action_id == 0: return -1.0, 0.0  # Left
+            elif action_id == 1: return 1.0, 0.0   # Right
+            elif action_id == 2: return 0.0, -1.0  # Up (assuming Y decreases upwards)
+            elif action_id == 3: return 0.0, 1.0   # Down
+            else: return self._get_random_direction() # Fallback for unknown action
+        except Exception as e:
+            logging.error(f"NumPy model inference error: {e}")
+            return self._get_random_direction()
+
+    def _get_pytorch_nn_action(
+        self,
+        enemy, # Enemy instance with a PyTorch model
+        player_x: float,
+        player_y: float
+    ) -> Tuple[float, float]:
+        """Get action from the PyTorch-based neural network model."""
+        dist = math.sqrt((player_x - enemy.pos["x"])**2 + (player_y - enemy.pos["y"])**2)
+        # State for PyTorch model (as per original _get_nn_action)
+        state_torch = torch.tensor(
+            [[player_x, player_y, enemy.pos["x"], enemy.pos["y"], dist]], # Note: order might differ from NumPy
             dtype=torch.float32
         )
-
-        # Inference
         try:
             with torch.no_grad():
-                action = enemy.model(state)  # shape: [1, 2]
-
-            action_dx, action_dy = action[0].tolist()
-
-            # If action is very small, treat as zero
+                action_torch = enemy.model(state_torch)  # Expected shape: [1, 2] for dx, dy
+            action_dx, action_dy = action_torch[0].tolist()
             if abs(action_dx) < 1e-6 and abs(action_dy) < 1e-6:
                 return self._get_random_direction()
-
             return action_dx, action_dy
-
         except Exception as e:
-            logging.error(f"Neural network inference error: {e}")
+            logging.error(f"PyTorch model inference error: {e}")
             return self._get_random_direction()
+
 
     def _normalize_vector(self, dx: float, dy: float) -> Tuple[float, float]:
         """
@@ -413,28 +431,76 @@ class EnemyAIController:
         return self._normalize_vector(dx, dy)
 
 
-# Initialize the controller as a singleton
+        # Initialize the controller as a singleton
 enemy_controller = EnemyAIController()
+# Attempt to load the numpy model when the controller is initialized
+# This path should ideally come from a config file or be passed in.
+enemy_controller.load_numpy_model("models/numpy_enemy_model.npz") 
 
 
+# This is the function provided in your snippet for gameplay integration.
+# It's slightly different from the class method, so I'm adding it here.
+# It assumes `model` is an instance of `NumpyEnemyModel`.
+def update_enemy_movement_numpy(enemy, player, model: Optional[NumpyEnemyModel]):
+    """
+    Updates enemy movement based on the NumPy model prediction.
+    This function is based on the snippet provided for direct integration.
+    """
+    if not model:
+        # Fallback logic: if no model, enemy does nothing or uses simple rules.
+        # For brevity, as in snippet, just return.
+        # A more robust fallback would be to call a rule-based teacher.
+        # logger.debug("NumPy model not available for enemy movement.")
+        return
+
+    # Create state vector for the NumPy model
+    # [enemy_x, enemy_y, player_x, player_y, distance]
+    state = np.array([
+        enemy.pos["x"], enemy.pos["y"],
+        player.pos["x"], player.pos["y"],
+        math.sqrt((player.pos["x"] - enemy.pos["x"])**2 + (player.pos["y"] - enemy.pos["y"])**2)
+    ], dtype=np.float32)
+
+    action_id = model.predict(state)
+
+    # Apply action based on ID
+    # This mapping should match NumpyEnemyTeacher.ACTION_...
+    if action_id == 0: # ACTION_LEFT
+        enemy.pos["x"] -= enemy.speed # Example: direct position update
+    elif action_id == 1: # ACTION_RIGHT
+        enemy.pos["x"] += enemy.speed
+    elif action_id == 2: # ACTION_UP
+        enemy.pos["y"] -= enemy.speed # Screen coordinates: Y decreases upwards
+    elif action_id == 3: # ACTION_DOWN
+        enemy.pos["y"] += enemy.speed
+    
+    # Placeholder for actual enemy movement methods like enemy.move_left()
+    # The above directly modifies pos for simplicity matching the snippet's style.
+    # In a real game, you'd call methods on the enemy object that handle physics, speed, etc.
+    # e.g., if action_id == 0: enemy.move_left(enemy.speed)
+
+    # enemy.wrap_position() # Assuming this method exists on enemy to handle screen wrap
+
+
+# The original update_enemy_movement function that delegates to the class instance
 def update_enemy_movement(
-    enemy,
+    enemy, # EnemyPlay instance
     player_x: float,
     player_y: float,
     player_speed: float,
-    current_time: int
+    current_time: int,
+    numpy_model_instance: Optional[NumpyEnemyModel] = None # Allow passing a model
 ) -> None:
     """
-    Legacy function for backward compatibility.
+    Main entry point for updating enemy movement.
     Delegates to the EnemyAIController instance.
-
-    Args:
-        enemy: EnemyPlay instance
-        player_x: Player's x position
-        player_y: Player's y position
-        player_speed: Player's movement speed
-        current_time: Current game time
+    Can use either PyTorch model from enemy or a passed/loaded NumPy model.
     """
+    # If a specific numpy_model_instance is passed, use it. Otherwise, the controller
+    # will use its own self.numpy_model if loaded.
+    active_numpy_model = numpy_model_instance if numpy_model_instance else enemy_controller.numpy_model
+
     enemy_controller.update_enemy_movement(
-        enemy, player_x, player_y, player_speed, current_time
+        enemy, player_x, player_y, player_speed, current_time,
+        numpy_model_instance=active_numpy_model # Pass it to the class method
     )
