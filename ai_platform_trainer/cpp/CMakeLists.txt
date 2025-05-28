@@ -68,7 +68,10 @@ if(CUDA_ENABLED)
     list(APPEND SOURCES src/physics.cu)
     add_definitions(-DWITH_CUDA)
     add_definitions(-DUSE_CUDA)
-    message(STATUS "Building with CUDA physics implementation")
+    
+    # Use dynamic CUDA runtime to match MultiThreadedDLL
+    set(CMAKE_CUDA_RUNTIME_LIBRARY Shared)
+    message(STATUS "Building with CUDA physics implementation (dynamic runtime)")
 else()
     list(APPEND SOURCES src/physics_cpu.cpp)
     message(STATUS "Building with CPU-only physics implementation")
@@ -85,7 +88,8 @@ if(CUDA_ENABLED)
     target_link_libraries(gpu_environment PRIVATE ${CMAKE_CUDA_LIBRARIES})
 endif()
 
-# Set output directory
+# Set output directory and modern runtime library handling
 set_target_properties(gpu_environment PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../
+    MSVC_RUNTIME_LIBRARY "MultiThreadedDLL"
 )

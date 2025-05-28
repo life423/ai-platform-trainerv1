@@ -390,3 +390,80 @@ Try the first corrected PowerShell command above, and it should work properly.
 
 ---
 
+_**User**_
+
+@workspace audit and look for any files I don't need anymore
+
+---
+
+_**Assistant**_
+
+Looking at your workspace structure and the CMakeLists.txt file, I can identify several files and directories that you likely don't need anymore:
+
+## Files/Directories to Remove:
+
+### 1. **Root Level Cleanup**
+- **`build_cuda_extensions.py`** - This appears to be superseded by your CMake build system
+- **`verify_cuda_usage.py`** - If you have a more comprehensive setup script
+- **`game.log`** - Generated log file that shouldn't be in version control
+
+### 2. **Migration Scripts (After Migration Complete)**
+- **`migrate_codebase.py`** - Remove after file migration is complete
+
+### 3. **Build Artifacts** 
+- **``** directory - Should be in `.gitignore` and removed from repo
+- **``** - Python package build artifacts
+
+### 4. **Redundant Configuration**
+- Multiple environment files if you're not using conda:
+  - **`environment-cpu.yml`**
+  - **`environment-gpu.yml`**
+
+### 5. **Old Source Structure**
+Based on `migrate_codebase.py`, you have files in both old and new locations. After migration, remove the old structure files.
+
+### 6. **Development Tools (Optional)**
+- **`fix_linting.py`** - Keep if actively using, remove if you prefer pre-commit hooks
+
+## Recommended Actions:
+
+````bash
+# Remove build artifacts
+rm -rf build/ ai_platform_trainer.egg-info/ __pycache__/
+
+# Remove log files
+rm game.log
+
+# After migration is complete
+rm scripts/migrate_codebase.py
+
+# If not using conda environments
+rm environment-cpu.yml environment-gpu.yml
+
+# If build_cuda_extensions.py is redundant
+rm build_cuda_extensions.py
+````
+
+## Keep These Important Files:
+- CMakeLists.txt - Your main build configuration
+- `.pylintrc` - Code quality configuration
+- `.pre-commit-config.yaml` - Git hooks
+- `requirements.txt` / `dev-requirements.txt` - Python dependencies
+- `.gitignore` - Already properly configured
+
+The `` directory contains your AI interaction history - keep it if you find it valuable for reference.
+
+---
+
+_**User**_
+
+Cna you help me make a much better .gitignore file and then clean up my current git repo to remove all I don't need on there?
+
+---
+
+_**Assistant**_
+
+
+
+---
+

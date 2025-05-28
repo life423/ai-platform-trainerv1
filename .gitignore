@@ -1,4 +1,53 @@
+# =============================================================================
+# AI Platform Trainer - Comprehensive .gitignore
+# =============================================================================
+
+# --------------------------------------------------------------------------
+# Build Artifacts & Binaries
+# --------------------------------------------------------------------------
+build/
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.obj
+*.o
+*.pdb
+*.ilk
+*.exp
+
+# CMake build files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+install_manifest.txt
+
+# Visual Studio build artifacts
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+x64/
+x86/
+Debug/
+Release/
+.vs/
+
+# --------------------------------------------------------------------------
 # Python
+# --------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,55 +65,197 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
 
 # Virtual environments
-venv/
+.env
+.venv
 env/
+venv/
 ENV/
-.env/
-.venv/
+env.bak/
+venv.bak/
+.conda/
 
-# IDE files
-.idea/
-.vscode/
-*.swp
-*.swo
-.DS_Store
+# Jupyter Notebook
+.ipynb_checkpoints
 
-# Logs and databases
-*.log
-*.sqlite
-*.db
+# IPython
+profile_default/
+ipython_config.py
 
-# C++ build artifacts
-ai_platform_trainer/cpp/build/
-*.o
-*.obj
-*.dll
-*.so
-*.dylib
-
-# CUDA
-*.i
-*.ii
-*.gpu
-*.ptx
-*.cubin
-*.fatbin
-
-# Training artifacts
-models/checkpoints/
-models/logs/
-models/enemy_rl/
-models/*.pth
-models/*.pt
-models/*.pkl
-
-# Miscellaneous
+# pytest
+.pytest_cache/
 .coverage
 htmlcov/
-.pytest_cache/
+
+# --------------------------------------------------------------------------
+# CUDA & GPU Development
+# --------------------------------------------------------------------------
+*.fatbin
+*.cubin
+*.ptx
+*.sass
+
+# NVIDIA Nsight
+*.nsight-cuproj
+*.nvproj
+
+# --------------------------------------------------------------------------
+# Logs & Temporary Files
+# --------------------------------------------------------------------------
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Application specific logs
+game.log
+training.log
+validation.log
+debug.log
+
+# --------------------------------------------------------------------------
+# Data & Models
+# --------------------------------------------------------------------------
+data/datasets/*.json
+data/datasets/*.csv
+data/datasets/*.h5
+data/checkpoints/*.pth
+data/checkpoints/*.ckpt
+data/logs/
+models/pretrained/*.pth
+models/pretrained/*.onnx
+*.weights
+*.model
+
+# Keep example/sample data
+!data/datasets/sample_*
+!models/configs/
+
+# --------------------------------------------------------------------------
+# IDE & Editor Files
+# --------------------------------------------------------------------------
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/.ropeproject
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Keep shared IDE configurations
+!.vscode/extensions.json
+!.vscode/recommended.json
+
+# --------------------------------------------------------------------------
+# Operating System
+# --------------------------------------------------------------------------
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.nfs*
+
+# --------------------------------------------------------------------------
+# Package Managers & Dependencies
+# --------------------------------------------------------------------------
+node_modules/
+package-lock.json
+yarn.lock
+
+# Conda
+.conda/
+
+# --------------------------------------------------------------------------
+# Development Tools
+# --------------------------------------------------------------------------
+# Coverage reports
+.coverage
+.nyc_output
+coverage.xml
+*.cover
+.hypothesis/
+
+# Profiling
+*.prof
+*.cprof
+
+# Type checking
 .mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Linting
+.pylint.d/
+
+# --------------------------------------------------------------------------
+# Environment & Configuration
+# --------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+secrets.json
+config/local_*.yaml
+config/secrets/
+
+# Keep template configurations
+!config/template_*
+!config/example_*
+
+# --------------------------------------------------------------------------
+# Deployment & Docker
+# --------------------------------------------------------------------------
+Dockerfile.local
+docker-compose.override.yml
+.dockerignore.local
+
+# --------------------------------------------------------------------------
+# Backup & Archive Files
+# --------------------------------------------------------------------------
+*.zip
+*.tar.gz
+*.rar
+*.7z
+backup/
+archives/
+
+# --------------------------------------------------------------------------
+# Custom Project Exclusions
+# --------------------------------------------------------------------------
+# Migration scripts (after migration complete)
+scripts/migrate_codebase.py
+
+# Temporary validation scripts
+verify_cuda_usage.py
+
+# Old build systems
+build_cuda_extensions.py
+
+# Experiment results
+experiments/results/
+experiments/logs/
