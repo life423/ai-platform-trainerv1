@@ -6,20 +6,9 @@ for movement decisions.
 """
 import logging
 import math
-import random
-from typing import Dict, Optional, Tuple, Any
 
 import pygame
 import torch
-import numpy as np
-
-try:
-    import stable_baselines3
-    from stable_baselines3 import PPO
-    STABLE_BASELINES_AVAILABLE = True
-except ImportError:
-    STABLE_BASELINES_AVAILABLE = False
-    logging.warning("stable_baselines3 not available. RL features will be disabled.")
 
 from ai_platform_trainer.ai.models.enemy_movement_model import EnemyMovementModel
 
@@ -28,8 +17,7 @@ class EnemyPlay:
     """
     Enemy entity for play mode with AI-controlled movement.
     
-    This class represents the enemy in play mode, which can be controlled
-    by either a neural network or a reinforcement learning model.
+    This class represents the enemy in play mode, controlled by a neural network.
     """
     
     def __init__(
@@ -53,8 +41,6 @@ class EnemyPlay:
         self.pos = {"x": screen_width // 2, "y": screen_height // 2}
         self.speed = 5.0
         self.model = model
-        self.rl_model = None
-        self.use_rl = False
         self.visible = True
         self.fading_in = False
         self.fade_alpha = 255
@@ -69,7 +55,7 @@ class EnemyPlay:
         current_time: int
     ) -> None:
         """
-        Update the enemy's position based on AI model predictions.
+        Update the enemy's position based on neural network predictions.
         
         Args:
             player_x: Player's x position
@@ -80,12 +66,8 @@ class EnemyPlay:
         if not self.visible:
             return
 
-        if self.use_rl and self.rl_model:
-            # Use reinforcement learning model if available
-            self._update_with_rl(player_x, player_y, player_speed)
-        else:
-            # Use neural network model
-            self._update_with_nn(player_x, player_y, player_speed)
+        # Use neural network model
+        self._update_with_nn(player_x, player_y, player_speed)
 
         # Update fade-in effect if active
         if self.fading_in:
@@ -138,81 +120,6 @@ class EnemyPlay:
         
         # Wrap around screen edges
         self._wrap_position()
-
-    def _update_with_rl(
-        self, 
-        player_x: float, 
-        player_y: float, 
-        player_speed: float
-    ) -> None:
-        """
-        Update enemy position using the reinforcement learning model.
-        
-        Args:
-            player_x: Player's x position
-            player_y: Player's y position
-            player_speed: Player's movement speed
-        """
-        # Calculate distance to player
-        distance = math.sqrt(
-            (player_x - self.pos["x"])**2 + 
-            (player_y - self.pos["y"])**2
-        )
-        
-        # Normalize values for the observation
-        px = player_x / self.screen_width
-        py = player_y / self.screen_height
-        ex = self.pos["x"] / self.screen_width
-        ey = self.pos["y"] / self.screen_height
-        dist = distance / max(self.screen_width, self.screen_height)
-        player_speed_norm = player_speed / 10.0
-        time_factor = 0.5  # Placeholder for time since last hit
-        
-        # Create observation
-        obs = np.array([
-            px, py, ex, ey, dist, player_speed_norm, time_factor
-        ], dtype=np.float32)
-        
-        # Get action from model
-        if hasattr(self, 'rl_model') and self.rl_model:
-            # Stable Baselines model
-            action, _ = self.rl_model.predict(obs, deterministic=True)
-        elif hasattr(self, 'policy_net') and self.policy_net:
-            # PyTorch model
-            with torch.no_grad():
-                obs_tensor = torch.FloatTensor(obs).unsqueeze(0)
-                action = self.policy_net(obs_tensor).squeeze().numpy()
-        else:
-            # Fallback to simple chase behavior
-            dx = player_x - self.pos["x"]
-            dy = player_y - self.pos["y"]
-            norm = math.sqrt(dx*dx + dy*dy) + 1e-8
-            action = np.array([dx/norm, dy/norm])
-        
-        # Apply action
-        self.apply_rl_action(action)
-
-    def apply_rl_action(self, action: np.ndarray) -> None:
-        """
-        Apply an action from the RL model.
-        
-        Args:
-            action: Action array with values between -1 and 1
-        """
-        try:
-            # Scale action to actual movement
-            move_x = float(action[0]) * self.speed
-            move_y = float(action[1]) * self.speed
-            
-            # Update position
-            self.pos["x"] += move_x
-            self.pos["y"] += move_y
-            
-            # Wrap around screen edges
-            self._wrap_position()
-        except Exception as e:
-            logging.error(f"Error applying RL action: {e}")
-            logging.error(f"Action: {action}, Type: {type(action)}")
 
     def _wrap_position(self) -> None:
         """Wrap the enemy position around screen edges."""
@@ -294,49 +201,3 @@ class EnemyPlay:
                 self.color,
                 (self.pos["x"], self.pos["y"], self.size, self.size)
             )
-
-    def load_rl_model(self, model_path: str) -> bool:
-        """
-        Load a reinforcement learning model.
-        
-        Args:
-            model_path: Path to the RL model file
-            
-        Returns:
-            True if the model was loaded successfully, False otherwise
-        """
-        try:
-            # Check if path ends with .zip (Stable Baselines) or .pth (PyTorch)
-            if model_path.endswith('.zip'):
-                # Stable Baselines model
-                if not STABLE_BASELINES_AVAILABLE:
-                    logging.warning("Cannot load RL model: stable_baselines3 not available")
-                    return False
-                    
-                self.rl_model = PPO.load(model_path)
-                self.use_rl = True
-                logging.info(f"Successfully loaded Stable Baselines RL model from {model_path}")
-                return True
-            elif model_path.endswith('.pth'):
-                # PyTorch model
-                from ai_platform_trainer.ai.models.policy_network import PolicyNetwork
-                
-                self.policy_net = PolicyNetwork(input_size=7, hidden_size=64, output_size=2)
-                success = self.policy_net.load(model_path)
-                if success:
-                    self.use_rl = True
-                    self.rl_model = None  # Not using Stable Baselines
-                    logging.info(f"Successfully loaded PyTorch RL model from {model_path}")
-                    return True
-                else:
-                    logging.error(f"Failed to load PyTorch model from {model_path}")
-                    return False
-            else:
-                logging.error(f"Unknown model format: {model_path}")
-                return False
-        except Exception as e:
-            logging.error(f"Failed to load RL model: {e}")
-            self.rl_model = None
-            self.policy_net = None
-            self.use_rl = False
-            return False

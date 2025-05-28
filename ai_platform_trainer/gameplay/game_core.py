@@ -308,22 +308,6 @@ class GameCore:
         player = PlayerPlay(self.screen_width, self.screen_height)
         enemy = EnemyPlay(self.screen_width, self.screen_height, model)
 
-        # Check for RL model and try to load if available
-        rl_model_path = "models/enemy_rl/final_model.zip"
-        if os.path.exists(rl_model_path):
-            try:
-                success = enemy.load_rl_model(rl_model_path)
-                if success:
-                    logging.info("Using reinforcement learning model for enemy behavior")
-                else:
-                    logging.warning("RL model exists but couldn't be loaded.")
-                    logging.warning("Falling back to neural network.")
-            except Exception as e:
-                logging.error(f"Error loading RL model: {e}.")
-                logging.error("Using neural network instead.")
-        else:
-            logging.info("No RL model found, using traditional neural network")
-
         logging.info("Initialized PlayerPlay and EnemyPlay for play mode.")
         return player, enemy
 
