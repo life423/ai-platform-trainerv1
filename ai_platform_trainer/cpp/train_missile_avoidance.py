@@ -14,7 +14,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecNorm
 import torch
 
 # Import our GPU environment wrapper
-from gpu_environment import make_env, create_vectorized_env, native_env, HAS_GPU_ENV
+from gpu_env_wrapper import make_env, create_vectorized_env, native_env, HAS_GPU_ENV
 
 # Set up logging
 import logging
@@ -115,7 +115,7 @@ def train_model(
         "MlpPolicy",
         env,
         verbose=1,
-        tensorboard_log=log_dir,
+        tensorboard_log=None,  # Disable tensorboard for now
         learning_rate=3e-4,
         n_steps=2048,
         batch_size=64,

@@ -1,13 +1,13 @@
 """
 GPU-accelerated reinforcement learning environment wrapper.
+Fixed version with Gymnasium compatibility and proper reset signature.
 
-This module provides a Gym-compatible wrapper around the native C++ CUDA implementation.
-It handles the interface between Python RL libraries and the high-performance C++ backend.
+Save this as: gpu_env_wrapper.py (replacing the existing one)
 """
 import os
 import sys
 import platform
-import gym
+import gymnasium as gym  # Use gymnasium instead of gym
 import numpy as np
 import torch
 from typing import Dict, Any, Tuple, List, Optional, Union
@@ -45,47 +45,18 @@ def setup_cuda_dlls():
 # Setup DLLs before importing the extension
 setup_cuda_dlls()
 
-# CRITICAL FIX: Import the C++ extension from the Release directory
-# This prevents circular imports and ensures we get the compiled extension
-def import_gpu_extension():
-    """Import the GPU extension from the correct location"""
-    # Get the directory of this file
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Look for the extension in the Release directory ONLY
-    release_dir = os.path.join(os.path.dirname(current_dir), "Release")
-    
-    # Remove any existing module to force reimport
-    if 'gpu_environment' in sys.modules:
-        del sys.modules['gpu_environment']
-    
-    # Temporarily add ONLY Release directory (avoid circular import)
-    original_path = sys.path.copy()
-    
-    try:
-        # Clear path and add only Release directory
-        sys.path = [release_dir] + [p for p in sys.path if p != current_dir]
-        
-        # Import the C++ extension (.pyd file)
-        import gpu_environment as gpu_ext
-        
-        # Verify it's the C++ extension by checking for EnvironmentConfig
-        if not hasattr(gpu_ext, 'EnvironmentConfig'):
-            raise ImportError("Imported module is not the C++ extension")
-        
-        logger.info(f"Loaded GPU extension from: {gpu_ext.__file__}")
-        return gpu_ext
-        
-    except ImportError as e:
-        logger.error(f"Failed to import GPU extension: {e}")
-        raise
-    finally:
-        # Restore original path
-        sys.path = original_path
+# Add the Release directory to Python path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+release_dir = os.path.join(os.path.dirname(current_dir), "Release")
 
-# Import the native extension
+if os.path.exists(release_dir) and release_dir not in sys.path:
+    sys.path.insert(0, release_dir)
+    logger.debug(f"Added Release directory to path: {release_dir}")
+
+# Now import the C++ extension directly
 try:
-    native_env = import_gpu_extension()
+    # This will import the .pyd file, not any .py file
+    import gpu_environment as native_env
     HAS_GPU_ENV = True
     
     # Verify the interface
@@ -147,23 +118,17 @@ except ImportError as e:
     native_env = DummyModule()
 
 
-# Define a gym-compatible wrapper
+# Define a gymnasium-compatible wrapper
 class GPUGameEnv(gym.Env):
     """
-    A gym environment that wraps the CUDA-accelerated game environment.
-    
-    This class provides a standard gym interface for training RL agents
-    with GPU-accelerated physics simulations for missile avoidance.
+    A gymnasium environment that wraps the CUDA-accelerated game environment.
     """
-    metadata = {'render.modes': ['human', 'rgb_array']}
+    metadata = {'render_modes': ['human', 'rgb_array']}
     
     def __init__(self, config=None):
-        """
-        Initialize the GPU game environment.
+        """Initialize the GPU game environment"""
+        super().__init__()
         
-        Args:
-            config: Configuration parameters for the environment
-        """
         if not HAS_GPU_ENV:
             logger.warning("GPU environment extension not available - using CPU fallback")
         
@@ -179,7 +144,7 @@ class GPUGameEnv(gym.Env):
             logger.error(f"Failed to create environment: {e}")
             raise RuntimeError(f"Failed to create GPU environment: {e}")
         
-        # Set up gym spaces
+        # Set up gymnasium spaces
         obs_shape = self.env.get_observation_shape()
         action_shape = self.env.get_action_shape()
         
@@ -203,58 +168,60 @@ class GPUGameEnv(gym.Env):
         self.episode_reward = 0.0
         
     def reset(self, seed=None, options=None):
-        """Reset the environment and return initial observation"""
-        seed = seed if seed is not None else np.random.randint(0, 2**31 - 1)
+        """
+        Reset the environment and return initial observation and info.
         
-        try:
-            self.current_obs = self.env.reset(int(seed))
-            self.steps = 0
-            self.episode_reward = 0.0
-            return self.current_obs
-        except Exception as e:
-            logger.error(f"Failed to reset environment: {e}")
-            raise
+        This follows the Gymnasium API which expects (observation, info).
+        """
+        super().reset(seed=seed)
+        
+        if seed is None:
+            seed = np.random.randint(0, 2**31 - 1)
+        
+        self.current_obs = self.env.reset(int(seed))
+        self.steps = 0
+        self.episode_reward = 0.0
+        
+        # Return observation and info dict (Gymnasium API)
+        info = {}
+        return self.current_obs, info
     
     def step(self, action):
-        """Take a step in the environment"""
+        """
+        Take a step in the environment.
+        
+        Returns: (observation, reward, terminated, truncated, info)
+        Following the Gymnasium API.
+        """
         # Convert action to numpy array if needed
         if isinstance(action, torch.Tensor):
             action = action.cpu().numpy()
         
         action = np.asarray(action, dtype=np.float32)
         
-        try:
-            # Take step in native environment
-            obs, reward, done, truncated, info = self.env.step(action)
-            
-            # Update state variables
-            self.current_obs = obs
-            self.steps += 1
-            self.episode_reward += reward
-            info['episode_reward'] = self.episode_reward
-            info['steps'] = self.steps
-            
-            return obs, reward, done, truncated, info
-            
-        except Exception as e:
-            logger.error(f"Failed to step environment: {e}")
-            raise
+        # Take step in native environment
+        obs, reward, done, truncated, info = self.env.step(action)
+        
+        # Update state variables
+        self.current_obs = obs
+        self.steps += 1
+        self.episode_reward += reward
+        info['episode_reward'] = self.episode_reward
+        info['steps'] = self.steps
+        
+        # In Gymnasium, 'done' is split into 'terminated' and 'truncated'
+        terminated = done and not truncated
+        
+        return obs, reward, terminated, truncated, info
     
-    def render(self, mode='human'):
-        """Render the environment (not implemented for headless training)"""
-        if mode == 'rgb_array':
-            # Could implement visualization here
-            return np.zeros((600, 800, 3), dtype=np.uint8)
+    def render(self):
+        """Render the environment"""
+        # Not implemented for headless training
         return None
     
     def close(self):
         """Clean up environment resources"""
         pass
-    
-    def seed(self, seed=None):
-        """Set random seed"""
-        self._seed = seed if seed is not None else np.random.randint(0, 2**31 - 1)
-        return [self._seed]
     
     @staticmethod
     def _default_config():
@@ -306,17 +273,18 @@ if __name__ == "__main__":
         env = make_env()
         print(f"✓ Created environment")
         
-        obs = env.reset()
-        print(f"✓ Reset: observation shape = {obs.shape}")
+        # Test reset with new API
+        obs, info = env.reset()
+        print(f"✓ Reset: observation shape = {obs.shape}, info = {info}")
         
         for i in range(5):
             action = env.action_space.sample()
-            obs, reward, done, truncated, info = env.step(action)
-            print(f"  Step {i}: reward = {reward:.3f}, done = {done}")
+            obs, reward, terminated, truncated, info = env.step(action)
+            print(f"  Step {i}: reward = {reward:.3f}, terminated = {terminated}, truncated = {truncated}")
             
-            if done:
-                obs = env.reset()
+            if terminated or truncated:
+                obs, info = env.reset()
         
-        print("\n✓ GPU environment wrapper is working!")
+        print("\n✓ GPU environment wrapper is working with Gymnasium API!")
     else:
         print("✗ GPU environment not available")
