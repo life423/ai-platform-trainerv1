@@ -1,11 +1,11 @@
 {
     "display": {
-        "width": 800,
-        "height": 600,
+        "width": 1280,
+        "height": 720,
         "fullscreen": true,
         "window_title": "Pixel Pursuit",
         "frame_rate": 60,
-        "screen_size": [800, 600]
+        "screen_size": [1280, 720]
     },
     "gameplay": {
         "respawn_delay": 1000,
