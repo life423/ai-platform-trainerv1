@@ -122,39 +122,18 @@ class Renderer:
 
     def _render_missile(self, missile) -> None:
         """
-        Render a missile entity with sprites.
+        Render a missile entity using its own draw method.
 
         Args:
             missile: Missile instance
         """
-        if hasattr(missile, 'position') and hasattr(missile, 'size'):
-            # Determine sprite size - make it a bit more elongated
-            width = missile.size
-            height = int(missile.size * 1.5)
-            size = (width, height)
+        # Missiles have their own draw method that renders them as triangles
+        # pointing in their movement direction
+        missile.draw(self.screen)
 
-            # Calculate rotation angle based on direction
-            rotation = 0
-            if hasattr(missile, 'direction'):
-                # Convert direction to angle in degrees
-                dx, dy = missile.direction
-                if dx != 0 or dy != 0:
-                    import math
-                    angle_rad = math.atan2(dy, dx)
-                    rotation = math.degrees(angle_rad) + 90  # Adjust so 0 points up
-
-            # Render the missile sprite with rotation
-            self.sprite_manager.render(
-                screen=self.screen,
-                entity_type="missile",
-                position=missile.position,
-                size=size,
-                rotation=rotation
-            )
-
-            # Add a trail effect if effects are enabled
-            if self.enable_effects and self.frame_count % 2 == 0:
-                self._add_missile_trail(missile)
+        # Add a trail effect if effects are enabled
+        if self.enable_effects and self.frame_count % 2 == 0:
+            self._add_missile_trail(missile)
 
     def _add_missile_trail(self, missile) -> None:
         """
@@ -163,12 +142,12 @@ class Renderer:
         Args:
             missile: Missile instance
         """
-        if not hasattr(missile, 'position'):
+        if not hasattr(missile, 'pos'):
             return
 
         # Create a small particle effect behind the missile
-        x = missile.position["x"] + missile.size // 2
-        y = missile.position["y"] + missile.size // 2
+        x = missile.pos["x"] + missile.size // 2
+        y = missile.pos["y"] + missile.size // 2
 
         # Trail particles
         import random
@@ -188,7 +167,7 @@ class Renderer:
                 'x': x + offset_x,
                 'y': y + offset_y,
                 'size': size,
-                'color': (255, 255, 200, 200),  # Yellow-ish with alpha
+                'color': (255, 255, 200, 200),  # Yellowish with alpha
                 'lifetime': lifetime,
                 'max_lifetime': lifetime
             }
