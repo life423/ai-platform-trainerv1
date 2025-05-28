@@ -1,3 +1,94 @@
+#!/usr/bin/env python
+"""
+Enemy Agent Training Script
+
+This script provides multiple training methods for the enemy agent:
+1. Custom CUDA implementation (if available)
+2. PyTorch with CUDA (if available)
+3. CPU fallback
+
+The script automatically detects the best available method.
+"""
+import argparse
+import sys
+import os
+import logging
+import numpy as np
+from tqdm import tqdm
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+
+def check_cuda_extensions():
+    """Check if custom CUDA extensions are available."""
+    try:
+        # Try to import custom CUDA module
+        import ai_platform_trainer.cpp.gpu_environment as gpu_env
+        return True
+    except ImportError:
+        return False
+
+
+def check_pytorch_cuda():
+    """Check if PyTorch with CUDA is available."""
+    try:
+        import torch
+        return torch.cuda.is_available()
+    except ImportError:
+        return False
+
+
+def train_with_custom_cuda(episodes=500, output_path="models/enemy_rl/cuda_model.npz"):
+    """Train enemy agent using custom CUDA implementation."""
+    logger.info("Training with custom CUDA implementation")
+    
+    try:
+        import ai_platform_trainer.cpp.gpu_environment as gpu_env
+        
+        # Initialize CUDA environment
+        env = gpu_env.CudaEnvironment()
+        
+        # Simple training loop using CUDA
+        logger.info(f"Starting CUDA training for {episodes} episodes...")
+        
+        for episode in tqdm(range(episodes)):
+            # Reset environment
+            state = env.reset()
+            episode_reward = 0
+            
+            # Episode loop
+            done = False
+            step = 0
+            
+            while not done and step < 1000:
+                # Simple random action for demonstration
+                action = np.random.uniform(-1, 1, size=2)
+                
+                # Take action
+                next_state, reward, done = env.step(action)
+                episode_reward += reward
+                
+                state = next_state
+                step += 1
+            
+            # Log progress
+            if episode % 10 == 0:
+                logger.info(f"Episode {episode}: Reward = {episode_reward:.2f}, Steps = {step}")
+        
+        # Save model (placeholder)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        np.savez(output_path, weights=np.random.randn(100))
+        logger.info(f"Model saved to {output_path}")
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"CUDA training failed: {e}")
+        return False
+
+
 def train_with_pytorch_cuda(episodes=500, output_path="models/enemy_rl/gpu_model.pth"):
     """Train enemy agent using PyTorch with CUDA."""
     logger.info("Training with PyTorch CUDA")

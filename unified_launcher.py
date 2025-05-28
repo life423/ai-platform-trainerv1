@@ -38,10 +38,10 @@ def main():
         pygame.init()
         
         # Import and run the game directly
-        from ai_platform_trainer.gameplay.game import Game
+        from ai_platform_trainer.gameplay.game_core import GameCore
         
         # Create and run the game
-        game = Game()
+        game = GameCore()
         game.run()
         
         logging.info("Game completed successfully")
