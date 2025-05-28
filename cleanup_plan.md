@@ -1,32 +1,43 @@
-# Code Unification Plan
+# Cleanup Plan for AI Platform Trainer
 
-## Issue
-The project currently has duplicate code in two locations:
-1. `ai_platform_trainer/` - Main package directory
-2. `src/` - Secondary source directory with similar structure
+This document outlines the files that were removed as part of the cleanup process to eliminate leftover one-off scripts and old managers that are not imported by the game and serve no purpose in production.
 
-## Solution
-We've decided to unify the code by keeping the `ai_platform_trainer/` directory as the single source of truth and removing the duplicate `src/` directory.
+## Removed Files
 
-## Implementation Notes
+1. `config_manager.py` (root directory)
+   - Deprecated and replaced by `ai_platform_trainer/core/config_manager.py` and `ai_platform_trainer/engine/core/config_manager.py`
+   - Contains a comment stating it's deprecated and will be removed in a future update
+   - The analysis in `reports/analysis/config_manager_analysis.md` confirms it's safe to remove
 
-1. The `src/` directory contains:
-   - `src/ai_platform_trainer/` - A duplicate of the main package
-   - `src/ai-platform-trainer/` - Another variant with slightly different structure
+2. `ai_platform_trainer/gameplay/game_refactored.py`
+   - Marked as deprecated with a warning
+   - Functionality has been consolidated into `ai_platform_trainer/gameplay/game.py` and `ai_platform_trainer/gameplay/game_core.py`
 
-2. We attempted to remove the `src/` directory automatically, but encountered permission issues with Git objects.
+3. `ai_platform_trainer/gameplay/game_di.py`
+   - Marked as deprecated with a warning
+   - Functionality has been consolidated into `ai_platform_trainer/gameplay/game.py` and `ai_platform_trainer/gameplay/game_core.py`
 
-3. **Manual Steps Required:**
-   - Backup any unique code in `src/` that doesn't exist in `ai_platform_trainer/`
-   - Delete the `src/` directory manually
-   - Update import statements if necessary
+4. `ai_platform_trainer/core/launcher.py`
+   - Marked as deprecated with a warning
+   - Functionality has been moved to `ai_platform_trainer/engine/core/unified_launcher.py`
 
-4. Configuration has been consolidated:
-   - Merged `settings.json` into `config.json`
-   - Removed `settings.json` to avoid configuration duplication
+5. `ai_platform_trainer/core/launcher_di.py`
+   - Marked as deprecated with a warning
+   - Functionality has been moved to `ai_platform_trainer/engine/core/unified_launcher.py`
+
+6. `ai_platform_trainer/core/launcher_refactored.py`
+   - Marked as deprecated with a warning
+   - Functionality has been moved to `ai_platform_trainer/engine/core/unified_launcher.py`
 
 ## Verification
-After removing the `src/` directory, ensure:
-1. All tests pass
-2. The game runs correctly
-3. All AI training functionality works as expected
+
+The main entry points of the application now use the unified launcher:
+- `ai_platform_trainer/__main__.py` imports from `unified_launcher`
+- `ai_platform_trainer/main.py` imports from `unified_launcher`
+- `run_game.py` imports from `unified_launcher`
+
+The unified launcher directly uses `ai_platform_trainer.gameplay.game.Game` which extends `GameCore`, making the deprecated game implementations unnecessary.
+
+## Impact
+
+Removing these files simplifies the codebase by eliminating redundant code paths and reducing confusion about which implementation should be used. The application will continue to function as before, but with a cleaner and more maintainable structure.

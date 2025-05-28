@@ -1,5 +1,3 @@
-undefined
-
 def train_with_pytorch_cuda(episodes=500, output_path="models/enemy_rl/gpu_model.pth"):
     """Train enemy agent using PyTorch with CUDA."""
     logger.info("Training with PyTorch CUDA")
