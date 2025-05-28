@@ -1,11 +1,14 @@
 #include "cuda_utils.h"
+#ifdef CUDA_ENABLED
+#include <cuda_runtime.h>
+#endif
 #include <iostream>
 #include <cstring>
 
 namespace cudarl {
 
 bool is_cuda_available() {
-#if CUDA_AVAILABLE
+#ifdef CUDA_ENABLED
     int device_count = 0;
     cudaError_t error = cudaGetDeviceCount(&device_count);
     return (error == cudaSuccess && device_count > 0);
@@ -17,7 +20,7 @@ bool is_cuda_available() {
 CudaDeviceInfo get_cuda_device_info() {
     CudaDeviceInfo info = {};
     
-#if CUDA_AVAILABLE
+#ifdef CUDA_ENABLED
     cudaGetDeviceCount(&info.device_count);
     if (info.device_count > 0) {
         cudaGetDevice(&info.current_device);
@@ -42,7 +45,7 @@ CudaDeviceInfo get_cuda_device_info() {
 }
 
 void* cuda_malloc(size_t size) {
-#if CUDA_AVAILABLE
+#ifdef CUDA_ENABLED
     void* ptr = nullptr;
     CUDA_CHECK(cudaMalloc(&ptr, size));
     return ptr;
@@ -52,7 +55,7 @@ void* cuda_malloc(size_t size) {
 }
 
 void cuda_free(void* ptr) {
-#if CUDA_AVAILABLE
+#ifdef CUDA_ENABLED
     if (ptr) {
         CUDA_CHECK(cudaFree(ptr));
     }
@@ -60,13 +63,13 @@ void cuda_free(void* ptr) {
 }
 
 void cuda_memcpy_host_to_device(void* dst, const void* src, size_t size) {
-#if CUDA_AVAILABLE
+#ifdef CUDA_ENABLED
     CUDA_CHECK(cudaMemcpy(dst, src, size, cudaMemcpyHostToDevice));
 #endif
 }
 
 void cuda_memcpy_device_to_host(void* dst, const void* src, size_t size) {
-#if CUDA_AVAILABLE
+#ifdef CUDA_ENABLED
     CUDA_CHECK(cudaMemcpy(dst, src, size, cudaMemcpyDeviceToHost));
 #endif
 }

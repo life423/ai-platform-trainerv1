@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 # Find required packages
-find_package(CUDA REQUIRED)
+find_package(CUDAToolkit REQUIRED)
 find_package(pybind11 REQUIRED)
 
 # CUDA architecture settings
@@ -18,7 +18,6 @@ endif()
 
 # Include directories
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-include_directories(${CUDA_INCLUDE_DIRS})
 
 # Source files
 set(CORE_SOURCES
@@ -32,7 +31,7 @@ set(GPU_SOURCES
 )
 
 set(BINDING_SOURCES
-    src/bindings/python/python_bindings.cpp
+    src/bindings/python/python_bindings_simple.cpp
 )
 
 # Create the Python module
@@ -43,14 +42,14 @@ pybind11_add_module(cudarl_core_python
 )
 
 # Set module properties
-target_compile_definitions(cudarl_core_python PRIVATE VERSION_INFO="dev")
+target_compile_definitions(cudarl_core_python PRIVATE VERSION_INFO="dev" CUDA_ENABLED=1)
 target_compile_features(cudarl_core_python PRIVATE cxx_std_17)
 
 # CUDA-specific compilation flags
 set_property(TARGET cudarl_core_python PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 # Link libraries
-target_link_libraries(cudarl_core_python PRIVATE ${CUDA_LIBRARIES})
+target_link_libraries(cudarl_core_python PRIVATE CUDA::cudart CUDA::curand)
 
 # Python module suffix
 set_target_properties(cudarl_core_python PROPERTIES
@@ -61,10 +60,12 @@ set_target_properties(cudarl_core_python PROPERTIES
 # Optional: Create a separate executable for testing
 add_executable(test_cuda_env
     src/core/environment.cpp
+    src/core/cuda_utils.cpp
     src/gpu/kernels.cu
     src/gpu/environment_device.cu
     src/test/test_main.cpp
 )
 
-target_link_libraries(test_cuda_env ${CUDA_LIBRARIES})
+target_compile_definitions(test_cuda_env PRIVATE CUDA_ENABLED=1)
+target_link_libraries(test_cuda_env CUDA::cudart CUDA::curand)
 set_property(TARGET test_cuda_env PROPERTY CUDA_SEPARABLE_COMPILATION ON)

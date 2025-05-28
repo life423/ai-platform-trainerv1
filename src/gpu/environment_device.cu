@@ -1,6 +1,7 @@
 #include "kernels.cuh"
 #include "../core/environment.h"
 #include "../core/cuda_utils.h"
+#include <curand_kernel.h>
 #include <iostream>
 #include <chrono>
 

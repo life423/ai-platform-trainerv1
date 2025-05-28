@@ -32,7 +32,7 @@ CudaDeviceInfo get_cuda_device_info();
 /**
  * CUDA error checking utility
  */
-#ifdef __CUDACC__
+#ifdef CUDA_ENABLED
 #define CUDA_CHECK(call) \
     do { \
         cudaError_t err = call; \
@@ -52,5 +52,11 @@ void* cuda_malloc(size_t size);
 void cuda_free(void* ptr);
 void cuda_memcpy_host_to_device(void* dst, const void* src, size_t size);
 void cuda_memcpy_device_to_host(void* dst, const void* src, size_t size);
+
+/**
+ * CUDA availability and device information
+ */
+bool is_cuda_available();
+CudaDeviceInfo get_cuda_device_info();
 
 } // namespace cudarl

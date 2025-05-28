@@ -1,6 +1,8 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
+#include <chrono>
+#include <string>
 #include "../../core/environment.h"
 #include "../../core/cuda_utils.h"
 
@@ -157,11 +159,12 @@ PYBIND11_MODULE(cudarl_core_python, m) {
               auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
               
               double steps_per_second = (static_cast<double>(batch_size) * num_steps * 1000.0) / duration.count();
-              
-              return py::dict("steps_per_second"_a=steps_per_second,
-                             "total_steps"_a=batch_size * num_steps,
-                             "duration_ms"_a=duration.count(),
-                             "cuda_enabled"_a=env.is_cuda_enabled());
+                py::dict result;
+              result["steps_per_second"] = steps_per_second;
+              result["total_steps"] = batch_size * num_steps;
+              result["duration_ms"] = duration.count();
+              result["cuda_enabled"] = env.is_cuda_enabled();
+              return result;
           },
           py::arg("batch_size") = 32,
           py::arg("num_steps") = 1000,

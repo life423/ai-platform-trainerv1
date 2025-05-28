@@ -1,5 +1,6 @@
 """Mock environment implementation for CPU fallback."""
 from typing import List, Optional
+
 import numpy as np
 
 
@@ -135,4 +136,5 @@ if __name__ == "__main__":
         print(f"Step {i+1}: ({obs.x},{obs.y}), "
               f"R={rewards[0]:.3f}, Done={dones[0]}")
 
+    print("Test completed!")
     print("Test completed!")
