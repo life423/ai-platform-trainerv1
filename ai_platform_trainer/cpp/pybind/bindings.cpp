@@ -134,20 +134,98 @@ public:
 private:
     std::unique_ptr<Environment> env_;
     
-    // Helper methods for numpy conversions
+    // Helper methods for numpy conversions - SAFE VERSION
     template<typename T>
     py::array_t<T> vector_to_numpy(const std::vector<T>& vec) const {
-        auto result = py::array_t<T>(vec.size());
-        auto buf = result.mutable_data();
-        std::copy(vec.begin(), vec.end(), buf);
-        return result;
+        // SAFETY: Validate input vector
+        if (vec.empty()) {
+            return py::array_t<T>(0);
+        }
+        
+        // SAFETY: Use safe size limits
+        const size_t max_safe_size = 1000000; // 1M elements max
+        if (vec.size() > max_safe_size) {
+            fprintf(stderr, "ERROR: Vector size %zu exceeds safety limit for NumPy conversion\n", vec.size());
+            return py::array_t<T>(0);
+        }
+        
+        try {
+            // Create NumPy array with proper initialization
+            auto result = py::array_t<T>(vec.size());
+            
+            // SAFETY: Verify allocation succeeded
+            if (result.size() != static_cast<py::ssize_t>(vec.size())) {
+                fprintf(stderr, "ERROR: NumPy array allocation size mismatch\n");
+                return py::array_t<T>(0);
+            }
+            
+            // Get buffer and validate
+            auto buf_info = result.request();
+            if (!buf_info.ptr) {
+                fprintf(stderr, "ERROR: NumPy array buffer is null\n");
+                return py::array_t<T>(0);
+            }
+            
+            T* buf = static_cast<T*>(buf_info.ptr);
+            
+            // SAFETY: Copy with bounds checking
+            if (buf_info.size >= static_cast<py::ssize_t>(vec.size())) {
+                std::copy(vec.begin(), vec.end(), buf);
+            } else {
+                fprintf(stderr, "ERROR: Buffer size smaller than vector size\n");
+                return py::array_t<T>(0);
+            }
+            
+            return result;
+        } catch (const std::exception& e) {
+            fprintf(stderr, "ERROR: Exception in vector_to_numpy: %s\n", e.what());
+            return py::array_t<T>(0);
+        }
     }
     
     template<typename T>
     std::vector<T> numpy_to_vector(py::array_t<T> array) const {
-        auto buf = array.request();
-        T* ptr = static_cast<T*>(buf.ptr);
-        return std::vector<T>(ptr, ptr + buf.size);
+        try {
+            // SAFETY: Validate input array
+            if (array.size() == 0) {
+                return std::vector<T>();
+            }
+            
+            // SAFETY: Check array size limits
+            const size_t max_safe_size = 1000000; // 1M elements max
+            if (static_cast<size_t>(array.size()) > max_safe_size) {
+                fprintf(stderr, "ERROR: Array size %zd exceeds safety limit for vector conversion\n", 
+                        array.size());
+                return std::vector<T>();
+            }
+            
+            auto buf_info = array.request();
+            if (!buf_info.ptr) {
+                fprintf(stderr, "ERROR: NumPy array buffer is null\n");
+                return std::vector<T>();
+            }
+            
+            T* ptr = static_cast<T*>(buf_info.ptr);
+            
+            // SAFETY: Validate buffer size matches array size
+            if (buf_info.size != array.size()) {
+                fprintf(stderr, "ERROR: Buffer size mismatch in numpy_to_vector\n");
+                return std::vector<T>();
+            }
+            
+            // Create vector with safe construction
+            std::vector<T> result;
+            result.reserve(static_cast<size_t>(array.size()));
+            
+            for (py::ssize_t i = 0; i < array.size(); ++i) {
+                result.push_back(ptr[i]);
+            }
+            
+            return result;
+        } catch (const std::exception& e) {
+            fprintf(stderr, "ERROR: Exception in numpy_to_vector: %s\n", e.what());
+            return std::vector<T>();
+        }
     }
     
     template<typename T>

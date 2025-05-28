@@ -308,31 +308,58 @@ void Environment::update_enemy(const std::vector<float>& enemy_action) {
 void Environment::update_missiles() {
     if (!player_) return;
     
-    // Update missile positions
+    // SAFETY: Bounds check before missile operations
+    if (player_->missiles.size() > static_cast<size_t>(config_.max_missiles * 2)) {
+        fprintf(stderr, "WARNING: Missile count %zu exceeds safety limit, clearing container\n", 
+                player_->missiles.size());
+        player_->missiles.clear();
+        return;
+    }
+    
+    // Update missile positions (this handles removal of expired missiles)
     player_->update_missiles(config_.screen_width, config_.screen_height);
     
     // Update missile physics if we have any
     if (!player_->missiles.empty()) {
-        // Prepare velocity vectors
+        // SAFETY: Reserve space to prevent reallocations during loop
         std::vector<float> velocities_x;
         std::vector<float> velocities_y;
         EntityBatch missile_entities;
         
+        velocities_x.reserve(player_->missiles.size());
+        velocities_y.reserve(player_->missiles.size());
+        
+        // SAFETY: Validate each missile before processing
         for (const auto& missile : player_->missiles) {
+            if (!missile) {
+                fprintf(stderr, "ERROR: Null missile pointer detected, skipping\n");
+                continue;
+            }
+            
             missile_entities.add(*missile);
             velocities_x.push_back(missile->vx);
             velocities_y.push_back(missile->vy);
         }
         
-        // Use physics engine to update positions
-        physics_engine_->update_positions(
-            missile_entities, velocities_x, velocities_y
-        );
-        
-        // Update missile objects with new positions from batch
-        for (size_t i = 0; i < player_->missiles.size(); ++i) {
-            player_->missiles[i]->x = missile_entities.x[i];
-            player_->missiles[i]->y = missile_entities.y[i];
+        // Only proceed if we have valid missiles to process
+        if (missile_entities.size() > 0 && missile_entities.size() == velocities_x.size()) {
+            // Use physics engine to update positions
+            physics_engine_->update_positions(
+                missile_entities, velocities_x, velocities_y
+            );
+            
+            // Update missile objects with new positions from batch
+            // SAFETY: Use the smaller of the two sizes to prevent overflow
+            size_t update_count = std::min(player_->missiles.size(), missile_entities.size());
+            size_t valid_missile_idx = 0;
+            
+            for (size_t i = 0; i < player_->missiles.size() && valid_missile_idx < update_count; ++i) {
+                if (!player_->missiles[i]) continue; // Skip null pointers
+                
+                player_->missiles[i]->x = missile_entities.x[valid_missile_idx];
+                player_->missiles[i]->y = missile_entities.y[valid_missile_idx];
+                valid_missile_idx++;
+            }
         }
     }
 }
@@ -372,6 +399,12 @@ std::vector<float> Environment::get_observation() const {
     float screen_width = static_cast<float>(config_.screen_width);
     float screen_height = static_cast<float>(config_.screen_height);
     
+    // SAFETY: Bounds check for base observation indices
+    if (observation_size_ < 8) {
+        fprintf(stderr, "ERROR: Observation buffer too small for base features\n");
+        return observation;
+    }
+    
     // Player and enemy positions
     observation[0] = player_->x / screen_width;
     observation[1] = player_->y / screen_height;
@@ -389,13 +422,27 @@ std::vector<float> Environment::get_observation() const {
     float current_time = static_cast<float>(steps_since_reset_);
     observation[7] = (current_time - last_hit_time_) / 100.0f;
     
-    // Missile information (up to the closest 2 missiles)
+    // Missile information (up to the closest missiles that fit in remaining buffer)
     int missile_idx = 8;
-    if (!player_->missiles.empty()) {
+    const int remaining_slots = observation_size_ - missile_idx;
+    const int slots_per_missile = 2; // x, y positions only (reduced from 5 to prevent overflow)
+    const int max_missiles = remaining_slots / slots_per_missile;
+    
+    if (!player_->missiles.empty() && max_missiles > 0) {
+        // SAFETY: Validate missile container access
+        if (player_->missiles.size() > 1000) { // Sanity check for corrupted container
+            fprintf(stderr, "WARNING: Missile count exceeds reasonable limit: %zu\n", player_->missiles.size());
+            return observation;
+        }
+        
         // Sort missiles by distance to enemy
         std::vector<std::pair<float, size_t>> missile_distances;
+        missile_distances.reserve(player_->missiles.size());
+        
         for (size_t i = 0; i < player_->missiles.size(); ++i) {
             const auto& missile = player_->missiles[i];
+            if (!missile) continue; // SAFETY: Skip null pointers
+            
             float distance = calculate_distance(
                 missile->x, missile->y, enemy_->x, enemy_->y
             );
@@ -405,23 +452,32 @@ std::vector<float> Environment::get_observation() const {
         // Sort by distance (closest first)
         std::sort(missile_distances.begin(), missile_distances.end());
         
-        // Add closest missile info to observation
-        size_t num_missiles = std::min(player_->missiles.size(), static_cast<size_t>(2));
+        // Add closest missile info to observation with strict bounds checking
+        size_t num_missiles = std::min({
+            player_->missiles.size(),
+            missile_distances.size(),
+            static_cast<size_t>(max_missiles)
+        });
+        
         for (size_t i = 0; i < num_missiles; ++i) {
-            size_t idx = missile_distances[i].second;
-            const auto& missile = player_->missiles[idx];
+            // SAFETY: Double-check bounds before writing
+            if (missile_idx + slots_per_missile > observation_size_) {
+                fprintf(stderr, "ERROR: Would overflow observation buffer at index %d\n", missile_idx);
+                break;
+            }
             
-            // Normalized position
+            size_t idx = missile_distances[i].second;
+            if (idx >= player_->missiles.size()) {
+                fprintf(stderr, "ERROR: Invalid missile index: %zu\n", idx);
+                continue;
+            }
+            
+            const auto& missile = player_->missiles[idx];
+            if (!missile) continue; // SAFETY: Skip null pointers
+            
+            // Only store essential missile data to fit in buffer
             observation[missile_idx++] = missile->x / screen_width;
             observation[missile_idx++] = missile->y / screen_height;
-            
-            // Normalized velocity
-            observation[missile_idx++] = missile->vx / 10.0f;
-            observation[missile_idx++] = missile->vy / 10.0f;
-            
-            // Distance to enemy (normalized)
-            float missile_distance = missile_distances[i].first;
-            observation[missile_idx++] = missile_distance / std::max(screen_width, screen_height);
         }
     }
     

@@ -792,18 +792,74 @@ std::pair<float, float> PhysicsEngine::calculate_evasion_vector(
 }
 
 void PhysicsEngine::allocate_device_memory(size_t size) {
+    // SAFETY: Validate allocation size
+    const size_t max_safe_size = 1024 * 1024 * 1024; // 1GB limit
+    if (size == 0) {
+        fprintf(stderr, "ERROR: Cannot allocate zero-size device memory\n");
+        return;
+    }
+    if (size > max_safe_size) {
+        fprintf(stderr, "ERROR: Requested device memory size %zu exceeds safety limit %zu\n", 
+                size, max_safe_size);
+        return;
+    }
+    
     // Free existing memory if any
     if (d_temp_float_array1_ != nullptr) {
         free_device_memory();
     }
     
-    // Allocate new memory
-    CUDA_CHECK(cudaMalloc(&d_temp_float_array1_, size * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&d_temp_float_array2_, size * sizeof(float)));
-    CUDA_CHECK(cudaMalloc(&d_temp_bool_array_, size * sizeof(bool)));
+    // SAFETY: Check available GPU memory before allocation
+    size_t free_mem, total_mem;
+    cudaError_t mem_err = cudaMemGetInfo(&free_mem, &total_mem);
+    if (mem_err != cudaSuccess) {
+        fprintf(stderr, "WARNING: Could not check GPU memory info: %s\n", 
+                cudaGetErrorString(mem_err));
+    } else {
+        size_t required_bytes = size * (2 * sizeof(float) + sizeof(bool));
+        if (required_bytes > free_mem * 0.8f) { // Use only 80% of available memory
+            fprintf(stderr, "ERROR: Insufficient GPU memory. Required: %zu, Available: %zu\n", 
+                    required_bytes, free_mem);
+            return;
+        }
+    }
     
-    // Update size
+    // Allocate new memory with error checking
+    cudaError_t err1 = cudaMalloc(&d_temp_float_array1_, size * sizeof(float));
+    if (err1 != cudaSuccess) {
+        fprintf(stderr, "ERROR: Failed to allocate device memory array 1: %s\n", 
+                cudaGetErrorString(err1));
+        d_temp_float_array1_ = nullptr;
+        return;
+    }
+    
+    cudaError_t err2 = cudaMalloc(&d_temp_float_array2_, size * sizeof(float));
+    if (err2 != cudaSuccess) {
+        fprintf(stderr, "ERROR: Failed to allocate device memory array 2: %s\n", 
+                cudaGetErrorString(err2));
+        cudaFree(d_temp_float_array1_);
+        d_temp_float_array1_ = nullptr;
+        return;
+    }
+    
+    cudaError_t err3 = cudaMalloc(&d_temp_bool_array_, size * sizeof(bool));
+    if (err3 != cudaSuccess) {
+        fprintf(stderr, "ERROR: Failed to allocate device memory array 3: %s\n", 
+                cudaGetErrorString(err3));
+        cudaFree(d_temp_float_array1_);
+        cudaFree(d_temp_float_array2_);
+        d_temp_float_array1_ = nullptr;
+        d_temp_float_array2_ = nullptr;
+        return;
+    }
+    
+    // Update size only if all allocations succeeded
     d_temp_array_size_ = size;
+    
+    // SAFETY: Initialize allocated memory to prevent undefined behavior
+    CUDA_CHECK(cudaMemset(d_temp_float_array1_, 0, size * sizeof(float)));
+    CUDA_CHECK(cudaMemset(d_temp_float_array2_, 0, size * sizeof(float)));
+    CUDA_CHECK(cudaMemset(d_temp_bool_array_, 0, size * sizeof(bool)));
 }
 
 void PhysicsEngine::free_device_memory() {
