@@ -4,12 +4,13 @@ GPU-Accelerated RL Environment for Enemy Agent Training
 Pure NumPy implementation that interfaces with CUDA C++ backend.
 No PyTorch dependency - uses existing gpu_environment module.
 """
-import numpy as np
 import logging
-import sys
 import os
+import sys
 import time
-from typing import Tuple, Optional, Dict, List
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Add the cpp directory to the Python path for gpu_environment module
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'cpp'))
@@ -342,4 +343,5 @@ if __name__ == "__main__":
     if success:
         benchmark_performance()
     else:
+        logger.error("Skipping benchmark due to test failure")
         logger.error("Skipping benchmark due to test failure")
