@@ -1,12 +1,12 @@
+// Include pybind11 with proper include path
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <chrono>
 #include <string>
 #include <cstring>
-#include "../../core/environment.h"
-#include "../../core/cuda_utils.h"
 
-namespace py = pybind11;
+// Make sure these headers are properly included and have the necessary declarations
+#include "../../core/environment.h"  
 using namespace cudarl;
 
 PYBIND11_MODULE(cudarl_core_python, m) {
