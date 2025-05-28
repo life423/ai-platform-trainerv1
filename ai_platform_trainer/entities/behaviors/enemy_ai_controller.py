@@ -1,25 +1,22 @@
 """
 Enemy AI Controller for AI Platform Trainer.
 
-This module handles the enemy's AI-driven movement using either
-the trained neural network model or reinforcement learning policy.
+This module handles the enemy's AI-driven movement using neural network models.
 """
 import math
 import random
 import logging
 import time
 import torch
-import os
 from typing import Tuple, Dict, List
 
 
 class EnemyAIController:
     """
-    Controller for enemy AI behavior.
+    Controller for enemy AI behavior using neural networks only.
 
-    This class manages the enemy movement logic, providing different strategies
-    including neural network inference, reinforcement learning policy, and
-    fallback behaviors to prevent freezing.
+    This class manages the enemy movement logic using neural network inference
+    and fallback behaviors to prevent freezing.
     """
 
     def __init__(self):
@@ -40,23 +37,6 @@ class EnemyAIController:
         self.missile_danger_radius = 80.0      # When to start emergency evasion
         self.evasion_strength = 1.5            # How strongly to evade (multiplier)
         self.prediction_time = 10              # How many frames to predict missile movement
-
-        # RL model path
-        self.rl_model_path = "models/enemy_rl/final_model.zip"
-        self._rl_model = None  # Lazy-loaded
-
-    @property
-    def rl_model(self):
-        """Lazy-load the RL model if available."""
-        if self._rl_model is None and os.path.exists(self.rl_model_path):
-            try:
-                # Only import these when needed to avoid circular imports
-                from stable_baselines3 import PPO
-                self._rl_model = PPO.load(self.rl_model_path)
-                logging.info(f"Successfully loaded RL model from {self.rl_model_path}")
-            except Exception as e:
-                logging.error(f"Failed to load RL model: {e}")
-        return self._rl_model
 
     def _detect_missiles(self, enemy, player) -> List[Dict]:
         """
@@ -204,7 +184,7 @@ class EnemyAIController:
         current_time: int
     ) -> None:
         """
-        Handle the enemy's AI-driven movement.
+        Handle the enemy's AI-driven movement using neural networks.
 
         Args:
             enemy: EnemyPlay instance
@@ -226,11 +206,8 @@ class EnemyAIController:
         # Track position history to detect if enemy is stuck
         self._update_position_history(enemy.pos)
         
-        # Get base movement direction (not accounting for missiles)
-        if self.rl_model is not None:
-            action_dx, action_dy = self._get_rl_action(enemy, player_x, player_y)
-        else:
-            action_dx, action_dy = self._get_nn_action(enemy, player_x, player_y)
+        # Get base movement direction using neural network
+        action_dx, action_dy = self._get_nn_action(enemy, player_x, player_y)
 
         # Check if enemy is stuck and apply special behavior if needed
         if self._is_enemy_stuck():
@@ -334,51 +311,6 @@ class EnemyAIController:
 
         except Exception as e:
             logging.error(f"Neural network inference error: {e}")
-            return self._get_random_direction()
-
-    def _get_rl_action(
-        self,
-        enemy,
-        player_x: float,
-        player_y: float
-    ) -> Tuple[float, float]:
-        """
-        Get action from reinforcement learning model.
-
-        Args:
-            enemy: Enemy instance
-            player_x: Player's x position
-            player_y: Player's y position
-
-        Returns:
-            Tuple of (dx, dy) movement direction
-        """
-        try:
-            # Normalize positions to [0,1] range
-            screen_width, screen_height = 800, 600  # Default game screen size
-
-            # Create observation
-            obs = [
-                enemy.pos["x"] / screen_width,
-                enemy.pos["y"] / screen_height,
-                player_x / screen_width,
-                player_y / screen_height,
-            ]
-
-            # Get action from RL model
-            action, _ = self.rl_model.predict(obs, deterministic=False)
-
-            # Convert continuous action space to direction
-            action_dx, action_dy = action[0], action[1]
-
-            # Ensure the action isn't zero
-            if abs(action_dx) < 1e-6 and abs(action_dy) < 1e-6:
-                return self._get_random_direction()
-
-            return action_dx, action_dy
-
-        except Exception as e:
-            logging.error(f"RL model inference error: {e}")
             return self._get_random_direction()
 
     def _normalize_vector(self, dx: float, dy: float) -> Tuple[float, float]:

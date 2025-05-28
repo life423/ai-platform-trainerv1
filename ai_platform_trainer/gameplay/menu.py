@@ -109,7 +109,9 @@ class Menu:
             # Pressing ENTER again here is a fallback check
             elif event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
                 return self.menu_options[self.selected_option].lower()
-            # We let the game itself handle ESC for exiting the program
+            # Handle ESC key to exit the game from main menu
+            elif event.key == pygame.K_ESCAPE:
+                return "exit"
 
         # Mouse click detection
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
