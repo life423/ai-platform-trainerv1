@@ -5,11 +5,12 @@ This module handles the main game loop coordination,
 separating UI logic from core game mechanics.
 """
 import logging
-import pygame
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
-from ai_platform_trainer.core.logging_config import setup_logging
+import pygame
+
 from ai_platform_trainer.core.config_manager import get_config_manager
+from ai_platform_trainer.core.logging_config import setup_logging
 from ai_platform_trainer.gameplay.display_manager import (
     init_pygame_display,
     toggle_fullscreen_display,
@@ -118,8 +119,7 @@ class GameLoop:
                 elif event.key == pygame.K_m and self.current_mode:
                     # Return to menu hotkey
                     self._return_to_menu()
-            
-            # Handle menu events when in menu mode
+              # Handle menu events when in menu mode
             if not self.current_mode:
                 action = self.menu.handle_menu_events(event)
                 if action:
@@ -127,7 +127,7 @@ class GameLoop:
             else:
                 # Forward events to game instance
                 if self.game_instance:
-                    self.game_instance.handle_events([event])
+                    self.game_instance.handle_events()
     
     def _update(self) -> None:
         """Update game state."""
@@ -287,4 +287,5 @@ class GameLoop:
                 self._start_supervised_game()
             elif current_game_mode == "train":
                 self._start_training_mode()
+            # RL modes will be implemented in Phase 2
             # RL modes will be implemented in Phase 2
