@@ -8,7 +8,7 @@ import torch
 
 import pytest  # noqa: F401 - Used for the fixture decorator
 
-from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
+from ai_platform_trainer.ai.models.simple_missile_model import SimpleMissileModel
 
 
 class TestSimpleMissileModel:

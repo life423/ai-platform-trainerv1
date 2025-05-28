@@ -11,9 +11,9 @@ from pathlib import Path  # noqa: F401 - May be used in future tests
 import pytest
 import torch
 
-from ai_platform_trainer.ai_model.missile_dataset import MissileDataset
-from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
-from ai_platform_trainer.ai_model.train_missile_model import MissileTrainer
+from ai_platform_trainer.ai.training.missile_dataset import MissileDataset
+from ai_platform_trainer.ai.models.simple_missile_model import SimpleMissileModel
+from ai_platform_trainer.ai.training.train_missile_model import MissileTrainer
 
 
 @pytest.mark.integration

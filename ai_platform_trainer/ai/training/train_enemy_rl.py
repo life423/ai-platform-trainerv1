@@ -17,7 +17,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
 from ai_platform_trainer.ai.models.enemy_rl_agent import EnemyGameEnv
 from ai_platform_trainer.ai.visualization.training_monitor import TrainingMonitor
-from ai_platform_trainer.gameplay.game_core import Game
+from ai_platform_trainer.gameplay.game_core import GameCore
 
 
 class TrainingCallback(BaseCallback):
@@ -177,7 +177,7 @@ def train_rl_agent(
 
     try:
         # Create a dedicated game instance for training
-        game = Game()
+        game = GameCore()
         game.start_game("play")  # Initialize in play mode
         game.training_mode = True  # Special flag to indicate RL training
 

@@ -7,7 +7,7 @@ of the MissileDataset class.
 import pytest  # noqa: F401 - Used for fixture decorators and approx
 import torch
 
-from ai_platform_trainer.ai_model.missile_dataset import MissileDataset, calculate_distance
+from ai_platform_trainer.ai.training.missile_dataset import MissileDataset, calculate_distance
 
 
 class TestMissileDataset:
