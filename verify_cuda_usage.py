@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 """
-Verify that CUDA is being used for training with custom C++ modules.
+Verify that CUDA is available and our C++/CUDA validation works correctly.
 
-This script checks if CUDA is available, builds the custom C++ extensions,
-and verifies that they're correctly using the GPU.
+This script checks CUDA availability and runs our C++ validation executable.
 """
 import os
 import sys
-import torch
 import subprocess
 import logging
 
@@ -15,124 +13,126 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("CUDA-Verification")
 
-def verify_cuda_available():
-    """Check if CUDA is available and working."""
-    logger.info("Checking CUDA availability...")
-    
-    if not torch.cuda.is_available():
-        logger.error("CUDA is not available! Cannot use GPU.")
-        return False
-    
-    logger.info(f"CUDA is available: {torch.cuda.is_available()}")
-    logger.info(f"GPU: {torch.cuda.get_device_name(0)}")
-    logger.info(f"CUDA version: {torch.version.cuda}")
-    
-    # Run a simple CUDA test
+def check_nvidia_gpu():
+    """Check if NVIDIA GPU is available using nvidia-smi."""
+    logger.info("Checking for NVIDIA GPU...")
     try:
-        x = torch.rand(1000, 1000).cuda()
-        y = torch.matmul(x, x)
-        del x, y
-        torch.cuda.empty_cache()
-        logger.info("CUDA test successful!")
-        return True
-    except Exception as e:
-        logger.error(f"CUDA test failed: {e}")
-        return False
-
-def check_nvidia_smi():
-    """Check if nvidia-smi is working."""
-    logger.info("Checking nvidia-smi...")
-    
-    try:
-        result = subprocess.run(
-            ['nvidia-smi'], 
-            capture_output=True, 
-            text=True, 
-            check=True
-        )
-        logger.info("nvidia-smi output:")
-        for line in result.stdout.split('\n')[:5]:  # Show first 5 lines
-            if line.strip():
-                logger.info(line)
-        return True
-    except Exception as e:
-        logger.error(f"nvidia-smi check failed: {e}")
-        return False
-
-def verify_custom_cuda_modules():
-    """Verify that custom CUDA modules are built and working."""
-    logger.info("Verifying custom CUDA modules...")
-    
-    # Add cpp directory to path
-    cpp_dir = os.path.abspath(os.path.join("ai_platform_trainer", "cpp"))
-    if cpp_dir not in sys.path:
-        sys.path.append(cpp_dir)
-    
-    # Try to import the module
-    try:
-        import gpu_environment
-        logger.info("Custom CUDA module imported successfully!")
-        
-        # Create a test environment
-        config = gpu_environment.EnvironmentConfig()
-        env = gpu_environment.Environment(config)
-        logger.info("Created environment with custom CUDA!")
-        
-        # Test reset and step
-        import numpy as np
-        obs = env.reset(42)
-        action = np.array([0.5, 0.5], dtype=np.float32)
-        next_obs, reward, done, truncated, info = env.step(action)
-        
-        logger.info("Successfully executed step in custom CUDA environment!")
-        return True
-    except ImportError as e:
-        logger.error(f"Failed to import custom CUDA module: {e}")
-        logger.info("Attempting to build the extensions...")
-        
-        try:
-            result = subprocess.run(
-                [sys.executable, "setup.py", "build_ext", "--inplace"],
-                cwd=cpp_dir,
-                check=True,
-                capture_output=True,
-                text=True
-            )
-            logger.info("Build completed. Trying to import again...")
-            
-            # Try importing again
-            import gpu_environment
-            logger.info("Custom CUDA module imported successfully after build!")
+        result = subprocess.run(['nvidia-smi'], capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info("NVIDIA GPU detected:")
+            for line in result.stdout.split('\n')[:5]:  # Show first 5 lines
+                if line.strip():
+                    logger.info(line)
             return True
-        except Exception as build_error:
-            logger.error(f"Build failed: {build_error}")
+        else:
+            logger.error("nvidia-smi command failed. GPU not detected.")
             return False
     except Exception as e:
-        logger.error(f"Error testing custom CUDA module: {e}")
+        logger.error(f"Error checking GPU: {e}")
+        return False
+
+def check_nvcc():
+    """Check if NVIDIA CUDA compiler (nvcc) is available."""
+    logger.info("Checking for NVIDIA CUDA compiler (nvcc)...")
+    try:
+        result = subprocess.run(['nvcc', '--version'], capture_output=True, text=True)
+        if result.returncode == 0:
+            logger.info("NVIDIA CUDA compiler (nvcc) detected:")
+            logger.info(result.stdout.strip())
+            return True
+        else:
+            logger.error("nvcc command failed. CUDA compiler not detected.")
+            return False
+    except Exception as e:
+        logger.error(f"Error checking nvcc: {e}")
+        return False
+
+def build_cuda_validation():
+    """Build the C++ CUDA validation executable."""
+    logger.info("Building C++ CUDA validation...")
+    
+    build_dir = "build"
+    if not os.path.exists(build_dir):
+        logger.info("Creating build directory...")
+        try:
+            os.makedirs(build_dir)
+        except Exception as e:
+            logger.error(f"Failed to create build directory: {e}")
+            return False
+    
+    try:
+        # Configure CMake
+        logger.info("Configuring CMake...")
+        result = subprocess.run([
+            'cmake', '..', '-G', 'Visual Studio 17 2022', '-A', 'x64'
+        ], cwd=build_dir, capture_output=True, text=True, check=True)
+        
+        # Build the target
+        logger.info("Building validate_cuda target...")
+        result = subprocess.run([
+            'cmake', '--build', '.', '--config', 'Release', '--target', 'validate_cuda'
+        ], cwd=build_dir, capture_output=True, text=True, check=True)
+        
+        logger.info("Build completed successfully.")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Build failed: {e}")
+        logger.error(e.stderr)
+        return False
+
+def test_cuda_validation():
+    """Test the C++ CUDA validation executable."""
+    logger.info("Testing C++ CUDA validation...")
+    
+    exe_path = os.path.join("build", "Release", "validate_cuda.exe")
+    if not os.path.exists(exe_path):
+        logger.error(f"Validation executable not found at {exe_path}")
+        return False
+    
+    try:
+        result = subprocess.run([exe_path], capture_output=True, text=True, check=True)
+        logger.info("CUDA validation output:")
+        for line in result.stdout.strip().split('\n'):
+            logger.info(line)
+        
+        # Check for expected output
+        if "Using GPU:" in result.stdout and "result: 3.1415" in result.stdout:
+            logger.info("CUDA validation test passed!")
+            return True
+        else:
+            logger.error("CUDA validation test failed - unexpected output")
+            return False
+    except subprocess.CalledProcessError as e:
+        logger.error(f"CUDA validation failed: {e}")
+        logger.error(e.stderr)
         return False
 
 def main():
     """Run all verification steps."""
-    logger.info("=== CUDA and Custom C++ Module Verification ===")
+    logger.info("=== CUDA Verification ===")
     
-    # Step 1: Check if CUDA is available
-    if not verify_cuda_available():
-        logger.error("CUDA verification failed!")
+    # Step 1: Check if NVIDIA GPU is available
+    if not check_nvidia_gpu():
+        logger.error("NVIDIA GPU not detected. Cannot proceed.")
         return False
     
-    # Step 2: Check nvidia-smi
-    if not check_nvidia_smi():
-        logger.warning("nvidia-smi check failed, but continuing...")
+    # Step 2: Check if NVIDIA CUDA compiler is available
+    if not check_nvcc():
+        logger.warning("NVIDIA CUDA compiler not detected. Build may fail.")
     
-    # Step 3: Verify custom CUDA modules
-    if not verify_custom_cuda_modules():
-        logger.error("Custom CUDA module verification failed!")
+    # Step 3: Build CUDA validation
+    if not build_cuda_validation():
+        logger.error("Failed to build CUDA validation.")
+        return False
+    
+    # Step 4: Test CUDA validation
+    if not test_cuda_validation():
+        logger.error("CUDA validation test failed.")
         return False
     
     logger.info("\n=== Verification Successful! ===")
-    logger.info("Your system is correctly set up to use NVIDIA GPU with custom C++ CUDA modules.")
-    logger.info("To train the enemy agent with CUDA, run:")
-    logger.info("python train_enemy_cuda.py")
+    logger.info("C++ CUDA validation is working correctly.")
+    logger.info("Your system is ready for GPU-accelerated training.")
     
     return True
 
