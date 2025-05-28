@@ -4,11 +4,12 @@ Pure NumPy Enemy RL Training with GPU Acceleration
 No PyTorch dependency - uses Evolution Strategy optimization
 with your existing CUDA C++ backend for physics simulation.
 """
-import numpy as np
 import logging
-import time
 import os
-from typing import Dict, Tuple, Optional
+import time
+from typing import Dict, Optional, Tuple
+
+import numpy as np
 
 from ai_platform_trainer.ai.models.gpu_rl_environment import GPURLEnvironment
 
@@ -352,4 +353,5 @@ if __name__ == "__main__":
     )
     
     # Test trained agent
+    test_trained_agent()
     test_trained_agent()

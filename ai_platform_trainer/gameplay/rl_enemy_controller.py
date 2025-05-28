@@ -82,212 +82,184 @@ class RLEnemyController:
         """
         if not self.is_loaded or self.agent is None:
             # Random fallback behavior
-            else:
-                logger.warning(f"Model file not found: {model_path}")
-                logger.warning("Using random behavior until model is trained")
-                return False
-        except Exception as e:
-            logger.error(f"Failed to load model: {e}")
-            logger.warning("Using random behavior instead")
-            return False
-    
-    def get_action(self, 
-                   enemy_pos: Tuple[float, float], 
-                   player_pos: Tuple[float, float],
-                   screen_width: int = 800,
-                   screen_height: int = 600) -> Tuple[float, float]:
-        """Get action for enemy based on current game state.
-        
-        Args:
-            enemy_pos: Current enemy position (x, y)
-            player_pos: Current player position (x, y)
-            screen_width: Game screen width
-            screen_height: Game screen height
-            
-        Returns:
-            Action tuple (dx, dy) - movement direction
-        """
-        if not self.model_loaded:
-            # Fallback to simple behavior if model not loaded
-            return self._simple_chase_behavior(enemy_pos, player_pos)
+            return self._random_action(enemy_pos, player_pos)
         
         try:
-            # Prepare observation (same format as training)
-            relative_pos = [
-                player_pos[0] - enemy_pos[0],  # rel_x
-                player_pos[1] - enemy_pos[1]   # rel_y
-            ]
+            # Prepare observation
+            relative_pos = np.array([
+                player_pos[0] - enemy_pos[0],
+                player_pos[1] - enemy_pos[1]
+            ])
             
-            normalized_enemy = [
-                enemy_pos[0] / screen_width,   # norm_enemy_x
-                enemy_pos[1] / screen_height   # norm_enemy_y
-            ]
+            # Normalized enemy position
+            normalized_enemy = np.array([
+                enemy_pos[0] / 800.0,
+                enemy_pos[1] / 600.0
+            ])
             
-            # Combine into observation vector
-            obs = relative_pos + normalized_enemy
-            obs_tensor = torch.tensor(obs, dtype=torch.float32).to(self.device)
+            # Combine observations
+            obs = np.concatenate([relative_pos, normalized_enemy])
             
             # Get action from neural network
-            with torch.no_grad():
-                action_tensor = self.agent(obs_tensor.unsqueeze(0)).squeeze(0)
-                action = action_tensor.cpu().numpy()
+            action = self.agent.forward(obs.reshape(1, -1))[0]
             
-            # Store for smoothing/debugging
-            self.last_action = action.copy()
-            self.last_enemy_pos = enemy_pos
-            
-            return tuple(action)
+            return float(action[0]), float(action[1])
             
         except Exception as e:
-            logger.error(f"Error in RL action computation: {e}")
-            # Fallback to simple behavior
-            return self._simple_chase_behavior(enemy_pos, player_pos)
+            logger.error(f"Error in RL controller: {e}")
+            return self._random_action(enemy_pos, player_pos)
     
-    def _simple_chase_behavior(self, 
-                              enemy_pos: Tuple[float, float], 
-                              player_pos: Tuple[float, float]) -> Tuple[float, float]:
-        """Simple chase behavior as fallback."""
+    def _random_action(self, enemy_pos: Tuple[float, float], 
+                      player_pos: Tuple[float, float]) -> Tuple[float, float]:
+        """Fallback random action with some intelligence.
+        
+        Args:
+            enemy_pos: Enemy position
+            player_pos: Player position
+            
+        Returns:
+            Random action biased toward player
+        """
+        # Calculate direction to player
         dx = player_pos[0] - enemy_pos[0]
         dy = player_pos[1] - enemy_pos[1]
         
-        # Normalize to unit vector
+        # Normalize
         distance = np.sqrt(dx*dx + dy*dy)
         if distance > 0:
             dx /= distance
             dy /= distance
         
-        # Add some noise for variation
-        dx += np.random.normal(0, 0.1)
-        dy += np.random.normal(0, 0.1)
+        # Add some randomness
+        noise_x = np.random.randn() * 0.3
+        noise_y = np.random.randn() * 0.3
         
-        # Clamp to [-1, 1] range
-        dx = np.clip(dx, -1.0, 1.0)
-        dy = np.clip(dy, -1.0, 1.0)
+        # Combine directed movement with noise
+        action_x = np.clip(dx + noise_x, -1.0, 1.0)
+        action_y = np.clip(dy + noise_y, -1.0, 1.0)
         
-        return (dx, dy)
+        return float(action_x), float(action_y)
     
-    def update_enemy_position(self, 
-                             enemy_pos: Tuple[float, float],
-                             action: Tuple[float, float],
-                             speed: float = 200.0,
-                             dt: float = 0.016) -> Tuple[float, float]:
-        """Update enemy position based on RL action.
+    def reload_model(self) -> bool:
+        """Reload the model from disk.
         
-        Args:
-            enemy_pos: Current enemy position
-            action: Action from get_action()
-            speed: Enemy movement speed (pixels/second)
-            dt: Time delta (seconds)
-            
         Returns:
-            New enemy position
+            True if model was successfully reloaded
         """
-        # Apply action as velocity
-        new_x = enemy_pos[0] + action[0] * speed * dt
-        new_y = enemy_pos[1] + action[1] * speed * dt
-        
-        return (new_x, new_y)
+        logger.info("Reloading RL enemy model...")
+        self._load_model()
+        return self.is_loaded
     
-    def get_debug_info(self) -> dict:
-        """Get debug information about the controller."""
+    def get_status(self) -> dict:
+        """Get controller status information.
+        
+        Returns:
+            Status dictionary
+        """
         return {
-            'model_loaded': self.model_loaded,
-            'device': self.device,
-            'last_action': self.last_action.tolist() if self.last_action is not None else None,
-            'last_enemy_pos': self.last_enemy_pos
+            'model_loaded': self.is_loaded,
+            'model_path': self.model_path,
+            'agent_available': self.agent is not None
         }
 
 
-class EnemyRLIntegration:
-    """Helper class for integrating RL enemy into existing game loop."""
+class BatchRLEnemyController:
+    """Batch controller for multiple enemies using vectorized operations."""
     
-    def __init__(self, model_path: str = "ai_platform_trainer/models/enemy_rl_gpu.pth"):
-        """Initialize RL integration.
+    def __init__(self, model_path: str = None, max_enemies: int = 10):
+        """Initialize batch RL enemy controller.
         
         Args:
-            model_path: Path to trained model
+            model_path: Path to trained model file
+            max_enemies: Maximum number of enemies to handle
         """
-        self.controller = RLEnemyController(model_path)
-        self.enabled = True
-        
-    def control_enemy(self, enemy, player, dt: float = 0.016):
-        """Control enemy using RL agent.
+        self.max_enemies = max_enemies
+        self.single_controller = RLEnemyController(model_path)
+    
+    def get_actions(self, enemy_positions: np.ndarray, 
+                   player_positions: np.ndarray) -> np.ndarray:
+        """Get actions for multiple enemies.
         
         Args:
-            enemy: Enemy entity with pos attribute
-            player: Player entity with pos attribute  
-            dt: Time delta
+            enemy_positions: Array of enemy positions [n_enemies, 2]
+            player_positions: Array of player positions [n_enemies, 2] 
+                            (can be same player for all enemies)
+            
+        Returns:
+            Actions as [n_enemies, 2] array
         """
-        if not self.enabled:
-            return
+        if not self.single_controller.is_loaded:
+            # Random fallback for all enemies
+            n_enemies = enemy_positions.shape[0]
+            actions = np.random.randn(n_enemies, 2)
+            return np.clip(actions, -1.0, 1.0)
         
-        # Get action from RL controller
-        action = self.controller.get_action(
-            enemy_pos=(enemy.pos[0], enemy.pos[1]),
-            player_pos=(player.pos[0], player.pos[1])
-        )
-        
-        # Update enemy position
-        speed = getattr(enemy, 'speed', 200.0)
-        new_pos = self.controller.update_enemy_position(
-            enemy_pos=(enemy.pos[0], enemy.pos[1]),
-            action=action,
-            speed=speed,
-            dt=dt
-        )
-        
-        # Apply new position
-        enemy.pos[0] = new_pos[0]
-        enemy.pos[1] = new_pos[1]
-        
-        # Keep in bounds (if enemy has bounds checking, this might be redundant)
-        enemy.pos[0] = max(25, min(775, enemy.pos[0]))
-        enemy.pos[1] = max(25, min(575, enemy.pos[1]))
-    
-    def toggle_rl_control(self):
-        """Toggle RL control on/off."""
-        self.enabled = not self.enabled
-        logger.info(f"RL enemy control: {'enabled' if self.enabled else 'disabled'}")
-    
-    def get_status(self) -> str:
-        """Get status string for UI display."""
-        if not self.enabled:
-            return "RL Control: OFF"
-        
-        if self.controller.model_loaded:
-            return f"RL Control: ON ({self.controller.device})"
-        else:
-            return "RL Control: ON (fallback mode)"
+        try:
+            # Prepare batch observations
+            relative_pos = player_positions - enemy_positions
+            normalized_enemies = enemy_positions.copy()
+            normalized_enemies[:, 0] /= 800.0
+            normalized_enemies[:, 1] /= 600.0
+            
+            # Combine observations
+            obs_batch = np.concatenate([relative_pos, normalized_enemies], axis=1)
+            
+            # Get batch actions
+            actions = self.single_controller.agent.forward(obs_batch)
+            
+            return actions
+            
+        except Exception as e:
+            logger.error(f"Error in batch RL controller: {e}")
+            n_enemies = enemy_positions.shape[0]
+            actions = np.random.randn(n_enemies, 2)
+            return np.clip(actions, -1.0, 1.0)
 
 
 def test_rl_controller():
-    """Test the RL controller."""
+    """Test the RL enemy controller."""
     logger.info("=== Testing RL Enemy Controller ===")
     
-    # Create controller
+    # Test single controller
     controller = RLEnemyController()
+    status = controller.get_status()
     
-    # Test with some positions
-    enemy_pos = (400, 300)
-    player_pos = (500, 400)
+    logger.info(f"Controller status: {status}")
     
-    logger.info(f"Enemy at: {enemy_pos}")
-    logger.info(f"Player at: {player_pos}")
+    # Test single action
+    enemy_pos = (400.0, 300.0)
+    player_pos = (200.0, 150.0)
     
-    # Get action
     action = controller.get_action(enemy_pos, player_pos)
-    logger.info(f"RL Action: {action}")
+    logger.info(f"Single action: {action}")
     
-    # Update position
-    new_pos = controller.update_enemy_position(enemy_pos, action)
-    logger.info(f"New enemy pos: {new_pos}")
+    # Test batch controller
+    batch_controller = BatchRLEnemyController()
     
-    # Debug info
-    debug_info = controller.get_debug_info()
-    logger.info(f"Debug info: {debug_info}")
+    # Test batch actions
+    enemy_positions = np.array([
+        [400.0, 300.0],
+        [600.0, 400.0],
+        [100.0, 200.0]
+    ])
     
-    logger.info("✓ RL controller test completed!")
+    player_positions = np.array([
+        [200.0, 150.0],
+        [200.0, 150.0],
+        [200.0, 150.0]
+    ])
+    
+    batch_actions = batch_controller.get_actions(enemy_positions, player_positions)
+    logger.info(f"Batch actions shape: {batch_actions.shape}")
+    logger.info(f"Batch actions: {batch_actions}")
+    
+    logger.info("RL controller test completed!")
+    return controller
 
 
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(level=logging.INFO)
+    
+    # Run test
     test_rl_controller()
