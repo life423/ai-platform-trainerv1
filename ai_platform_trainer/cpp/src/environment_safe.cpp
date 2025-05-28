@@ -1,8 +1,10 @@
+// Memory-safe version of environment.cpp with bounds checking
 #include "../include/environment.h"
 #include <cmath>
 #include <random>
 #include <algorithm>
 #include <unordered_map>
+#include <cassert>
 
 namespace gpu_env {
 
@@ -49,11 +51,13 @@ Environment::Environment(const EnvironmentConfig& config)
     spawn_player();
     spawn_enemy();
     
-    // Initialize observation buffer
+    // Initialize observation buffer with bounds checking
+    observation_buffer_.resize(observation_size_);
     std::fill(observation_buffer_.begin(), observation_buffer_.end(), 0.0f);
     
-    // Initialize danger map
-    danger_map_.resize(danger_map_width_ * danger_map_height_, 0.0f);
+    // Initialize danger map with safe size
+    danger_map_.resize(danger_map_width_ * danger_map_height_);
+    std::fill(danger_map_.begin(), danger_map_.end(), 0.0f);
 }
 
 Environment::~Environment() {
@@ -78,15 +82,19 @@ std::vector<float> Environment::reset(unsigned int seed) {
     spawn_player();
     spawn_enemy();
     
-    // Clear any existing missiles
+    // Clear any existing missiles SAFELY
     if (player_) {
         player_->missiles.clear();
     }
     
     // Calculate initial distance
-    last_enemy_player_distance_ = calculate_distance(
-        player_->x, player_->y, enemy_->x, enemy_->y
-    );
+    if (player_ && enemy_) {
+        last_enemy_player_distance_ = calculate_distance(
+            player_->x, player_->y, enemy_->x, enemy_->y
+        );
+    } else {
+        last_enemy_player_distance_ = 0.0f;
+    }
     
     // Reset last hit time
     last_hit_time_ = 0;
@@ -97,7 +105,7 @@ std::vector<float> Environment::reset(unsigned int seed) {
 
 std::tuple<std::vector<float>, float, bool, bool, std::unordered_map<std::string, float>> 
 Environment::step(const std::vector<float>& action) {
-    // Check if already done
+    // SAFETY: Check if already done
     if (done_) {
         return std::make_tuple(
             get_observation(),            // observation
@@ -108,11 +116,30 @@ Environment::step(const std::vector<float>& action) {
         );
     }
     
+    // SAFETY: Validate action size
+    if (action.size() < 2) {
+        // Use default action if invalid
+        std::vector<float> safe_action = {0.0f, 0.0f};
+        return step(safe_action);
+    }
+    
     // Increment step counter
     steps_since_reset_++;
     
     // Check for max steps
     bool truncated = steps_since_reset_ >= config_.max_steps;
+    
+    // SAFETY: Check entities exist before accessing
+    if (!player_ || !enemy_) {
+        // Return safe defaults if entities missing
+        return std::make_tuple(
+            get_observation(),
+            0.0f,
+            true,  // done = true if entities missing
+            false,
+            std::unordered_map<std::string, float>{}
+        );
+    }
     
     // Store pre-step distance for reward calculation
     float pre_step_distance = calculate_distance(
@@ -126,16 +153,14 @@ Environment::step(const std::vector<float>& action) {
     };
     update_player(player_action);
     
-    // SAFETY: Validate action size before using
-    if (action.size() >= 2) {
-        update_enemy(action);
-    } else {
-        // Use default action if invalid size
-        std::vector<float> safe_action = {0.0f, 0.0f};
-        update_enemy(safe_action);
-    }
+    // Update enemy with the provided action (with bounds checking)
+    std::vector<float> safe_action = {
+        std::max(-1.0f, std::min(1.0f, action[0])),
+        std::max(-1.0f, std::min(1.0f, action[1]))
+    };
+    update_enemy(safe_action);
     
-    // Update missiles
+    // Update missiles SAFELY
     update_missiles();
     
     // Check for collisions
@@ -146,8 +171,14 @@ Environment::step(const std::vector<float>& action) {
     // Calculate reward
     float current_time = static_cast<float>(steps_since_reset_);
     MissileBatch missile_batch;
-    for (const auto& missile : player_->missiles) {
-        missile_batch.add(*missile);
+    
+    // SAFETY: Check missiles exist before accessing
+    if (player_ && !player_->missiles.empty()) {
+        for (const auto& missile : player_->missiles) {
+            if (missile) {  // Additional null check
+                missile_batch.add(*missile);
+            }
+        }
     }
     
     float reward = calculate_reward(
@@ -161,11 +192,16 @@ Environment::step(const std::vector<float>& action) {
         missile_avoidance_count_++;
     }
     
-    // Update danger map for visualization
-    if (config_.enable_missile_avoidance && !player_->missiles.empty()) {
-        danger_map_ = physics_engine_->calculate_danger_map(
-            missile_batch, danger_map_width_, danger_map_height_
-        );
+    // Update danger map for visualization SAFELY
+    if (config_.enable_missile_avoidance && !missile_batch.x.empty()) {
+        try {
+            danger_map_ = physics_engine_->calculate_danger_map(
+                missile_batch, danger_map_width_, danger_map_height_
+            );
+        } catch (...) {
+            // If danger map calculation fails, use empty map
+            std::fill(danger_map_.begin(), danger_map_.end(), 0.0f);
+        }
     }
     
     // Update distance for next step
@@ -176,7 +212,7 @@ Environment::step(const std::vector<float>& action) {
     // Check if done
     done_ = enemy_hit_player || player_missile_hit_enemy || truncated;
     
-    // Get observation
+    // Get observation SAFELY
     std::vector<float> observation = get_observation();
     
     // Prepare info dict
@@ -187,7 +223,7 @@ Environment::step(const std::vector<float>& action) {
     info["enemy_x"] = enemy_->x / config_.screen_width;
     info["enemy_y"] = enemy_->y / config_.screen_height;
     info["distance"] = last_enemy_player_distance_;
-    info["missile_count"] = static_cast<float>(player_->missiles.size());
+    info["missile_count"] = player_ ? static_cast<float>(player_->missiles.size()) : 0.0f;
     info["missile_avoidance"] = static_cast<float>(missile_avoidance_count_);
     info["enemy_hit_player"] = enemy_hit_player ? 1.0f : 0.0f;
     info["player_missile_hit_enemy"] = player_missile_hit_enemy ? 1.0f : 0.0f;
@@ -233,50 +269,10 @@ Environment::batch_step(const std::vector<std::vector<float>>& actions) {
     return results;
 }
 
-std::unordered_map<std::string, std::vector<float>> Environment::get_debug_data() const {
-    std::unordered_map<std::string, std::vector<float>> debug_data;
-    
-    // Add basic entity data
-    debug_data["player_pos"] = {player_->x, player_->y};
-    debug_data["enemy_pos"] = {enemy_->x, enemy_->y};
-    
-    // Add missile data
-    std::vector<float> missile_data;
-    for (const auto& missile : player_->missiles) {
-        missile_data.push_back(missile->x);
-        missile_data.push_back(missile->y);
-        missile_data.push_back(missile->vx);
-        missile_data.push_back(missile->vy);
-        missile_data.push_back(missile->angle);
-    }
-    debug_data["missiles"] = missile_data;
-    
-    // Add danger map
-    debug_data["danger_map"] = danger_map_;
-    debug_data["danger_map_width"] = {static_cast<float>(danger_map_width_)};
-    debug_data["danger_map_height"] = {static_cast<float>(danger_map_height_)};
-    
-    // Add evasion vector if available
-    if (config_.enable_missile_avoidance && !player_->missiles.empty()) {
-        MissileBatch missile_batch;
-        for (const auto& missile : player_->missiles) {
-            missile_batch.add(*missile);
-        }
-        
-        auto evasion_vector = physics_engine_->calculate_evasion_vector(
-            enemy_->x, enemy_->y, missile_batch, config_.missile_prediction_steps
-        );
-        
-        debug_data["evasion_vector"] = {evasion_vector.first, evasion_vector.second};
-    }
-    
-    return debug_data;
-}
-
 void Environment::update_player(const std::vector<float>& player_action) {
     if (!player_) return;
     
-    // Apply player movement
+    // Apply player movement with bounds checking
     if (player_action.size() >= 2) {
         player_->handle_input(player_action[0], player_action[1]);
     }
@@ -284,8 +280,10 @@ void Environment::update_player(const std::vector<float>& player_action) {
     // Wrap position
     player_->wrap_position(config_.screen_width, config_.screen_height);
     
-    // Maybe fire a missile
-    if (random_float(0.0f, 1.0f) < 0.01f && player_->missiles.size() < static_cast<size_t>(config_.max_missiles)) {
+    // Maybe fire a missile with SAFETY CHECKS
+    if (random_float(0.0f, 1.0f) < 0.01f && 
+        player_->missiles.size() < static_cast<size_t>(config_.max_missiles) &&
+        enemy_) {  // Make sure enemy exists before shooting
         player_->shoot_missile(enemy_->x, enemy_->y);
     }
 }
@@ -293,7 +291,10 @@ void Environment::update_player(const std::vector<float>& player_action) {
 void Environment::update_enemy(const std::vector<float>& enemy_action) {
     if (!enemy_ || !enemy_->visible) return;
     
-    // Normalize action values to [-1, 1]
+    // SAFETY: Validate action size
+    if (enemy_action.size() < 2) return;
+    
+    // Normalize action values to [-1, 1] with bounds checking
     float dx = std::max(-1.0f, std::min(1.0f, enemy_action[0]));
     float dy = std::max(-1.0f, std::min(1.0f, enemy_action[1]));
     
@@ -311,28 +312,45 @@ void Environment::update_missiles() {
     // Update missile positions
     player_->update_missiles(config_.screen_width, config_.screen_height);
     
-    // Update missile physics if we have any
+    // Update missile physics if we have any - WITH SAFETY CHECKS
     if (!player_->missiles.empty()) {
-        // Prepare velocity vectors
+        // Prepare velocity vectors with bounds checking
         std::vector<float> velocities_x;
         std::vector<float> velocities_y;
         EntityBatch missile_entities;
         
+        // SAFETY: Reserve space to prevent reallocation
+        velocities_x.reserve(player_->missiles.size());
+        velocities_y.reserve(player_->missiles.size());
+        
         for (const auto& missile : player_->missiles) {
-            missile_entities.add(*missile);
-            velocities_x.push_back(missile->vx);
-            velocities_y.push_back(missile->vy);
+            if (missile) {  // NULL check
+                missile_entities.add(*missile);
+                velocities_x.push_back(missile->vx);
+                velocities_y.push_back(missile->vy);
+            }
         }
         
-        // Use physics engine to update positions
-        physics_engine_->update_positions(
-            missile_entities, velocities_x, velocities_y
-        );
-        
-        // Update missile objects with new positions from batch
-        for (size_t i = 0; i < player_->missiles.size(); ++i) {
-            player_->missiles[i]->x = missile_entities.x[i];
-            player_->missiles[i]->y = missile_entities.y[i];
+        // Only update if we have valid missiles
+        if (!missile_entities.x.empty() && 
+            velocities_x.size() == missile_entities.x.size() &&
+            velocities_y.size() == missile_entities.x.size()) {
+            
+            // Use physics engine to update positions
+            physics_engine_->update_positions(
+                missile_entities, velocities_x, velocities_y
+            );
+            
+            // Update missile objects with new positions from batch
+            // SAFETY: Ensure we don't exceed array bounds
+            size_t valid_missiles = 0;
+            for (size_t i = 0; i < player_->missiles.size() && valid_missiles < missile_entities.x.size(); ++i) {
+                if (player_->missiles[i]) {
+                    player_->missiles[i]->x = missile_entities.x[valid_missiles];
+                    player_->missiles[i]->y = missile_entities.y[valid_missiles];
+                    valid_missiles++;
+                }
+            }
         }
     }
 }
@@ -351,9 +369,9 @@ void Environment::check_collisions(bool& enemy_hit_player, bool& player_missile_
         return;
     }
     
-    // Check for missile collisions
+    // Check for missile collisions SAFELY
     for (auto& missile : player_->missiles) {
-        if (missile->collides_with(*enemy_)) {
+        if (missile && missile->collides_with(*enemy_)) {
             player_missile_hit_enemy = true;
             enemy_->hide();
             missile->has_collided = true;
@@ -364,6 +382,7 @@ void Environment::check_collisions(bool& enemy_hit_player, bool& player_missile_
 }
 
 std::vector<float> Environment::get_observation() const {
+    // SAFETY: Initialize with correct size
     std::vector<float> observation(observation_size_, 0.0f);
     
     if (!player_ || !enemy_) return observation;
@@ -371,6 +390,11 @@ std::vector<float> Environment::get_observation() const {
     // Normalize positions to [0,1] range
     float screen_width = static_cast<float>(config_.screen_width);
     float screen_height = static_cast<float>(config_.screen_height);
+    
+    // SAFETY: Bounds check array access
+    if (observation.size() < 8) {
+        observation.resize(observation_size_, 0.0f);
+    }
     
     // Player and enemy positions
     observation[0] = player_->x / screen_width;
@@ -389,45 +413,52 @@ std::vector<float> Environment::get_observation() const {
     float current_time = static_cast<float>(steps_since_reset_);
     observation[7] = (current_time - last_hit_time_) / 100.0f;
     
-    // Missile information (up to the closest 2 missiles)
+    // Missile information (up to the closest 2 missiles) - WITH SAFETY
     int missile_idx = 8;
-    if (!player_->missiles.empty()) {
+    if (player_ && !player_->missiles.empty() && missile_idx < static_cast<int>(observation.size())) {
         // Sort missiles by distance to enemy
         std::vector<std::pair<float, size_t>> missile_distances;
         for (size_t i = 0; i < player_->missiles.size(); ++i) {
             const auto& missile = player_->missiles[i];
-            float distance = calculate_distance(
-                missile->x, missile->y, enemy_->x, enemy_->y
-            );
-            missile_distances.emplace_back(distance, i);
+            if (missile) {  // NULL check
+                float distance = calculate_distance(
+                    missile->x, missile->y, enemy_->x, enemy_->y
+                );
+                missile_distances.emplace_back(distance, i);
+            }
         }
         
         // Sort by distance (closest first)
         std::sort(missile_distances.begin(), missile_distances.end());
         
-        // Add closest missile info to observation
+        // Add closest missile info to observation with bounds checking
         size_t num_missiles = std::min(player_->missiles.size(), static_cast<size_t>(2));
-        for (size_t i = 0; i < num_missiles; ++i) {
+        for (size_t i = 0; i < num_missiles && i < missile_distances.size(); ++i) {
             size_t idx = missile_distances[i].second;
-            const auto& missile = player_->missiles[idx];
             
-            // Normalized position
-            observation[missile_idx++] = missile->x / screen_width;
-            observation[missile_idx++] = missile->y / screen_height;
-            
-            // Normalized velocity
-            observation[missile_idx++] = missile->vx / 10.0f;
-            observation[missile_idx++] = missile->vy / 10.0f;
-            
-            // Distance to enemy (normalized)
-            float missile_distance = missile_distances[i].first;
-            observation[missile_idx++] = missile_distance / std::max(screen_width, screen_height);
+            // SAFETY: Bounds check
+            if (idx < player_->missiles.size() && player_->missiles[idx] && 
+                missile_idx + 4 < static_cast<int>(observation.size())) {
+                
+                const auto& missile = player_->missiles[idx];
+                
+                // Normalized position
+                observation[missile_idx++] = missile->x / screen_width;
+                observation[missile_idx++] = missile->y / screen_height;
+                
+                // Normalized velocity
+                observation[missile_idx++] = missile->vx / 10.0f;
+                observation[missile_idx++] = missile->vy / 10.0f;
+                
+                // Distance to enemy (normalized)
+                float missile_distance = missile_distances[i].first;
+                observation[missile_idx++] = missile_distance / std::max(screen_width, screen_height);
+            }
         }
     }
     
     return observation;
 }
-
 
 void Environment::spawn_enemy() {
     // Initialize enemy at a random position
@@ -472,7 +503,9 @@ std::pair<float, float> Environment::calculate_evasion_vector() {
     // Prepare missile batch
     MissileBatch missile_batch;
     for (const auto& missile : player_->missiles) {
-        missile_batch.add(*missile);
+        if (missile) {  // NULL check
+            missile_batch.add(*missile);
+        }
     }
     
     // Use physics engine to calculate evasion vector
@@ -495,6 +528,63 @@ float Environment::calculate_distance(float x1, float y1, float x2, float y2) co
     float dx = x1 - x2;
     float dy = y1 - y2;
     return std::sqrt(dx * dx + dy * dy);
+}
+
+std::unordered_map<std::string, std::vector<float>> Environment::get_debug_data() const {
+    std::unordered_map<std::string, std::vector<float>> debug_data;
+    
+    // Add basic entity data SAFELY
+    if (player_) {
+        debug_data["player_pos"] = {player_->x, player_->y};
+    } else {
+        debug_data["player_pos"] = {0.0f, 0.0f};
+    }
+    
+    if (enemy_) {
+        debug_data["enemy_pos"] = {enemy_->x, enemy_->y};
+    } else {
+        debug_data["enemy_pos"] = {0.0f, 0.0f};
+    }
+    
+    // Add missile data SAFELY
+    std::vector<float> missile_data;
+    if (player_) {
+        for (const auto& missile : player_->missiles) {
+            if (missile) {  // NULL check
+                missile_data.push_back(missile->x);
+                missile_data.push_back(missile->y);
+                missile_data.push_back(missile->vx);
+                missile_data.push_back(missile->vy);
+                missile_data.push_back(missile->angle);
+            }
+        }
+    }
+    debug_data["missiles"] = missile_data;
+    
+    // Add danger map SAFELY
+    debug_data["danger_map"] = danger_map_;
+    debug_data["danger_map_width"] = {static_cast<float>(danger_map_width_)};
+    debug_data["danger_map_height"] = {static_cast<float>(danger_map_height_)};
+    
+    // Add evasion vector if available SAFELY
+    if (config_.enable_missile_avoidance && player_ && !player_->missiles.empty()) {
+        MissileBatch missile_batch;
+        for (const auto& missile : player_->missiles) {
+            if (missile) {  // NULL check
+                missile_batch.add(*missile);
+            }
+        }
+        
+        if (!missile_batch.x.empty()) {
+            auto evasion_vector = physics_engine_->calculate_evasion_vector(
+                enemy_->x, enemy_->y, missile_batch, config_.missile_prediction_steps
+            );
+            
+            debug_data["evasion_vector"] = {evasion_vector.first, evasion_vector.second};
+        }
+    }
+    
+    return debug_data;
 }
 
 } // namespace gpu_env
