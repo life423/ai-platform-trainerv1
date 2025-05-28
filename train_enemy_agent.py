@@ -27,7 +27,7 @@ class EnemyTeacher:
 
 
     def step(self, action):
-        # Not used when loading dummy data
+        # Not used when loading dummory data
         next_state = np.random.rand(5)
         done = np.random.rand() < 0.1
         return next_state, done

@@ -6,14 +6,19 @@ for movement decisions.
 """
 import logging
 import math
-from typing import Optional, Tuple # Added Tuple for type hinting
+from typing import Optional, Tuple  # Added Tuple for type hinting
 
 import pygame
 import torch
 
-from ai_platform_trainer.ai.models.enemy_movement_model import EnemyMovementModel
+from ai_platform_trainer.ai.models.enemy_movement_model import (
+    EnemyMovementModel
+)
+from ai_platform_trainer.ai.models.numpy_enemy_model import NumpyEnemyModel
 # Import the global enemy AI controller
-from ai_platform_trainer.gameplay.ai.enemy_ai_controller import enemy_controller, NumpyEnemyModel
+from ai_platform_trainer.gameplay.ai.enemy_ai_controller import (
+    enemy_controller
+)
 
 
 class EnemyPlay:
@@ -27,7 +32,8 @@ class EnemyPlay:
         self, 
         screen_width: int, 
         screen_height: int, 
-        model: Optional[EnemyMovementModel] = None # PyTorch model is now optional
+        model: Optional[EnemyMovementModel] = None,  # PyTorch model is optional
+        numpy_model_instance: Optional['NumpyEnemyModel'] = None  # NumPy model instance
     ) -> None:
         """
         Initialize the enemy entity.
@@ -35,15 +41,23 @@ class EnemyPlay:
         Args:
             screen_width: Width of the game screen
             screen_height: Height of the game screen
-            model: Optional PyTorch neural network model for enemy movement (used as fallback).
+            model: Optional PyTorch neural network model for enemy
+                   movement (used as fallback).
+                   # Line broken for length
+            numpy_model_instance: Optional pre-loaded NumPy model instance.
         """
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.size = 50
         self.color = (139, 0, 0)  # Dark red
-        self.pos = {"x": screen_width // 2, "y": screen_height // 2}
-        self.speed = 5.0 # Default speed, can be overridden by controller
-        self.pytorch_model = model # Store the PyTorch model if provided
+        self.pos = {
+            "x": float(screen_width // 2), 
+            "y": float(screen_height // 2)
+        }
+        self.speed = 5.0  # Default speed, can be overridden by controller
+        self.pytorch_model = model  # Store the PyTorch model if provided
+        self.model = model  # Alias for PyTorch model for AI controller compatibility
+        self.numpy_model_instance = numpy_model_instance # Store NumPy model instance
         self.visible = True
         self.fading_in = False
         self.fade_alpha = 255
@@ -54,8 +68,8 @@ class EnemyPlay:
         self, 
         player_x: float, 
         player_y: float, 
-        player_speed: float, 
-        current_time: int
+            player_speed: float, 
+            current_time: int
     ) -> None:
         """
         Update the enemy's position based on neural network predictions.
@@ -64,21 +78,25 @@ class EnemyPlay:
             player_x: Player's x position
             player_y: Player's y position
             player_speed: Player's movement speed
-            current_time: Current game time in milliseconds (used by controller for timing)
+            current_time: Current game time in milliseconds 
+                          (used by controller for timing)
         """
         if not self.visible:
             return
 
         # Delegate movement to the global enemy_controller
-        # The controller will decide whether to use NumPy, PyTorch (via self.pytorch_model), or random
+        # The controller will decide whether to use NumPy, PyTorch 
+        # (via self.pytorch_model), or random.
+        # Pass the enemy's specific numpy_model_instance if it has one.
+        active_numpy_model = self.numpy_model_instance if self.numpy_model_instance else enemy_controller.numpy_model
+        
         enemy_controller.update_enemy_movement(
-            self, # Pass self (EnemyPlay instance)
+            self,  # Pass self (EnemyPlay instance)
             player_x, 
             player_y, 
             player_speed, 
             current_time,
-            # Pass the numpy_model from the controller itself, or allow override if GameCore provides one
-            numpy_model_instance=enemy_controller.numpy_model 
+            numpy_model_instance=active_numpy_model
         )
 
         # Update fade-in effect if active
@@ -109,13 +127,17 @@ class EnemyPlay:
         normalized_py = player_y / self.screen_height
         normalized_ex = self.pos["x"] / self.screen_width
         normalized_ey = self.pos["y"] / self.screen_height
-        normalized_dist = distance / max(self.screen_width, self.screen_height)
+        normalized_dist = distance / max(self.screen_width,
+                                         self.screen_height)
         
         # Prepare input tensor for the model
-        # This PyTorch specific logic is now primarily handled within 
-        # EnemyAIController._get_pytorch_nn_action if self.pytorch_model is used.
-        if not self.pytorch_model: # Should not happen if controller logic is correct
-            logging.warning("EnemyPlay._update_with_nn called without a PyTorch model.")
+        # This PyTorch specific logic is now primarily handled within
+        # EnemyAIController._get_pytorch_nn_action if self.pytorch_model is
+        # used.
+        if not self.pytorch_model:  # Should not happen if controller logic is correct
+            logging.warning(
+                "EnemyPlay._update_with_nn called without a PyTorch model."
+            )
             return
 
         model_input = torch.tensor([
@@ -125,23 +147,29 @@ class EnemyPlay:
         ], dtype=torch.float32).unsqueeze(0)
         
         # Get model prediction
-        with torch.no_grad():
-            movement = self.pytorch_model(model_input).squeeze(0) # Use self.pytorch_model
+        with torch.no_grad():  # Use self.pytorch_model
+            # movement = self.pytorch_model(model_input).squeeze(0) # Unused
+            self.pytorch_model(model_input).squeeze(0) # Call model
             
         # Apply movement (scale from [-1,1] to actual pixels)
-        move_x = movement[0].item() * self.speed
-        move_y = movement[1].item() * self.speed
+        # move_x = movement[0].item() * self.speed # Unused
+        # move_y = movement[1].item() * self.speed # Unused
         
         # Update position - This will be handled by EnemyAIController now.
         # self.pos["x"] += move_x
         # self.pos["y"] += move_y
         # self._wrap_position() # Also handled by EnemyAIController
-        # For now, this method might not be directly called if EnemyAIController handles all.
-        # However, keeping its structure for potential direct PyTorch use if needed.
-        # The actual position update is done in EnemyAIController.update_enemy_movement
-        pass # Movement is now applied by the controller
+        # For now, this method might not be directly called if 
+        # EnemyAIController handles all.
+        # However, keeping its structure for potential direct PyTorch use 
+        # if needed.
+        # The actual position update is done in 
+        # EnemyAIController.update_enemy_movement
+        pass  #  Movement is now applied by the controller
 
-    def wrap_position(self, x: float, y: float) -> Tuple[float, float]: # Made public for controller
+    def wrap_position(
+        self, x: float, y: float
+    ) -> Tuple[float, float]:  #  Made public for controller
         """Wrap the enemy position around screen edges."""
         if x < -self.size:
             x = self.screen_width

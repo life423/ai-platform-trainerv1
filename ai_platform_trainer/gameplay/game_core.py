@@ -9,7 +9,7 @@ import os
 import math
 import pygame
 import torch
-from typing import Optional, Tuple, Dict, Any, List
+from typing import Optional, Tuple, Union, Dict, Any, List # Added Union
 
 # Logging setup
 from ai_platform_trainer.core.logging_config import setup_logging
@@ -106,8 +106,8 @@ class GameCore:
             self.renderer = Renderer(self.screen)
 
         # Entities and managers
-        self.player: Optional[PlayerPlay] = None
-        self.enemy: Optional[EnemyPlay] = None
+        self.player: Optional[Union[PlayerPlay, PlayerTraining]] = None
+        self.enemy: Optional[Union[EnemyPlay, EnemyTrain]] = None
         self.data_logger: Optional[DataLogger] = None
         self.training_mode_manager: Optional[TrainingMode] = None
         self.play_mode_manager: Optional[PlayMode] = None
@@ -128,7 +128,15 @@ class GameCore:
         self.use_state_machine = use_state_machine
         self.states = {}
         self.current_state = None
+
+        # Model loading configuration from environment variables
+        self.model_type = os.getenv('MODEL_TYPE', 'auto').lower() # auto, numpy, pytorch, none
+        self.numpy_model_path = os.getenv('NUMPY_MODEL_PATH', "models/numpy_enemy_model.npz")
+        self.pytorch_model_path = os.getenv('PYTORCH_MODEL_PATH', config.MODEL_PATH)
         
+        logging.info(f"Model loading configuration: TYPE={self.model_type}, "
+                     f"NUMPY_PATH={self.numpy_model_path}, PYTORCH_PATH={self.pytorch_model_path}")
+
         if self.use_state_machine:
             self._setup_state_machine()
 
@@ -189,14 +197,14 @@ class GameCore:
                 if self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS:
                     # Skip menu rendering in headless mode
                     pass
-                else:
+                elif self.menu: # Explicit check for menu
                     self.menu.draw(self.screen)
             else:
                 self.update(current_time)
                 if self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS:
                     # Skip rendering in headless mode
                     pass
-                else:
+                elif self.renderer: # Explicit check for renderer
                     self.renderer.render(self.menu, self.player, self.enemy, self.menu_active)
 
             # Only flip display in full render mode
@@ -235,9 +243,11 @@ class GameCore:
                 if next_state:
                     self.transition_to(next_state)
                 
-                self.current_state.render(self.renderer)
+                if self.renderer: # Explicit check for renderer
+                    self.current_state.render(self.renderer)
             
-            pygame.display.flip()
+            if not (self.render_mode and hasattr(self.render_mode, "HEADLESS") and self.render_mode == self.render_mode.HEADLESS):
+                pygame.display.flip()
 
         # Save data if we were training
         if self.mode == "train" and self.data_logger:
@@ -281,7 +291,8 @@ class GameCore:
             self.enemy = EnemyTrain(self.screen_width, self.screen_height)
 
             spawn_entities(self)
-            self.player.reset()
+            if self.player: # Check if player exists before calling reset
+                self.player.reset()
             self.training_mode_manager = TrainingMode(self)
 
         else:  # "play"
@@ -299,61 +310,65 @@ class GameCore:
         """
         player = PlayerPlay(self.screen_width, self.screen_height)
         
-        # Attempt to load and use NumPy model first
-        numpy_model_path = "models/numpy_enemy_model.npz"
         loaded_numpy_model: Optional[NumpyEnemyModel] = None
         pytorch_model_instance: Optional[EnemyMovementModel] = None
 
-        if os.path.exists(numpy_model_path):
-            try:
-                # Use the global enemy_controller's instance if already loaded, or load fresh
-                if enemy_controller.numpy_model:
-                    loaded_numpy_model = enemy_controller.numpy_model
-                    logging.info(f"Using pre-loaded NumPy enemy model from global controller for EnemyPlay.")
-                else:
-                    loaded_numpy_model = NumpyEnemyModel(numpy_model_path)
-                    enemy_controller.numpy_model = loaded_numpy_model # Assign to global controller too
-                    logging.info(f"Successfully loaded NumPy enemy model from {numpy_model_path} for EnemyPlay.")
-                # Ensure the controller prioritizes it
-                enemy_controller.use_numpy_model_if_available = True
-            except Exception as e:
-                logging.warning(f"Found NumPy model at {numpy_model_path}, but failed to load: {e}. Falling back to PyTorch.")
-                loaded_numpy_model = None
-        else:
-            logging.info(f"NumPy model not found at {numpy_model_path}. Attempting to load PyTorch model.")
-
-        if not loaded_numpy_model:
-            # Fallback to PyTorch model
-            enemy_controller.use_numpy_model_if_available = False # Ensure PyTorch model is used
-            try:
-                pytorch_model_instance = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
-                pytorch_model_instance.load_state_dict(torch.load(config.MODEL_PATH, map_location="cpu"))
-                pytorch_model_instance.eval()
-                logging.info(f"Successfully loaded PyTorch enemy model from {config.MODEL_PATH} for EnemyPlay.")
-            except Exception as e:
-                logging.error(f"Failed to load PyTorch enemy model from {config.MODEL_PATH}: {e}. Enemy AI may not function.")
-                # We can still create EnemyPlay, it will use random movement if controller has no model
-                pytorch_model_instance = None 
+        # Load NumPy model if specified or in auto mode and found
+        if self.model_type in ['numpy', 'auto']:
+            if os.path.exists(self.numpy_model_path):
+                try:
+                    # Prefer fresh load for GameCore's instance, can be assigned to controller
+                    loaded_numpy_model = NumpyEnemyModel(self.numpy_model_path)
+                    logging.info(f"Successfully loaded NumPy enemy model from {self.numpy_model_path} for EnemyPlay.")
+                except Exception as e:
+                    logging.warning(f"Found NumPy model at {self.numpy_model_path}, but failed to load: {e}.")
+                    if self.model_type == 'numpy': # If specifically numpy, this is an error
+                        logging.error("Failed to load specified NumPy model. AI may not function.")
+                    loaded_numpy_model = None # Ensure it's None if load fails
+            elif self.model_type == 'numpy':
+                 logging.error(f"Specified NumPy model not found at {self.numpy_model_path}. AI may not function.")
+            else: # auto mode and not found
+                logging.info(f"NumPy model not found at {self.numpy_model_path}.")
         
-        # EnemyPlay constructor expects an optional PyTorch model.
-        # EnemyPlay's update_movement delegates to the global enemy_controller.
-        # The global enemy_controller attempts to load its own NumPy model at startup.
-        # Here, we ensure the PyTorch model is loaded if NumPy isn't, and EnemyPlay gets it.
-        # The enemy_controller will then decide which to use based on its state.
+        # Load PyTorch model if specified, or in auto mode and NumPy failed/not found
+        if self.model_type == 'pytorch' or (self.model_type == 'auto' and not loaded_numpy_model):
+            if os.path.exists(self.pytorch_model_path):
+                try:
+                    pytorch_model_instance = EnemyMovementModel(input_size=5, hidden_size=64, output_size=2)
+                    pytorch_model_instance.load_state_dict(torch.load(self.pytorch_model_path, map_location="cpu"))
+                    pytorch_model_instance.eval()
+                    logging.info(f"Successfully loaded PyTorch enemy model from {self.pytorch_model_path} for EnemyPlay.")
+                except Exception as e:
+                    logging.error(f"Failed to load PyTorch enemy model from {self.pytorch_model_path}: {e}.")
+                    if self.model_type == 'pytorch':
+                         logging.error("Failed to load specified PyTorch model. AI may not function.")
+                    pytorch_model_instance = None # Ensure it's None
+            elif self.model_type == 'pytorch':
+                logging.error(f"Specified PyTorch model not found at {self.pytorch_model_path}. AI may not function.")
+            elif self.model_type == 'auto': # auto mode, numpy failed, and pytorch not found
+                 logging.info(f"PyTorch model not found at {self.pytorch_model_path}. No model loaded in auto mode.")
 
-        enemy = EnemyPlay(self.screen_width, self.screen_height, model=pytorch_model_instance)
+        # Instantiate EnemyPlay with the loaded models
+        enemy = EnemyPlay(
+            self.screen_width, 
+            self.screen_height, 
+            model=pytorch_model_instance,  # PyTorch model
+            numpy_model_instance=loaded_numpy_model  # NumPy model
+        )
         
-        # Ensure the global enemy_controller's flags are set based on what was loaded here.
-        # This is important if GameCore's load attempt is the primary one.
+        # Configure the global enemy_controller based on loaded models
         if loaded_numpy_model:
-            # If GameCore successfully loaded/confirmed NumPy model, ensure controller knows to use it.
-            # This also handles if the controller's initial load failed but GameCore's succeeded.
-            enemy_controller.numpy_model = loaded_numpy_model 
+            enemy_controller.numpy_model = loaded_numpy_model
             enemy_controller.use_numpy_model_if_available = True
+            logging.info("EnemyAIController will prioritize NumPy model.")
         elif pytorch_model_instance:
-            # If only PyTorch model is available, ensure controller knows not to try NumPy.
+            enemy_controller.numpy_model = None # Ensure no stale numpy model in controller
             enemy_controller.use_numpy_model_if_available = False
-        # If neither model loaded, enemy_controller will use random movement.
+            logging.info("EnemyAIController will use PyTorch model (NumPy not available/loaded).")
+        else:
+            enemy_controller.numpy_model = None
+            enemy_controller.use_numpy_model_if_available = False # Fallback to PyTorch (which is also None here) or random
+            logging.warning("No enemy AI model loaded. Enemy will use random movement or basic rules.")
 
         logging.info("Initialized PlayerPlay and EnemyPlay for play mode.")
         return player, enemy
@@ -375,7 +390,7 @@ class GameCore:
                     logging.debug("F pressed - toggling fullscreen.")
                     self._toggle_fullscreen()
 
-                if self.menu_active:
+                if self.menu_active and self.menu: # Added check for self.menu
                     selected_action = self.menu.handle_menu_events(event)
                     if selected_action:
                         self.check_menu_selection(selected_action)
@@ -392,7 +407,7 @@ class GameCore:
                         self.reset_game_state()
 
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.menu_active:
+                if self.menu_active and self.menu: # Added check for self.menu
                     selected_action = self.menu.handle_menu_events(event)
                     if selected_action:
                         self.check_menu_selection(selected_action)
@@ -430,7 +445,8 @@ class GameCore:
         if not self.menu_active:
             current_mode = self.mode
             self.reset_game_state()
-            self.start_game(current_mode)
+            if current_mode is not None: # Ensure current_mode is not None
+                self.start_game(current_mode)
 
     def update(self, current_time: int) -> None:
         """

@@ -3,18 +3,20 @@ Enemy AI Controller for AI Platform Trainer.
 
 This module handles the enemy's AI-driven movement using neural network models.
 """
+import logging
 import math
 import random
-import logging
 import time
+from typing import Dict, List, Optional, Tuple  # Union removed as it's unused
+
+import numpy as np  # Added for NumPy model
 import torch
-import numpy as np # Added for NumPy model
-from typing import Tuple, Dict, List, Optional # Union removed as it's unused
 
 # Assuming NumpyEnemyModel will be in this path
 from ai_platform_trainer.ai.models.numpy_enemy_model import NumpyEnemyModel
+from ai_platform_trainer.utils.data_validator_and_trainer import EnemyTrainer
 
-logger = logging.getLogger(__name__) # Added logger definition
+logger = logging.getLogger(__name__)  # Added logger definition
 
 class EnemyAIController:
     """
@@ -226,13 +228,32 @@ class EnemyAIController:
         # Determine which model to use
         active_numpy_model = numpy_model_instance if numpy_model_instance else self.numpy_model
 
+        # Debug logging to track AI model usage
+        model_used = None
+        
         if self.use_numpy_model_if_available and active_numpy_model:
             action_dx, action_dy = self._get_numpy_nn_action(active_numpy_model, enemy, player_x, player_y)
+            model_used = "NumPy"
         elif hasattr(enemy, 'model') and enemy.model: # Fallback to PyTorch model if available
             action_dx, action_dy = self._get_pytorch_nn_action(enemy, player_x, player_y)
+            model_used = "PyTorch"
         else: # No model available, use random or simple chase
             logger.warning("No suitable AI model found for enemy. Using random movement.")
             action_dx, action_dy = self._get_random_direction()
+            model_used = "Random"
+        
+        # Log enemy AI decision every 60 frames (about once per second at 60 FPS)
+        if hasattr(self, '_debug_frame_counter'):
+            self._debug_frame_counter += 1
+        else:
+            self._debug_frame_counter = 0
+            
+        if self._debug_frame_counter % 60 == 0:
+            distance_to_player = math.sqrt((player_x - enemy.pos["x"])**2 + (player_y - enemy.pos["y"])**2)
+            logger.info(f"Enemy AI: Using {model_used} model, distance to player: {distance_to_player:.1f}, "
+                       f"action: dx={action_dx:.3f}, dy={action_dy:.3f}, "
+                       f"enemy_pos=({enemy.pos['x']:.1f}, {enemy.pos['y']:.1f}), "
+                       f"player_pos=({player_x:.1f}, {player_y:.1f})")
 
 
         if self._is_enemy_stuck():
@@ -504,3 +525,7 @@ def update_enemy_movement(
         enemy, player_x, player_y, player_speed, current_time,
         numpy_model_instance=active_numpy_model # Pass it to the class method
     )
+
+# Trainer instantiation removed - should be done explicitly when training is needed
+# rather than at module import time. Use DataValidatorAndTrainer or NumpyEnemyTrainer
+# with proper config and teacher instances when training is required.

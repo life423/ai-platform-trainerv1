@@ -39,13 +39,14 @@ class EnemyTrainer:
         self.b1 = np.zeros(hid_dim)
         self.W2 = np.random.randn(hid_dim, out_dim) * 0.1
         self.b2 = np.zeros(out_dim)
-        self.learning_rate = config['learning_rate']
+        self.learning_rate = config.get('learning_rate', 0.01) # Default if not in config
+        self.static_data_path = config.get('static_data_path', "data/raw/enemy_training_data.npz")
+
 
     def generate_training_data(self, episodes=100):
-        static_path = "data/raw/enemy_training_data.npz"
-        if episodes == 0 and os.path.exists(static_path):
-            print(f"Loading dummy data from {static_path}")
-            archive = np.load(static_path)
+        if episodes == 0 and self.static_data_path and os.path.exists(self.static_data_path):
+            print(f"Loading dummy data from {self.static_data_path}")
+            archive = np.load(self.static_data_path)
             states, actions = archive['states'], archive['actions']
             return list(zip(states, actions))
         print("Generating data with teacher agent...")
@@ -95,39 +96,94 @@ class EnemyTrainer:
 class DataValidatorAndTrainer:
     def __init__(self, config):
         self.config = config
-        self.trainer = EnemyTrainer(config['model'], EnemyTeacher())
-        self.model_path = config['model']['path']
-
-    def run(self):
-        data = self.trainer.generate_training_data(self.config['episodes'])
-        if len(data) < 10:
-            raise ValueError("Insufficient training data")
-        self.trainer.train_model(data, self.config['epochs'])
-        self.trainer.save_model(self.model_path)
-        print(f"Model saved to {self.model_path}")
-
-
 # ===== Main Entrypoint =====
+# The main block below is for standalone testing of this trainer file.
+# The actual pipeline is typically run via `train_enemy_agent_numpy.py`
 if __name__ == "__main__":
-    print("--- Starting Enemy Agent Training Orchestration ---\n")
-    # Step 1: Generate Dummy Data
-    print("Step 1: Generating dummy data for NumPy model...")
-    result = os.system("python scripts/tools/generate_dummy_enemy_data.py")
-    if result != 0:
-        print("Dummy data generation failed. Aborting.")
+    print("--- Starting Standalone EnemyTrainer Test Run ---\n")
+    
+    # Configuration for standalone run (mimics structure from config_enemy_numpy.json)
+    # This is primarily for testing this script directly.
+    # For actual training, use train_enemy_agent_numpy.py with config_enemy_numpy.json
+    
+    test_config_path = "config_enemy_numpy.json" # Use the numpy specific config
+    
+    if not os.path.exists(test_config_path):
+        print(f"ERROR: Test configuration file not found: {test_config_path}")
+        print("Please ensure 'config_enemy_numpy.json' exists in the project root.")
         sys.exit(1)
-    print("Dummy data generation complete.\n")
-    # Step 2: Train the Model
-    print("Step 2: Running NumPy-based training...")
+
     try:
-        with open("config.json") as f:
-            config = json.load(f)
-        pipeline = DataValidatorAndTrainer(config)
-        pipeline.run()
-        print("Enemy AI model training complete.")
+        with open(test_config_path, 'r') as f:
+            config_data = json.load(f)
+        print(f"Successfully loaded test configuration from {test_config_path}")
     except Exception as e:
-        print("NumPy-based training failed:", e)
+        print(f"Error loading test configuration from {test_config_path}: {e}")
         sys.exit(1)
-    print("\n--- Enemy Agent Training Orchestration Finished ---")
+
+    # Extract model and training configs
+    model_cfg = config_data.get('model', {})
+    training_cfg = config_data.get('training', {})
+
+    # Add static_data_path to model_cfg if it's in training_cfg, for EnemyTrainer
+    if 'static_data_path' in training_cfg:
+        model_cfg['static_data_path'] = training_cfg['static_data_path']
+
+    # Step 1: (Optional) Generate Dummy Data if configured to do so or if needed for test
+    # This step might be conditional based on whether static data is used/available
+    # For this test run, we assume data generation/loading is handled by EnemyTrainer
+    # based on 'episodes' and 'static_data_path' in config.
+    
+    # Initialize Teacher and Trainer
+    teacher_agent = EnemyTeacher() # EnemyTeacher does not take config currently
+    enemy_trainer = EnemyTrainer(config=model_cfg, teacher=teacher_agent)
+
+    # Step 2: Generate/Load Data
+    print("\nStep 1: Generating/Loading training data...")
+    num_episodes_for_data = training_cfg.get('episodes', 0) # Default to 0 to prefer static data
+    
+    try:
+        training_samples = enemy_trainer.generate_training_data(episodes=num_episodes_for_data)
+        if not training_samples:
+            print("No training data generated or loaded. Aborting.")
+            sys.exit(1)
+        print(f"Generated/Loaded {len(training_samples)} training samples.")
+    except Exception as e:
+        print(f"Error during data generation/loading: {e}")
         sys.exit(1)
-    print("\n--- Enemy Agent Training Orchestration Finished ---")
+
+    # Basic data validation (can be expanded)
+    if len(training_samples) < training_cfg.get('min_data_samples', 10): # Min 10 for standalone
+        print(f"Insufficient training data ({len(training_samples)} samples). Aborting.")
+        sys.exit(1)
+    print("Basic data validation passed.")
+
+    # Step 3: Train the Model
+    print("\nStep 2: Training the model...")
+    num_epochs_for_training = model_cfg.get('epochs', training_cfg.get('epochs', 10))
+
+    try:
+        enemy_trainer.train_model(data=training_samples, epochs=num_epochs_for_training)
+        print(f"Model training complete after {num_epochs_for_training} epochs.")
+    except Exception as e:
+        print(f"Error during model training: {e}")
+        sys.exit(1)
+
+    # Step 4: Save the Model
+    print("\nStep 3: Saving the model...")
+    model_save_path = model_cfg.get('path', 'models/numpy_enemy_model_test_standalone.npz')
+    
+    # Ensure directory exists
+    model_save_dir = os.path.dirname(model_save_path)
+    if model_save_dir and not os.path.exists(model_save_dir):
+        os.makedirs(model_save_dir)
+        print(f"Created directory: {model_save_dir}")
+        
+    try:
+        enemy_trainer.save_model(model_save_path)
+        print(f"Model saved successfully to {model_save_path}")
+    except Exception as e:
+        print(f"Error saving model: {e}")
+        sys.exit(1)
+        
+    print("\n--- Standalone EnemyTrainer Test Run Finished ---")
