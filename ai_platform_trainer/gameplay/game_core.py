@@ -13,7 +13,7 @@ from typing import Optional, Tuple, Dict, Any, List
 
 # Logging setup
 from ai_platform_trainer.core.logging_config import setup_logging
-from config_manager import load_settings, save_settings
+from ai_platform_trainer.core.config_manager import get_config_manager
 
 # Gameplay imports
 from ai_platform_trainer.gameplay.collisions import handle_missile_collisions
@@ -67,12 +67,12 @@ class GameCore:
         self.paused: bool = False
         self.render_mode = render_mode
 
-        # Load user settings
-        self.settings = load_settings("settings.json")
+        # Get configuration manager
+        self.config_manager = get_config_manager()
         
         # Always start in fullscreen mode regardless of settings
-        self.settings["fullscreen"] = True
-        save_settings(self.settings, "settings.json")
+        self.config_manager.set("display.fullscreen", True)
+        self.config_manager.save()
 
         # Initialize Pygame
         pygame.init()
@@ -383,13 +383,13 @@ class GameCore:
 
     def _toggle_fullscreen(self) -> None:
         """Toggle between windowed and fullscreen modes."""
-        was_fullscreen = self.settings["fullscreen"]
+        was_fullscreen = self.config_manager.get("display.fullscreen", False)
         new_display, w, h = toggle_fullscreen_display(
             not was_fullscreen,
             config.SCREEN_SIZE
         )
-        self.settings["fullscreen"] = not was_fullscreen
-        save_settings(self.settings, "settings.json")
+        self.config_manager.set("display.fullscreen", not was_fullscreen)
+        self.config_manager.save()
 
         self.screen = new_display
         self.screen_width, self.screen_height = w, h
@@ -541,28 +541,6 @@ class GameCore:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-
-        # Update based on current mode
-        if self.mode == "play" and not self.menu_active:
-            if self.play_mode_manager:
-                self.play_mode_manager.update(current_time)
-            else:
-                self.play_mode_manager = PlayMode(self)
-                self.play_mode_manager.update(current_time)
-
-    def update_once(self) -> None:
-        """
-        Process a single update frame for the game.
-        
-        This is used during RL training to advance the game state
-        without relying on the main game loop.
-        """
-        current_time = pygame.time.get_ticks()
-
-        # Process pending events to avoid queue overflow
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
 
         # Update based on current mode
         if self.mode == "play" and not self.menu_active:

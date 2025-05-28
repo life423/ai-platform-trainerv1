@@ -680,3 +680,15 @@ With these steps you can verify, build, and train your enemy agent entirely on y
 
 ---
 
+_**User**_
+
+@workspace why isn't the missile showing up in the app?
+
+---
+
+_**Assistant**_
+
+
+
+---
+

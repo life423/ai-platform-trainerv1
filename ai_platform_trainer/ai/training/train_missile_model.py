@@ -11,8 +11,8 @@ import torch
 from torch import optim
 from torch.utils.data import DataLoader
 
-from ai_platform_trainer.ai_model.missile_dataset import MissileDataset
-from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
+from ai_platform_trainer.ai.training.missile_dataset import MissileDataset
+from ai_platform_trainer.ai.models.simple_missile_model import SimpleMissileModel
 
 
 class MissileTrainer:

@@ -11,7 +11,7 @@ from typing import Dict, List, Any
 import pytest
 import torch
 
-from ai_platform_trainer.ai_model.simple_missile_model import SimpleMissileModel
+from ai_platform_trainer.ai.models.simple_missile_model import SimpleMissileModel
 
 
 @pytest.fixture

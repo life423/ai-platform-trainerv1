@@ -59,6 +59,9 @@ ai_platform_trainer/cpp/build/
 models/checkpoints/
 models/logs/
 models/enemy_rl/
+models/*.pth
+models/*.pt
+models/*.pkl
 
 # Miscellaneous
 .coverage
