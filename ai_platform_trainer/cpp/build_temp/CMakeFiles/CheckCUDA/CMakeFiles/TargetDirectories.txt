@@ -1,0 +1,2 @@
+C:/Users/aiand/Documents/programming/ai-platform-trainerv1/ai_platform_trainer/cpp/build_temp/CMakeFiles/CheckCUDA/CMakeFiles/ALL_BUILD.dir
+C:/Users/aiand/Documents/programming/ai-platform-trainerv1/ai_platform_trainer/cpp/build_temp/CMakeFiles/CheckCUDA/CMakeFiles/ZERO_CHECK.dir
