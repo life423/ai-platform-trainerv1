@@ -2,14 +2,15 @@
 Safe environment wrappers to prevent heap corruption crashes.
 These wrappers implement multiple strategies to keep training alive while debugging.
 """
+import gc
+import logging
 import os
 import sys
-import logging
+from typing import Any, Dict, Optional, Tuple
+
 import gymnasium as gym
 import numpy as np
 import psutil
-import gc
-from typing import Dict, Any, Tuple, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -271,8 +272,7 @@ def create_safe_env(base_env_creator, max_steps=90, debug=True, enable_memory_de
 
 def make_safe_vec_env(env_creator, n_envs=1, max_steps=90, debug=False):
     """Create vectorized safe environments for stable-baselines3"""
-    from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
-    from stable_baselines3.common.vec_env import VecMonitor
+    from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecMonitor
     
     def make_env():
         def _init():
@@ -331,6 +331,60 @@ def test_safe_wrapper():
             obs, info = safe_env.reset()
     
     print("✅ Safe wrapper test completed - no crashes!")
+
+
+"""
+GPU Environment module for CUDA-accelerated training
+"""
+# Flag to indicate if GPU environment is available
+HAS_GPU_ENV = False
+
+try:
+    # Try to import CUDA physics kernels
+    from . import physics_cuda
+    HAS_GPU_ENV = True
+    logger.info("CUDA GPU environment loaded successfully")
+except ImportError as e:
+    logger.warning(f"CUDA GPU environment not available: {e}")
+    HAS_GPU_ENV = False
+
+def make_env():
+    """Create a GPU-accelerated environment"""
+    if HAS_GPU_ENV:
+        from ..ai.models.gpu_rl_environment import GPURLEnvironment
+        return GPURLEnvironment(batch_size=1)
+    else:
+        # Fallback to CPU environment
+        from ..ai.models.game_environment import GameEnvironment
+        return GameEnvironment()
+
+class GPUPhysicsEngine:
+    """GPU-accelerated physics engine"""
+    
+    def __init__(self):
+        self.has_cuda = HAS_GPU_ENV
+        
+    def update_positions(self, entities_x, entities_y, velocities_x, velocities_y, 
+                        screen_width=1200, screen_height=650):
+        """Update entity positions using GPU acceleration"""
+        if self.has_cuda:
+            # Use CUDA kernels
+            return physics_cuda.update_positions(
+                entities_x, entities_y, velocities_x, velocities_y,
+                screen_width, screen_height
+            )
+        else:
+            # CPU fallback
+            entities_x += velocities_x
+            entities_y += velocities_y
+            
+            # Wrap around screen boundaries
+            entities_x = np.where(entities_x < 0, entities_x + screen_width, entities_x)
+            entities_x = np.where(entities_x >= screen_width, entities_x - screen_width, entities_x)
+            entities_y = np.where(entities_y < 0, entities_y + screen_height, entities_y)
+            entities_y = np.where(entities_y >= screen_height, entities_y - screen_height, entities_y)
+            
+            return entities_x, entities_y
 
 
 if __name__ == "__main__":

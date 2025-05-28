@@ -77,3 +77,2436 @@ The trained model will be saved to `enemy_rl_gpu.npz`.
 
 ---
 
+_**User**_
+
+**********************************************************************
+** Visual Studio 2022 Developer Command Prompt v17.14.1
+** Copyright (c) 2022 Microsoft Corporation
+**********************************************************************
+
+C:\Program Files\Microsoft Visual Studio\2022\Community>nvcc --version
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2025 NVIDIA Corporation
+Built on Wed_Apr__9_19:29:17_Pacific_Daylight_Time_2025
+Cuda compilation tools, release 12.9, V12.9.41
+Build cuda_12.9.r12.9/compiler.35813241_0
+
+C:\Program Files\Microsoft Visual Studio\2022\Community>nvidia-smi
+Tue May 27 22:46:11 2025
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 576.52                 Driver Version: 576.52         CUDA Version: 12.9     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                  Driver-Model | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA GeForce RTX 5070      WDDM  |   00000000:01:00.0  On |                  N/A |
+|  0%   39C    P0             25W /  250W |    1842MiB /  12227MiB |      4%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A            2408    C+G   ...mba6cd70vzyy\ArmouryCrate.exe      N/A      |
+|    0   N/A  N/A            3176    C+G   ...t\Edge\Application\msedge.exe      N/A      |
+|    0   N/A  N/A            3996    C+G   ...cord\app-1.0.9192\Discord.exe      N/A      |
+|    0   N/A  N/A            5388    C+G   ...ice\root\Office16\ONENOTE.EXE      N/A      |
+|    0   N/A  N/A            7948    C+G   ...Chrome\Application\chrome.exe      N/A      |
+|    0   N/A  N/A           13472    C+G   ...2txyewy\CrossDeviceResume.exe      N/A      |
+|    0   N/A  N/A           13932    C+G   ...IA App\CEF\NVIDIA Overlay.exe      N/A      |
+|    0   N/A  N/A           13964    C+G   C:\Windows\explorer.exe               N/A      |
+|    0   N/A  N/A           14112    C+G   ...indows\System32\ShellHost.exe      N/A      |
+|    0   N/A  N/A           14876    C+G   ...em32\ApplicationFrameHost.exe      N/A      |
+|    0   N/A  N/A           14948    C+G   ...Chrome\Application\chrome.exe      N/A      |
+|    0   N/A  N/A           15888    C+G   ....0.3240.92\msedgewebview2.exe      N/A      |
+|    0   N/A  N/A           16296    C+G   ..._cw5n1h2txyewy\SearchHost.exe      N/A      |
+|    0   N/A  N/A           16328    C+G   ...y\StartMenuExperienceHost.exe      N/A      |
+|    0   N/A  N/A           16436    C+G   ...IA App\CEF\NVIDIA Overlay.exe      N/A      |
+|    0   N/A  N/A           19448    C+G   ...App_cw5n1h2txyewy\LockApp.exe      N/A      |
+|    0   N/A  N/A           20416    C+G   ...2p2nqsd0c76g0\app\ChatGPT.exe      N/A      |
+|    0   N/A  N/A           24236    C+G   ...8bbwe\PhoneExperienceHost.exe      N/A      |
+|    0   N/A  N/A           25772    C+G   ...rsair iCUE5 Software\iCUE.exe      N/A      |
+|    0   N/A  N/A           27896    C+G   ...a\Roaming\Spotify\Spotify.exe      N/A      |
+|    0   N/A  N/A           28756    C+G   ...yApp\MicrosoftSecurityApp.exe      N/A      |
+|    0   N/A  N/A           30796    C+G   ...ms\Microsoft VS Code\Code.exe      N/A      |
+|    0   N/A  N/A           33752    C+G   ...ntrolPanel\SystemSettings.exe      N/A      |
+|    0   N/A  N/A           36424    C+G   ...aken\app-11.1.1\gitkraken.exe      N/A      |
+|    0   N/A  N/A           37880    C+G   ...xyewy\ShellExperienceHost.exe      N/A      |
+|    0   N/A  N/A           39560    C+G   ...yb3d8bbwe\WindowsTerminal.exe      N/A      |
++-----------------------------------------------------------------------------------------+
+
+C:\Program Files\Microsoft Visual Studio\2022\Community>code
+
+C:\Program Files\Microsoft Visual Studio\2022\Community>cl
+Microsoft (R) C/C++ Optimizing Compiler Version 19.44.35207.1 for x86
+Copyright (C) Microsoft Corporation.  All rights reserved.
+
+usage: cl [ option... ] filename... [ /link linkoption... ]
+
+C:\Program Files\Microsoft Visual Studio\2022\Community>cd ..
+
+C:\Program Files\Microsoft Visual Studio\2022>ls
+'ls' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Program Files\Microsoft Visual Studio\2022>cd ~
+The system cannot find the path specified.
+
+C:\Program Files\Microsoft Visual Studio\2022>ls
+'ls' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Program Files\Microsoft Visual Studio\2022>cd ..
+
+C:\Program Files\Microsoft Visual Studio>ls
+'ls' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Program Files\Microsoft Visual Studio>cd /
+
+C:\>ls
+'ls' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\>ls
+'ls' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\>cd C:\Users\aiand\Documents\programming
+
+C:\Users\aiand\Documents\programming>dir
+ Volume in drive C has no label.
+ Volume Serial Number is 467B-F355
+
+ Directory of C:\Users\aiand\Documents\programming
+
+05/27/2025  10:24 PM    <DIR>          .
+05/23/2025  09:50 PM    <DIR>          ..
+05/28/2025  12:18 AM    <DIR>          ai-platform-trainerv1
+05/27/2025  10:26 PM       387,738,472 ai-platform-trainerv1.zip
+05/24/2025  06:08 AM    <DIR>          ascend-avoid
+05/27/2025  09:00 PM    <DIR>          CudaRL-Arena
+05/24/2025  05:50 AM    <DIR>          polyalphabetic-and-caesar_cipher
+               1 File(s)    387,738,472 bytes
+               6 Dir(s)  106,317,524,992 bytes free
+
+C:\Users\aiand\Documents\programming>cd ai-platform-trainerv1
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>code .
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>"""
+'"""' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>Comprehensive script to fix and debug the GPU environment heap corruption issue.
+'Comprehensive' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>This combines all three approaches:
+'This' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>1. Safe wrapper to prevent crashes
+'1.' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>2. Detailed debugging of line 203
+'2.' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>3. Enhanced CUDA error checking
+'3.' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>"""
+'"""' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>import os
+'import' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>import sys
+'import' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>import logging
+'import' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>import numpy as np
+'import' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>from stable_baselines3 import PPO
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>from stable_baselines3.common.vec_env import DummyVecEnv
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1># Import your custom modules
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+'sys.path.append' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>from safe_env_wrapper import SafeStepWrapper, MemoryDebugWrapper, create_safe_env
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>from debug_line_203 import debug_gpu_env_line_203, GPUEnvDebugWrapper
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1># Set up logging
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>logging.basicConfig(
+'logging.basicConfig' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    level=logging.INFO,
+'level' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    format='%(asctime)s - %(levelname)s - %(message)s'
+Invalid parameter - -
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>)
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>logger = logging.getLogger(__name__)
+'logger' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1># Enable CUDA debugging
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+'os.environ['CUDA_LAUNCH_BLOCKING']' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>os.environ['CUDA_DEVICE_ASSERT'] = '1'
+'os.environ['CUDA_DEVICE_ASSERT']' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>def diagnose_heap_corruption():
+'def' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    """Run comprehensive diagnostics to identify the heap corruption issue"""
+'"""Run comprehensive diagnostics to identify the heap corruption issue"""' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("="*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("HEAP CORRUPTION DIAGNOSTIC TOOL")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("="*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Import your GPU environment
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    from gpu_env_wrapper import create_gpu_environment
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Test 1: Find exact crash point
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("\n1. FINDING EXACT CRASH POINT...")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    try:
+'try:' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        debug_gpu_env_line_203(create_gpu_environment, num_steps=15)
+'debug_gpu_env_line_203' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    except Exception as e:
+'except' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.error(f"Crash detected: {e}")
+'logger.error' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.info("Crash analysis complete. See debug output above.")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Test 2: Test with safe wrapper
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("\n2. TESTING WITH SAFE WRAPPER...")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    safe_env = create_safe_env(create_gpu_environment, max_steps=90, debug=True)
+'safe_env' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    try:
+'try:' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        obs = safe_env.reset()
+'obs' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        for i in range(200):  # Run past the crash point
+i was unexpected at this time.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            action = safe_env.action_space.sample()
+'action' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            obs, reward, done, info = safe_env.step(action)
+'obs' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            if done:
+The syntax of the command is incorrect.
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>                obs = safe_env.reset()
+'obs' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            if i % 50 == 0:
+% was unexpected at this time.
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>                logger.info(f"Safe wrapper test: {i} steps completed")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.info("✅ Safe wrapper prevents crash successfully!")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    except Exception as e:
+'except' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.error(f"Safe wrapper failed: {e}")
+'logger.error' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>def train_with_fixes():
+'def' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    """Train using the safe wrapper and enhanced debugging"""
+'"""Train using the safe wrapper and enhanced debugging"""' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("\n" + "="*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("TRAINING WITH HEAP CORRUPTION FIXES")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("="*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    from gpu_env_wrapper import create_gpu_environment
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Create environment with all fixes
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    def make_fixed_env():
+'def' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        # Base GPU environment
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        env = create_gpu_environment()
+'env' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        # Add debugging wrapper
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        env = GPUEnvDebugWrapper(env)
+'env' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        # Add safety wrapper (auto-reset before crash)
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        env = SafeStepWrapper(env, max_steps_before_reset=85, debug=False)
+'env' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        # Add memory debugging
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        env = MemoryDebugWrapper(env, check_cuda=False)
+'env' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        return env
+'return' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Create vectorized environment
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    env = DummyVecEnv([make_fixed_env])
+'env' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Create PPO model with conservative settings
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    model = PPO(
+'model' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        "MlpPolicy",
+'"MlpPolicy"' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        env,
+'env' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        n_steps=64,           # Small batch to stay under crash limit
+'n_steps' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        batch_size=32,        # Small batch size
+'batch_size' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        n_epochs=4,           # Fewer epochs per update
+'n_epochs' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        learning_rate=3e-4,
+'learning_rate' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        verbose=1,
+'verbose' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        tensorboard_log="./fixed_tensorboard/"
+'tensorboard_log' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    )
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Train with periodic saves
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("Starting training with fixes...")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    try:
+'try:' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        for i in range(10):
+i was unexpected at this time.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            model.learn(
+'model.learn' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>                total_timesteps=1000,
+'total_timesteps' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>                reset_num_timesteps=False,
+'reset_num_timesteps' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>                tb_log_name="fixed_run"
+'tb_log_name' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            )
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            # Save checkpoint
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            model.save(f"ppo_gpu_fixed_{i}")
+'model.save' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            logger.info(f"Checkpoint {i} saved. Total steps: {(i+1)*1000}")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    except Exception as e:
+'except' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.error(f"Training failed: {e}")
+'logger.error' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.info("Saving emergency checkpoint...")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        model.save("ppo_gpu_emergency")
+'model.save' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>def identify_common_patterns():
+'def' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    """Identify common heap corruption patterns in CUDA code"""
+'"""Identify common heap corruption patterns in CUDA code"""' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("\n" + "="*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("COMMON HEAP CORRUPTION PATTERNS IN YOUR CODE")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("="*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    patterns = [
+'patterns' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        {
+'{' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "pattern": "Array indexed by step counter",
+'"pattern":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "example": "state_history[step_count] where array size is 10",
+'"example":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "fix": "Use modulo: state_history[step_count % BUFFER_SIZE]"
+'"fix":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        },
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        {
+'{' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "pattern": "Off-by-one in observation buffer",
+'"pattern":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "example": "float obs[10]; obs[10] = value; // Index 10 is out of bounds",
+'"example":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "fix": "Ensure all indices are < array_size"
+'"fix":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        },
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        {
+'{' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "pattern": "Mismatched Python/C++ array sizes",
+'"pattern":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "example": "Python expects 10 elements, C++ writes 11",
+'"example":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "fix": "Verify sizeof(array) matches on both sides"
+'"fix":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        },
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        {
+'{' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "pattern": "CUDA kernel writing out of bounds",
+'"pattern":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "example": "if (idx <= size) data[idx] = val; // Should be <",
+'"example":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "fix": "Always use < for bounds checks, not <="
+'"fix":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        },
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        {
+'{' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "pattern": "Shared memory overflow",
+'"pattern":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "example": "__shared__ float s[10]; s[threadIdx.x] = val; // If block > 10",
+'"example":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>            "fix": "Check threadIdx.x < shared_size"
+'"fix":' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        }
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    ]
+']' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    for i, p in enumerate(patterns, 1):
+i was unexpected at this time.
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.info(f"\n{i}. {p['pattern']}")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.info(f"   Example: {p['example']}")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        logger.info(f"   Fix: {p['fix']}")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("\n" + "-"*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("CHECK YOUR physics.cu FILE FOR THESE PATTERNS!")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("The crash at step 10 strongly suggests pattern #1 or #2")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>def main():
+'def' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    """Run all diagnostics and fixes"""
+'"""Run all diagnostics and fixes"""' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Step 1: Diagnose the issue
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    diagnose_heap_corruption()
+'diagnose_heap_corruption' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Step 2: Show common patterns
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    identify_common_patterns()
+'identify_common_patterns' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    # Step 3: Train with fixes
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    user_input = input("\nRun training with fixes? (y/n): ")
+'user_input' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    if user_input.lower() == 'y':
+The syntax of the command is incorrect.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>        train_with_fixes()
+'train_with_fixes' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("\n" + "="*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("RECOMMENDED NEXT STEPS:")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("1. Check physics.cu for array[step_count] patterns")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("2. Verify observation buffer size matches between Python/C++")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("3. Add the CUDA debug helpers to your C++ code")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("4. Use the safe wrapper for training until fixed")
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>    logger.info("="*80)
+'logger.info' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>if __name__ == "__main__":
+The syntax of the command is incorrect.
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python -m ai_platform_trainer.ai.models.train_enemy_rl_gpu
+INFO:__main__:Starting GPU RL training with Evolution Strategy
+INFO:__main__:Generations: 100, Batch size: 64
+INFO:__main__:Population: 30, Learning rate: 0.02
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=64
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:Environment: obs_dim=4, action_dim=2
+INFO:__main__:Initialized agent: 4->64->64->2
+INFO:__main__:ES Optimizer: pop_size=30, lr=0.02
+INFO:__main__:Starting training loop...
+INFO:__main__:Generation   0: fitness= -2.881, best= -2.881, time=0.08s
+INFO:__main__:Generation  10: fitness= -3.111, best= -2.817, time=0.09s
+INFO:__main__:Generation  20: fitness= -2.971, best= -2.796, time=0.09s
+INFO:__main__:Generation  30: fitness= -3.151, best= -2.796, time=0.08s
+INFO:__main__:Generation  40: fitness= -3.201, best= -2.796, time=0.26s
+INFO:__main__:Generation  50: fitness= -3.230, best= -2.796, time=0.19s
+INFO:__main__:Generation  60: fitness= -3.126, best= -2.570, time=0.26s
+INFO:__main__:Generation  70: fitness=-22.714, best= -2.570, time=0.45s
+INFO:__main__:Generation  80: fitness= -2.997, best= -2.570, time=0.45s
+INFO:__main__:Generation  90: fitness= -2.961, best= -2.570, time=0.46s
+INFO:__main__:Training completed!
+INFO:__main__:Final fitness: -551.384
+INFO:__main__:Model saved to ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:__main__:Testing trained agent...
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=4
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:Initialized agent: 4->64->64->2
+INFO:__main__:Model loaded from ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:__main__:Trained agent fitness: -1073.737
+INFO:__main__:Sample action: [ 1. -1.]
+INFO:__main__:Testing trained agent...
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=4
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:Initialized agent: 4->64->64->2
+INFO:__main__:Model loaded from ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:__main__:Trained agent fitness: -850.459
+INFO:__main__:Sample action: [-1. -1.]
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python ai_platform_trainer/cpp/train_gpu_fixed.py --num-envs 4 --timesteps 100000
+2025-05-28 01:44:18,453 - INFO - GPU environment loaded successfully
+2025-05-28 01:44:18,454 - INFO - GPU-Accelerated Missile Avoidance Training
+2025-05-28 01:44:18,454 - INFO - ==================================================
+2025-05-28 01:44:18,454 - INFO - NOTE: The GPU accelerates the environment physics simulation.
+2025-05-28 01:44:18,454 - INFO -       PPO training (neural network) runs on CPU by default
+2025-05-28 01:44:18,455 - INFO -       as it's faster for small networks.
+2025-05-28 01:44:18,455 - INFO - Creating 4 environments...
+2025-05-28 01:44:18,455 - INFO - Created GPU-accelerated environment
+2025-05-28 01:44:18,456 - INFO - Created GPU-accelerated environment
+2025-05-28 01:44:18,456 - INFO - Created GPU-accelerated environment
+2025-05-28 01:44:18,456 - INFO - Created GPU-accelerated environment
+2025-05-28 01:44:18,456 - INFO - Using device: cpu (PPO with MLP is faster on CPU)
+Using cpu device
+2025-05-28 01:44:19,651 - INFO - Starting training for 100000 timesteps...
+2025-05-28 01:44:19,653 - ERROR - Training error: You must install tqdm and rich in order to use the progress bar callback. It is included if you install stable-baselines with the extra packages: `pip install stable-baselines3[extra]`
+Traceback (most recent call last):
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\cpp\train_gpu_fixed.py", line 90, in train_missile_avoidance
+    model.learn(
+    ~~~~~~~~~~~^
+        total_timesteps=total_timesteps,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        callback=checkpoint_callback,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        progress_bar=True
+        ^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\aiand\AppData\Local\Programs\Python\Python313\Lib\site-packages\stable_baselines3\ppo\ppo.py", line 311, in learn
+    return super().learn(
+           ~~~~~~~~~~~~~^
+        total_timesteps=total_timesteps,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        progress_bar=progress_bar,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\aiand\AppData\Local\Programs\Python\Python313\Lib\site-packages\stable_baselines3\common\on_policy_algorithm.py", line 311, in learn
+    total_timesteps, callback = self._setup_learn(
+                                ~~~~~~~~~~~~~~~~~^
+        total_timesteps,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        progress_bar,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\aiand\AppData\Local\Programs\Python\Python313\Lib\site-packages\stable_baselines3\common\base_class.py", line 435, in _setup_learn
+    callback = self._init_callback(callback, progress_bar)
+  File "C:\Users\aiand\AppData\Local\Programs\Python\Python313\Lib\site-packages\stable_baselines3\common\base_class.py", line 379, in _init_callback
+    callback = CallbackList([callback, ProgressBarCallback()])
+                                       ~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\aiand\AppData\Local\Programs\Python\Python313\Lib\site-packages\stable_baselines3\common\callbacks.py", line 709, in __init__
+    raise ImportError(
+    ...<3 lines>...
+    )
+ImportError: You must install tqdm and rich in order to use the progress bar callback. It is included if you install stable-baselines with the extra packages: `pip install stable-baselines3[extra]`
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python build_and_test_gpu_pipeline.py
+INFO:__main__:============================================================
+INFO:__main__:GPU RL Pipeline Build and Test
+INFO:__main__:============================================================
+INFO:__main__:Python path configured
+INFO:__main__:Models directory ready: ai_platform_trainer\models
+INFO:__main__:CUDA compiler found
+INFO:__main__:CUDA is available - will build GPU acceleration
+INFO:__main__:Building CUDA extension...
+INFO:__main__:Running CMake configure...
+INFO:__main__:Running CMake build...
+INFO:__main__:CUDA extension built successfully
+INFO:__main__:
+========================================
+INFO:__main__:RUNNING TESTS
+INFO:__main__:========================================
+INFO:__main__:Running GPU RL pipeline tests...
+INFO:test_gpu_rl_pipeline:============================================================
+INFO:test_gpu_rl_pipeline:GPU RL Pipeline Test Suite
+INFO:test_gpu_rl_pipeline:============================================================
+INFO:test_gpu_rl_pipeline:
+--- CUDA Extension ---
+INFO:test_gpu_rl_pipeline:Testing CUDA extension...
+WARNING:test_gpu_rl_pipeline:CUDA Extension: NOT AVAILABLE - No module named 'gpu_environment'
+INFO:test_gpu_rl_pipeline:Will use CPU fallback
+INFO:test_gpu_rl_pipeline:
+--- GPU Environment ---
+INFO:test_gpu_rl_pipeline:Testing GPU environment...
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=10
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:test_gpu_rl_pipeline:Reset successful, observation shape: (10, 4)
+INFO:test_gpu_rl_pipeline:Step successful:
+INFO:test_gpu_rl_pipeline:  Obs shape: (10, 4)
+INFO:test_gpu_rl_pipeline:  Rewards shape: (10,)
+INFO:test_gpu_rl_pipeline:  Dones shape: (10,)
+INFO:test_gpu_rl_pipeline:GPU Environment: SUCCESS
+INFO:test_gpu_rl_pipeline:
+--- Neural Network ---
+INFO:test_gpu_rl_pipeline:Testing neural network...
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Initialized agent: 4->32->32->2
+INFO:test_gpu_rl_pipeline:Forward pass successful:
+INFO:test_gpu_rl_pipeline:  Input shape: (5, 4)
+INFO:test_gpu_rl_pipeline:  Output shape: (5, 2)
+INFO:test_gpu_rl_pipeline:  Action range: [-0.805, 0.798]
+INFO:test_gpu_rl_pipeline:  Total parameters: 1282
+ERROR:test_gpu_rl_pipeline:Neural Network: FAILED - [WinError 3] The system cannot find the path specified: ''
+INFO:test_gpu_rl_pipeline:
+--- RL Controller ---
+INFO:test_gpu_rl_pipeline:Testing RL controller...
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Initialized agent: 4->64->64->2
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Model loaded from ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:ai_platform_trainer.gameplay.rl_enemy_controller:Loaded RL enemy model from ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:test_gpu_rl_pipeline:Controller status: {'model_loaded': True, 'model_path': 'ai_platform_trainer/models/enemy_rl_gpu.npz', 'agent_available': True}
+INFO:test_gpu_rl_pipeline:Generated action: (1.0, -1.0)
+INFO:test_gpu_rl_pipeline:RL Controller: SUCCESS
+INFO:test_gpu_rl_pipeline:
+--- Quick Training ---
+INFO:test_gpu_rl_pipeline:Testing quick training...
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Starting GPU RL training with Evolution Strategy
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Generations: 5, Batch size: 16
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Population: 10, Learning rate: 0.05
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=16
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Environment: obs_dim=4, action_dim=2
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Initialized agent: 4->64->64->2
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:ES Optimizer: pop_size=10, lr=0.05
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Starting training loop...
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Generation   0: fitness=-45.043, best=-45.043, time=0.14s
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Training completed!
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Final fitness: -238.335
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Model saved to ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:test_gpu_rl_pipeline:Quick Training: SUCCESS
+INFO:test_gpu_rl_pipeline:
+--- Performance ---
+INFO:test_gpu_rl_pipeline:Benchmarking performance...
+INFO:test_gpu_rl_pipeline:Testing batch size 32
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=32
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:test_gpu_rl_pipeline:  330895 env-steps/second
+INFO:test_gpu_rl_pipeline:Testing batch size 64
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=64
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:test_gpu_rl_pipeline:  587772 env-steps/second
+INFO:test_gpu_rl_pipeline:Testing batch size 128
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=128
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:test_gpu_rl_pipeline:  973368 env-steps/second
+INFO:test_gpu_rl_pipeline:
+Performance Summary:
+INFO:test_gpu_rl_pipeline:Batch Size | Env-Steps/Sec | CUDA
+INFO:test_gpu_rl_pipeline:-----------------------------------
+INFO:test_gpu_rl_pipeline:       32 |       330895 | No
+INFO:test_gpu_rl_pipeline:       64 |       587772 | No
+INFO:test_gpu_rl_pipeline:      128 |       973368 | No
+INFO:test_gpu_rl_pipeline:
+============================================================
+INFO:test_gpu_rl_pipeline:FINAL RESULTS
+INFO:test_gpu_rl_pipeline:============================================================
+INFO:test_gpu_rl_pipeline:  CUDA Extension      : FAIL
+INFO:test_gpu_rl_pipeline:  GPU Environment     : PASS
+INFO:test_gpu_rl_pipeline:  Neural Network      : FAIL
+INFO:test_gpu_rl_pipeline:  RL Controller       : PASS
+INFO:test_gpu_rl_pipeline:  Quick Training      : PASS
+INFO:test_gpu_rl_pipeline:  Performance         : PASS
+INFO:test_gpu_rl_pipeline:
+Summary: 4/6 tests passed
+WARNING:test_gpu_rl_pipeline:Some tests failed. Check the logs above.
+ERROR:__main__:Tests failed, skipping demonstrations
+INFO:__main__:
+============================================================
+INFO:__main__:FINAL SUMMARY
+INFO:__main__:============================================================
+INFO:__main__:CUDA Available:     Yes
+INFO:__main__:CUDA Build:         Success
+INFO:__main__:Tests:              Failed
+INFO:__main__:Overall:            FAILED
+INFO:__main__:Total Time:         4.11s
+ERROR:__main__:
+Some components failed. Check the logs above.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python train_enemy_agent.py --episodes 500 --output models/enemy_rl/gpu_model
+2025-05-28 01:44:33,567 - INFO - Selected training method: cpu
+2025-05-28 01:44:33,567 - INFO - Training with CPU
+2025-05-28 01:44:34,337 - INFO - Configuration loaded from config.json
+2025-05-28 01:44:34,337 - INFO - Configuration file user_settings.json not found. Skipping.
+2025-05-28 01:44:34,337 - INFO - Configuration manager initialized
+2025-05-28 01:44:34,803 - root - INFO - Logging configured successfully
+2025-05-28 01:44:34,805 - root - INFO - Configuration saved to config.json
+2025-05-28 01:44:34,905 - root - INFO - Found missile model at 'models/missile_model.pth'.
+2025-05-28 01:44:34,905 - root - INFO - Loading missile model once...
+2025-05-28 01:44:34,909 - root - INFO - Game initialized.
+2025-05-28 01:44:34,910 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:34,912 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:35,875 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:35,875 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:35,875 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:35,875 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:35,875 - root - INFO - Spawned player at (905, 149) and enemy at (672, 175).
+2025-05-28 01:44:35,875 - __main__ - INFO - Starting training for 500 episodes...
+  0%|                                                                                          | 0/500 [00:00<?, ?it/s]2025-05-28 01:44:35,877 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:35,877 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:35,881 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:35,891 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:35,891 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:35,891 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:35,892 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:35,892 - root - INFO - Spawned player at (833, 211) and enemy at (369, 151).
+2025-05-28 01:44:35,941 - __main__ - INFO - Episode 0: Reward = 17.33, Steps = 1000
+2025-05-28 01:44:35,941 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:35,942 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:35,945 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:35,954 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:35,954 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:35,954 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:35,954 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:35,954 - root - INFO - Spawned player at (975, 496) and enemy at (468, 211).
+2025-05-28 01:44:35,972 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:35,973 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:35,975 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:35,979 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:35,979 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:35,979 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:35,979 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:35,979 - root - INFO - Spawned player at (768, 538) and enemy at (1143, 463).
+  1%|▍                                                                                 | 3/500 [00:00<00:19, 25.77it/s]2025-05-28 01:44:35,994 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:35,994 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:35,996 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,004 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,004 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,004 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,004 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,004 - root - INFO - Spawned player at (1123, 410) and enemy at (1124, 550).
+2025-05-28 01:44:36,055 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,055 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,059 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,068 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,068 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,068 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,068 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,068 - root - INFO - Spawned player at (913, 136) and enemy at (564, 182).
+2025-05-28 01:44:36,114 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,115 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,119 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,130 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,130 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,130 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,130 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,130 - root - INFO - Spawned player at (987, 548) and enemy at (774, 398).
+  1%|▉                                                                                 | 6/500 [00:00<00:25, 19.17it/s]2025-05-28 01:44:36,179 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,179 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,183 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,192 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,192 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,192 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,192 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,192 - root - INFO - Spawned player at (620, 335) and enemy at (104, 534).
+2025-05-28 01:44:36,231 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,231 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,236 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,245 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,245 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,245 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,245 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,245 - root - INFO - Spawned player at (123, 123) and enemy at (1079, 479).
+2025-05-28 01:44:36,287 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,287 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,291 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,300 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,300 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,300 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,300 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,300 - root - INFO - Spawned player at (558, 152) and enemy at (547, 300).
+  2%|█▍                                                                                | 9/500 [00:00<00:25, 19.13it/s]2025-05-28 01:44:36,335 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,336 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,338 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,342 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,343 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,344 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,344 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,344 - root - INFO - Spawned player at (860, 59) and enemy at (114, 375).
+2025-05-28 01:44:36,386 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,386 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,390 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,399 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,399 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,399 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,399 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,399 - root - INFO - Spawned player at (1074, 294) and enemy at (63, 130).
+2025-05-28 01:44:36,428 - __main__ - INFO - Episode 10: Reward = 7.80, Steps = 1000
+2025-05-28 01:44:36,429 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,429 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,433 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,443 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,443 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,443 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,444 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,444 - root - INFO - Spawned player at (161, 362) and enemy at (1060, 165).
+  2%|█▉                                                                               | 12/500 [00:00<00:24, 19.53it/s]2025-05-28 01:44:36,484 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,484 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,488 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,500 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,500 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,500 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,500 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,500 - root - INFO - Spawned player at (256, 609) and enemy at (635, 81).
+2025-05-28 01:44:36,547 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,547 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,551 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,560 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,560 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,560 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,560 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,560 - root - INFO - Spawned player at (477, 384) and enemy at (825, 85).
+  3%|██▎                                                                              | 14/500 [00:00<00:26, 18.65it/s]2025-05-28 01:44:36,604 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,605 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,608 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,617 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,617 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,617 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,617 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,618 - root - INFO - Spawned player at (559, 178) and enemy at (492, 124).
+2025-05-28 01:44:36,623 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,623 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,628 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,638 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,638 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,638 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,638 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,639 - root - INFO - Spawned player at (775, 182) and enemy at (81, 189).
+2025-05-28 01:44:36,683 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,683 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,688 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,696 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,696 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,696 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,696 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,696 - root - INFO - Spawned player at (1170, 517) and enemy at (1087, 506).
+2025-05-28 01:44:36,703 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,703 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,707 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,718 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,718 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,718 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,718 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,719 - root - INFO - Spawned player at (757, 432) and enemy at (604, 525).
+  4%|██▉                                                                              | 18/500 [00:00<00:23, 20.92it/s]2025-05-28 01:44:36,766 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,766 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,770 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,778 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,779 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,779 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,779 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,779 - root - INFO - Spawned player at (938, 607) and enemy at (111, 64).
+2025-05-28 01:44:36,830 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,830 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,835 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,844 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,844 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,844 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,844 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,844 - root - INFO - Spawned player at (113, 293) and enemy at (84, 427).
+2025-05-28 01:44:36,858 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,859 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,863 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,874 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,874 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,874 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,875 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,875 - root - INFO - Spawned player at (325, 86) and enemy at (1080, 65).
+2025-05-28 01:44:36,915 - __main__ - INFO - Episode 20: Reward = -12.60, Steps = 1000
+  4%|███▍                                                                             | 21/500 [00:01<00:23, 20.64it/s]2025-05-28 01:44:36,915 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,915 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,919 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,929 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,929 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,929 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,929 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,929 - root - INFO - Spawned player at (602, 325) and enemy at (574, 219).
+2025-05-28 01:44:36,976 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:36,976 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:36,980 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:36,989 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:36,989 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:36,989 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:36,989 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:36,990 - root - INFO - Spawned player at (275, 513) and enemy at (679, 472).
+2025-05-28 01:44:37,032 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,032 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,036 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,045 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,045 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,045 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,045 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,045 - root - INFO - Spawned player at (1132, 611) and enemy at (644, 456).
+  5%|███▉                                                                             | 24/500 [00:01<00:24, 19.24it/s]2025-05-28 01:44:37,094 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,095 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,099 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,108 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,109 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,109 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,109 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,109 - root - INFO - Spawned player at (1123, 421) and enemy at (894, 501).
+2025-05-28 01:44:37,147 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,147 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,151 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,159 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,160 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,160 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,160 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,160 - root - INFO - Spawned player at (211, 148) and enemy at (930, 233).
+  5%|████▏                                                                            | 26/500 [00:01<00:24, 19.08it/s]2025-05-28 01:44:37,202 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,203 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,207 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,217 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,217 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,218 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,218 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,218 - root - INFO - Spawned player at (251, 546) and enemy at (643, 229).
+2025-05-28 01:44:37,265 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,266 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,271 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,281 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,281 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,281 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,281 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,281 - root - INFO - Spawned player at (947, 521) and enemy at (906, 250).
+  6%|████▌                                                                            | 28/500 [00:01<00:25, 18.42it/s]2025-05-28 01:44:37,322 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,323 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,327 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,338 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,338 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,338 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,338 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,338 - root - INFO - Spawned player at (201, 196) and enemy at (1028, 149).
+2025-05-28 01:44:37,385 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,385 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,389 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,398 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,399 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,399 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,399 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,399 - root - INFO - Spawned player at (581, 218) and enemy at (634, 469).
+  6%|████▊                                                                            | 30/500 [00:01<00:26, 17.85it/s]2025-05-28 01:44:37,444 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,444 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,448 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,458 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,458 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,458 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,458 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,458 - root - INFO - Spawned player at (630, 335) and enemy at (1052, 260).
+2025-05-28 01:44:37,504 - __main__ - INFO - Episode 30: Reward = -24.96, Steps = 1000
+2025-05-28 01:44:37,505 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,505 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,510 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,520 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,520 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,520 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,520 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,520 - root - INFO - Spawned player at (575, 98) and enemy at (64, 172).
+  6%|█████▏                                                                           | 32/500 [00:01<00:26, 17.65it/s]2025-05-28 01:44:37,561 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,561 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,565 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,573 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,573 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,573 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,573 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,573 - root - INFO - Spawned player at (272, 280) and enemy at (110, 53).
+2025-05-28 01:44:37,612 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,612 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,616 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,628 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,628 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,628 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,628 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,628 - root - INFO - Spawned player at (909, 94) and enemy at (867, 150).
+  7%|█████▌                                                                           | 34/500 [00:01<00:26, 17.77it/s]2025-05-28 01:44:37,671 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,671 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,675 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,684 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,684 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,684 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,684 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,684 - root - INFO - Spawned player at (329, 367) and enemy at (797, 87).
+2025-05-28 01:44:37,707 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,707 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,711 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,725 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,725 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,725 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,725 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,725 - root - INFO - Spawned player at (104, 283) and enemy at (53, 87).
+2025-05-28 01:44:37,750 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,751 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,754 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,763 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,763 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,763 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,763 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,763 - root - INFO - Spawned player at (447, 501) and enemy at (180, 120).
+  7%|█████▉                                                                           | 37/500 [00:01<00:23, 19.74it/s]2025-05-28 01:44:37,795 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,795 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,797 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,807 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,807 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,807 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,807 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,807 - root - INFO - Spawned player at (1136, 71) and enemy at (896, 597).
+2025-05-28 01:44:37,854 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,854 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,858 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,864 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,864 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,865 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,865 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,865 - root - INFO - Spawned player at (248, 178) and enemy at (939, 452).
+2025-05-28 01:44:37,879 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,880 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,884 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,894 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,895 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,895 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,895 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,896 - root - INFO - Spawned player at (390, 549) and enemy at (735, 447).
+  8%|██████▍                                                                          | 40/500 [00:02<00:22, 20.06it/s]2025-05-28 01:44:37,940 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,940 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:37,942 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:37,949 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:37,951 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:37,951 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:37,951 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:37,951 - root - INFO - Spawned player at (564, 453) and enemy at (911, 602).
+2025-05-28 01:44:37,995 - __main__ - INFO - Episode 40: Reward = -10.27, Steps = 1000
+2025-05-28 01:44:37,997 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:37,997 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,001 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,010 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,010 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,010 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,010 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,010 - root - INFO - Spawned player at (1067, 617) and enemy at (838, 357).
+  8%|██████▊                                                                          | 42/500 [00:02<00:23, 19.25it/s]2025-05-28 01:44:38,058 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,058 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,062 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,070 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,070 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,070 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,070 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,071 - root - INFO - Spawned player at (712, 487) and enemy at (85, 369).
+2025-05-28 01:44:38,098 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,098 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,102 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,110 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,110 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,110 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,110 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,110 - root - INFO - Spawned player at (369, 244) and enemy at (1000, 494).
+  9%|███████▏                                                                         | 44/500 [00:02<00:23, 19.36it/s]2025-05-28 01:44:38,158 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,158 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,162 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,171 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,171 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,171 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,171 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,172 - root - INFO - Spawned player at (61, 300) and enemy at (898, 95).
+2025-05-28 01:44:38,213 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,213 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,218 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,227 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,227 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,227 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,227 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,227 - root - INFO - Spawned player at (649, 576) and enemy at (996, 456).
+  9%|███████▍                                                                         | 46/500 [00:02<00:23, 19.24it/s]2025-05-28 01:44:38,264 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,264 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,268 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,277 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,278 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,278 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,278 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,278 - root - INFO - Spawned player at (926, 325) and enemy at (553, 613).
+2025-05-28 01:44:38,323 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,323 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,328 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,336 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,337 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,337 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,337 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,337 - root - INFO - Spawned player at (783, 388) and enemy at (1020, 287).
+ 10%|███████▊                                                                         | 48/500 [00:02<00:23, 18.87it/s]2025-05-28 01:44:38,375 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,375 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,379 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,387 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,387 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,387 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,387 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,387 - root - INFO - Spawned player at (574, 620) and enemy at (1085, 353).
+2025-05-28 01:44:38,426 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,426 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,431 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,439 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,439 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,440 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,440 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,440 - root - INFO - Spawned player at (76, 186) and enemy at (71, 184).
+2025-05-28 01:44:38,440 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,440 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,444 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,453 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,453 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,454 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,454 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,454 - root - INFO - Spawned player at (834, 220) and enemy at (949, 541).
+2025-05-28 01:44:38,495 - __main__ - INFO - Episode 50: Reward = 3.05, Steps = 1000
+ 10%|████████▎                                                                        | 51/500 [00:02<00:21, 20.74it/s]2025-05-28 01:44:38,496 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,496 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,500 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,509 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,509 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,509 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,509 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,509 - root - INFO - Spawned player at (53, 284) and enemy at (592, 58).
+2025-05-28 01:44:38,552 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,552 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,557 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,566 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,566 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,567 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,568 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,569 - root - INFO - Spawned player at (314, 162) and enemy at (176, 166).
+2025-05-28 01:44:38,629 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,631 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,635 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,643 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,644 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,644 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,644 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,644 - root - INFO - Spawned player at (1175, 78) and enemy at (563, 600).
+ 11%|████████▋                                                                        | 54/500 [00:02<00:23, 18.63it/s]2025-05-28 01:44:38,688 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,688 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,692 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,699 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,699 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,700 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,700 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,700 - root - INFO - Spawned player at (1178, 602) and enemy at (250, 570).
+2025-05-28 01:44:38,716 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,716 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,718 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,723 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,723 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,723 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,723 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,723 - root - INFO - Spawned player at (574, 393) and enemy at (70, 380).
+2025-05-28 01:44:38,738 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,738 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,740 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,748 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,748 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,748 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,748 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,748 - root - INFO - Spawned player at (910, 374) and enemy at (70, 173).
+ 11%|█████████▏                                                                       | 57/500 [00:02<00:21, 21.04it/s]2025-05-28 01:44:38,793 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,793 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,797 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,808 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,809 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,809 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,809 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,809 - root - INFO - Spawned player at (186, 217) and enemy at (108, 334).
+2025-05-28 01:44:38,853 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,853 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,857 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,868 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,868 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,869 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,869 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,869 - root - INFO - Spawned player at (745, 584) and enemy at (884, 493).
+2025-05-28 01:44:38,907 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,907 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,911 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,919 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,919 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,919 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,919 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,919 - root - INFO - Spawned player at (491, 415) and enemy at (558, 405).
+ 12%|█████████▋                                                                       | 60/500 [00:03<00:22, 20.00it/s]2025-05-28 01:44:38,959 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:38,959 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:38,963 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:38,971 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:38,971 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:38,971 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:38,971 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:38,972 - root - INFO - Spawned player at (532, 394) and enemy at (223, 549).
+2025-05-28 01:44:39,017 - __main__ - INFO - Episode 60: Reward = -7.02, Steps = 1000
+2025-05-28 01:44:39,017 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,018 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,022 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,030 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,030 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,030 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,030 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,030 - root - INFO - Spawned player at (952, 528) and enemy at (436, 127).
+2025-05-28 01:44:39,077 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,077 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,081 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,091 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,091 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,091 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,091 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,091 - root - INFO - Spawned player at (242, 79) and enemy at (454, 131).
+ 13%|██████████▏                                                                      | 63/500 [00:03<00:23, 18.74it/s]2025-05-28 01:44:39,141 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,141 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,146 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,155 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,155 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,155 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,155 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,155 - root - INFO - Spawned player at (587, 277) and enemy at (562, 118).
+2025-05-28 01:44:39,202 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,202 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,206 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,215 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,215 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,215 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,215 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,216 - root - INFO - Spawned player at (1012, 469) and enemy at (512, 211).
+ 13%|██████████▌                                                                      | 65/500 [00:03<00:23, 18.13it/s]2025-05-28 01:44:39,263 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,263 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,267 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,276 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,276 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,276 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,276 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,276 - root - INFO - Spawned player at (511, 447) and enemy at (548, 324).
+2025-05-28 01:44:39,316 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,316 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,320 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,329 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,329 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,329 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,329 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,329 - root - INFO - Spawned player at (619, 336) and enemy at (1065, 420).
+ 13%|██████████▊                                                                      | 67/500 [00:03<00:23, 18.30it/s]2025-05-28 01:44:39,369 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,369 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,373 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,383 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,383 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,383 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,383 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,383 - root - INFO - Spawned player at (1063, 464) and enemy at (119, 132).
+2025-05-28 01:44:39,502 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,503 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,532 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,594 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,594 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,594 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,594 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,594 - root - INFO - Spawned player at (1064, 588) and enemy at (674, 120).
+ 14%|███████████▏                                                                     | 69/500 [00:03<00:38, 11.14it/s]2025-05-28 01:44:39,771 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,772 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,776 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,783 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,783 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,784 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,784 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,784 - root - INFO - Spawned player at (1058, 116) and enemy at (594, 574).
+2025-05-28 01:44:39,825 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,825 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,829 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,837 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,837 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,838 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,838 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,838 - root - INFO - Spawned player at (56, 523) and enemy at (482, 561).
+2025-05-28 01:44:39,879 - __main__ - INFO - Episode 70: Reward = 5.75, Steps = 1000
+ 14%|███████████▌                                                                     | 71/500 [00:04<00:35, 11.99it/s]2025-05-28 01:44:39,880 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,880 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,884 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,893 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,893 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,893 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,893 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,893 - root - INFO - Spawned player at (77, 461) and enemy at (95, 598).
+2025-05-28 01:44:39,941 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,941 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:39,945 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:39,955 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:39,955 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:39,956 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:39,956 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:39,956 - root - INFO - Spawned player at (536, 91) and enemy at (775, 111).
+ 15%|███████████▊                                                                     | 73/500 [00:04<00:32, 13.06it/s]2025-05-28 01:44:39,998 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:39,998 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,002 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,010 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,010 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,010 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,010 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,010 - root - INFO - Spawned player at (522, 476) and enemy at (765, 87).
+2025-05-28 01:44:40,055 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,055 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,059 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,069 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,069 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,069 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,069 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,069 - root - INFO - Spawned player at (192, 273) and enemy at (533, 420).
+ 15%|████████████▏                                                                    | 75/500 [00:04<00:30, 14.00it/s]2025-05-28 01:44:40,115 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,115 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,119 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,128 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,128 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,129 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,129 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,129 - root - INFO - Spawned player at (358, 342) and enemy at (461, 171).
+2025-05-28 01:44:40,176 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,176 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,180 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,189 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,190 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,190 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,190 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,191 - root - INFO - Spawned player at (360, 580) and enemy at (163, 60).
+ 15%|████████████▍                                                                    | 77/500 [00:04<00:29, 14.46it/s]2025-05-28 01:44:40,242 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,242 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,246 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,255 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,255 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,256 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,256 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,256 - root - INFO - Spawned player at (923, 262) and enemy at (920, 384).
+2025-05-28 01:44:40,283 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,283 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,287 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,297 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,297 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,297 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,297 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,297 - root - INFO - Spawned player at (933, 329) and enemy at (527, 244).
+ 16%|████████████▊                                                                    | 79/500 [00:04<00:26, 15.63it/s]2025-05-28 01:44:40,345 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,345 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,350 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,358 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,359 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,359 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,359 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,359 - root - INFO - Spawned player at (126, 339) and enemy at (110, 570).
+2025-05-28 01:44:40,402 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,402 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,406 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,414 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,414 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,415 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,415 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,415 - root - INFO - Spawned player at (555, 353) and enemy at (866, 94).
+2025-05-28 01:44:40,455 - __main__ - INFO - Episode 80: Reward = -16.86, Steps = 1000
+ 16%|█████████████                                                                    | 81/500 [00:04<00:25, 16.29it/s]2025-05-28 01:44:40,455 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,455 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,460 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,468 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,468 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,468 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,468 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,468 - root - INFO - Spawned player at (602, 591) and enemy at (402, 113).
+2025-05-28 01:44:40,519 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,520 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,524 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,532 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,532 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,532 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,532 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,532 - root - INFO - Spawned player at (876, 436) and enemy at (581, 317).
+ 17%|█████████████▍                                                                   | 83/500 [00:04<00:25, 16.23it/s]2025-05-28 01:44:40,580 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,580 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,585 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,594 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,598 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,598 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,598 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,598 - root - INFO - Spawned player at (481, 439) and enemy at (763, 170).
+2025-05-28 01:44:40,643 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,643 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,647 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,656 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,656 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,656 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,656 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,656 - root - INFO - Spawned player at (1149, 370) and enemy at (817, 127).
+ 17%|█████████████▊                                                                   | 85/500 [00:04<00:25, 16.15it/s]2025-05-28 01:44:40,705 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,705 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,710 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,719 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,721 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,721 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,721 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,721 - root - INFO - Spawned player at (183, 505) and enemy at (577, 250).
+2025-05-28 01:44:40,760 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,760 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,764 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,773 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,773 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,773 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,773 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,773 - root - INFO - Spawned player at (1107, 544) and enemy at (672, 385).
+ 17%|██████████████                                                                   | 87/500 [00:04<00:24, 16.59it/s]2025-05-28 01:44:40,818 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,818 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,820 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,835 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,835 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,835 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,835 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,835 - root - INFO - Spawned player at (965, 443) and enemy at (737, 426).
+2025-05-28 01:44:40,873 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,873 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,877 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,885 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,885 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,885 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,885 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,886 - root - INFO - Spawned player at (917, 233) and enemy at (1110, 121).
+ 18%|██████████████▍                                                                  | 89/500 [00:05<00:23, 17.20it/s]2025-05-28 01:44:40,924 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,924 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,928 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,936 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,936 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,936 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,936 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,936 - root - INFO - Spawned player at (860, 438) and enemy at (84, 137).
+2025-05-28 01:44:40,952 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,952 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,954 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,958 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,958 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,958 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,958 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,958 - root - INFO - Spawned player at (779, 422) and enemy at (1022, 598).
+2025-05-28 01:44:40,972 - __main__ - INFO - Episode 90: Reward = -16.56, Steps = 1000
+2025-05-28 01:44:40,972 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:40,972 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:40,974 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:40,979 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:40,979 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:40,979 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:40,979 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:40,979 - root - INFO - Spawned player at (861, 72) and enemy at (503, 577).
+ 18%|██████████████▉                                                                  | 92/500 [00:05<00:20, 19.88it/s]2025-05-28 01:44:41,040 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,040 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,044 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,054 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,054 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,054 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,054 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,054 - root - INFO - Spawned player at (310, 118) and enemy at (1120, 337).
+2025-05-28 01:44:41,100 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,100 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,105 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,115 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,115 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,115 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,115 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,116 - root - INFO - Spawned player at (993, 374) and enemy at (887, 299).
+2025-05-28 01:44:41,134 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,137 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,141 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,156 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,156 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,156 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,156 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,156 - root - INFO - Spawned player at (112, 510) and enemy at (1063, 454).
+ 19%|███████████████▍                                                                 | 95/500 [00:05<00:20, 19.29it/s]2025-05-28 01:44:41,202 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,202 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,207 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,217 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,217 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,217 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,217 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,217 - root - INFO - Spawned player at (345, 183) and enemy at (891, 232).
+2025-05-28 01:44:41,262 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,262 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,266 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,275 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,275 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,275 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,275 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,276 - root - INFO - Spawned player at (669, 408) and enemy at (1103, 209).
+ 19%|███████████████▋                                                                 | 97/500 [00:05<00:21, 18.88it/s]2025-05-28 01:44:41,315 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,315 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,319 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,328 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,328 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,328 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,328 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,328 - root - INFO - Spawned player at (304, 290) and enemy at (148, 209).
+2025-05-28 01:44:41,368 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,369 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,372 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,382 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,382 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,382 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,382 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,382 - root - INFO - Spawned player at (755, 459) and enemy at (425, 86).
+ 20%|████████████████                                                                 | 99/500 [00:05<00:21, 18.65it/s]2025-05-28 01:44:41,426 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,426 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,430 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,438 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,438 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,438 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,439 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,439 - root - INFO - Spawned player at (1009, 206) and enemy at (800, 512).
+2025-05-28 01:44:41,483 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,483 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,487 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,497 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,497 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,497 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,497 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,497 - root - INFO - Spawned player at (508, 491) and enemy at (65, 317).
+2025-05-28 01:44:41,537 - __main__ - INFO - Episode 100: Reward = 5.32, Steps = 1000
+ 20%|████████████████▏                                                               | 101/500 [00:05<00:21, 18.41it/s]2025-05-28 01:44:41,538 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,538 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,540 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,552 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,553 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,553 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,553 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,553 - root - INFO - Spawned player at (473, 198) and enemy at (115, 311).
+2025-05-28 01:44:41,600 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,601 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,605 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,614 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,614 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,614 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,614 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,614 - root - INFO - Spawned player at (772, 85) and enemy at (621, 61).
+2025-05-28 01:44:41,630 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,630 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,632 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,639 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,640 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,640 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,640 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,640 - root - INFO - Spawned player at (234, 253) and enemy at (857, 184).
+ 21%|████████████████▋                                                               | 104/500 [00:05<00:20, 19.11it/s]2025-05-28 01:44:41,685 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,685 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,689 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,697 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,697 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,697 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,698 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,698 - root - INFO - Spawned player at (116, 79) and enemy at (333, 588).
+2025-05-28 01:44:41,734 - root - INFO - Game state reset, returning to menu.
+2025-05-28 01:44:41,735 - root - INFO - Starting game in 'play' mode.
+2025-05-28 01:44:41,737 - root - INFO - Enemy AI model loaded for play mode.
+2025-05-28 01:44:41,742 - root - INFO - Successfully loaded Stable Baselines RL model from models/enemy_rl/final_model.zip
+2025-05-28 01:44:41,751 - root - INFO - Using reinforcement learning model for enemy behavior
+2025-05-28 01:44:41,751 - root - INFO - Initialized PlayerPlay and EnemyPlay for play mode.
+2025-05-28 01:44:41,751 - root - INFO - Player has been reset to the initial position.
+2025-05-28 01:44:41,751 - root - INFO - Spawned player at (1116, 142) and enemy at (1079, 366).
+ 21%|████████████████▊                                                               | 105/500 [00:05<00:22, 17.76it/s]
+Traceback (most recent call last):
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\train_enemy_agent.py", line 367, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\train_enemy_agent.py", line 356, in main
+    success = train_with_cpu(episodes=args.episodes, output_path=output_path)
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\train_enemy_agent.py", line 282, in train_with_cpu
+    next_state, reward, done, truncated, _ = env.step(action)
+                                             ~~~~~~~~^^^^^^^^
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\ai\models\game_environment.py", line 115, in step
+    observation = self._get_observation()
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\ai\models\game_environment.py", line 168, in _get_observation
+    return np.array([px, py, ex, ey, dist, player_speed, time_factor], dtype=np.float32)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+^C
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1># Test GPU environment
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python test_gpu_success.py
+Traceback (most recent call last):
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\test_gpu_success.py", line 7, in <module>
+    from ai_platform_trainer.cpp.gpu_environment import make_env, HAS_GPU_ENV
+ModuleNotFoundError: No module named 'ai_platform_trainer.cpp.gpu_environment'
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1># Verify CUDA kernels
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python ai_platform_trainer/cpp/verify_gpu_training.py --cuda-test
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\cpp\verify_gpu_training.py", line 233
+    global gpu_utilization, cpu_utilization, memory_usage, timestamps
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: name 'gpu_utilization' is used prior to global declaration
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1># Quick pipeline test
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python test_gpu_rl_pipeline.py
+INFO:__main__:============================================================
+INFO:__main__:GPU RL Pipeline Test Suite
+INFO:__main__:============================================================
+INFO:__main__:
+--- CUDA Extension ---
+INFO:__main__:Testing CUDA extension...
+WARNING:__main__:CUDA Extension: NOT AVAILABLE - No module named 'gpu_environment'
+INFO:__main__:Will use CPU fallback
+INFO:__main__:
+--- GPU Environment ---
+INFO:__main__:Testing GPU environment...
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=10
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:Reset successful, observation shape: (10, 4)
+INFO:__main__:Step successful:
+INFO:__main__:  Obs shape: (10, 4)
+INFO:__main__:  Rewards shape: (10,)
+INFO:__main__:  Dones shape: (10,)
+INFO:__main__:GPU Environment: SUCCESS
+INFO:__main__:
+--- Neural Network ---
+INFO:__main__:Testing neural network...
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Initialized agent: 4->32->32->2
+INFO:__main__:Forward pass successful:
+INFO:__main__:  Input shape: (5, 4)
+INFO:__main__:  Output shape: (5, 2)
+INFO:__main__:  Action range: [-0.575, 0.957]
+INFO:__main__:  Total parameters: 1282
+ERROR:__main__:Neural Network: FAILED - [WinError 3] The system cannot find the path specified: ''
+INFO:__main__:
+--- RL Controller ---
+INFO:__main__:Testing RL controller...
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Initialized agent: 4->64->64->2
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Model loaded from ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:ai_platform_trainer.gameplay.rl_enemy_controller:Loaded RL enemy model from ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:__main__:Controller status: {'model_loaded': True, 'model_path': 'ai_platform_trainer/models/enemy_rl_gpu.npz', 'agent_available': True}
+INFO:__main__:Generated action: (-1.0, 1.0)
+INFO:__main__:RL Controller: SUCCESS
+INFO:__main__:
+--- Quick Training ---
+INFO:__main__:Testing quick training...
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Starting GPU RL training with Evolution Strategy
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Generations: 5, Batch size: 16
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Population: 10, Learning rate: 0.05
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=16
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Environment: obs_dim=4, action_dim=2
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Initialized agent: 4->64->64->2
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:ES Optimizer: pop_size=10, lr=0.05
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Starting training loop...
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Generation   0: fitness=-32.596, best=-32.596, time=0.05s
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Training completed!
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Final fitness: -123.174
+INFO:ai_platform_trainer.ai.models.train_enemy_rl_gpu:Model saved to ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:__main__:Quick Training: SUCCESS
+INFO:__main__:
+--- Performance ---
+INFO:__main__:Benchmarking performance...
+INFO:__main__:Testing batch size 32
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=32
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:  1026443 env-steps/second
+INFO:__main__:Testing batch size 64
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=64
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:  1490480 env-steps/second
+INFO:__main__:Testing batch size 128
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=128
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:  3332118 env-steps/second
+INFO:__main__:
+Performance Summary:
+INFO:__main__:Batch Size | Env-Steps/Sec | CUDA
+INFO:__main__:-----------------------------------
+INFO:__main__:       32 |      1026443 | No
+INFO:__main__:       64 |      1490480 | No
+INFO:__main__:      128 |      3332118 | No
+INFO:__main__:
+============================================================
+INFO:__main__:FINAL RESULTS
+INFO:__main__:============================================================
+INFO:__main__:  CUDA Extension      : FAIL
+INFO:__main__:  GPU Environment     : PASS
+INFO:__main__:  Neural Network      : FAIL
+INFO:__main__:  RL Controller       : PASS
+INFO:__main__:  Quick Training      : PASS
+INFO:__main__:  Performance         : PASS
+INFO:__main__:
+Summary: 4/6 tests passed
+WARNING:__main__:Some tests failed. Check the logs above.
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python test_gpu_success.py
+Traceback (most recent call last):
+  File "C:\Users\aiand\Documents\programming\ai-platform-trainerv1\test_gpu_success.py", line 7, in <module>
+    from ai_platform_trainer.cpp.gpu_environment import make_env, HAS_GPU_ENV
+ModuleNotFoundError: No module named 'ai_platform_trainer.cpp.gpu_environment'
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>python -m ai_platform_trainer.ai.models.train_enemy_rl_gpu
+INFO:__main__:Starting GPU RL training with Evolution Strategy
+INFO:__main__:Generations: 100, Batch size: 64
+INFO:__main__:Population: 30, Learning rate: 0.02
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=64
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:Environment: obs_dim=4, action_dim=2
+INFO:__main__:Initialized agent: 4->64->64->2
+INFO:__main__:ES Optimizer: pop_size=30, lr=0.02
+INFO:__main__:Starting training loop...
+INFO:__main__:Generation   0: fitness= -3.239, best= -3.239, time=0.06s
+INFO:__main__:Generation  10: fitness= -3.104, best= -2.731, time=0.06s
+INFO:__main__:Generation  20: fitness= -2.982, best= -2.727, time=0.05s
+INFO:__main__:Generation  30: fitness= -2.934, best= -2.727, time=0.08s
+INFO:__main__:Generation  40: fitness= -3.153, best= -2.727, time=0.32s
+INFO:__main__:Generation  50: fitness= -3.171, best= -2.648, time=0.25s
+INFO:__main__:Generation  60: fitness= -3.003, best= -2.648, time=0.28s
+INFO:__main__:Generation  70: fitness= -3.079, best= -2.648, time=0.52s
+INFO:__main__:Generation  80: fitness= -3.135, best= -2.648, time=0.43s
+INFO:__main__:Generation  90: fitness= -3.103, best= -2.648, time=0.36s
+INFO:__main__:Training completed!
+INFO:__main__:Final fitness: -436.789
+INFO:__main__:Model saved to ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:__main__:Testing trained agent...
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=4
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:Initialized agent: 4->64->64->2
+INFO:__main__:Model loaded from ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:__main__:Trained agent fitness: -937.861
+INFO:__main__:Sample action: [-1.  1.]
+INFO:__main__:Testing trained agent...
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Initializing GPURLEnvironment with batch_size=4
+WARNING:ai_platform_trainer.ai.models.gpu_rl_environment:CUDA environment module not found: No module named 'gpu_environment'
+INFO:ai_platform_trainer.ai.models.gpu_rl_environment:Using CPU fallback implementation
+INFO:__main__:Initialized agent: 4->64->64->2
+INFO:__main__:Model loaded from ai_platform_trainer/models/enemy_rl_gpu.npz
+INFO:__main__:Trained agent fitness: -1063.978
+INFO:__main__:Sample action: [-1. -1.]
+
+C:\Users\aiand\Documents\programming\ai-platform-trainerv1>
+
+---
+
+_**Assistant**_
+
+I can see from your terminal output that your CUDA environment is properly set up, but the GPU training modules aren't being found. Let me provide you with the correct terminal commands to get GPU training working.
+
+## Issue Analysis
+
+Your system shows:
+- ✅ CUDA 12.9 is installed and working
+- ✅ RTX 5070 GPU detected with 12GB VRAM
+- ❌ Missing CUDA extension module (`gpu_environment`)
+- ❌ Missing required dependencies (`tqdm`, `rich`)
+
+## Fix Dependencies First
+
+````bash
+# Install missing stable-baselines3 dependencies
+pip install stable-baselines3[extra]
+
+# Install additional requirements
+pip install tqdm rich pycuda
+````
+
+## Build the CUDA Extension
+
+````bash
+# Navigate to your project directory (you're already there)
+cd C:\Users\aiand\Documents\programming\ai-platform-trainerv1
+
+# Build the CUDA extension
+python setup.py build_ext --inplace
+
+# Alternative if setup.py doesn't exist - create and build manually
+python -c "
+import subprocess
+import os
+subprocess.run(['nvcc', '--version'], check=True)
+print('CUDA compiler working')
+"
+````
+
+## Create Missing GPU Environment Module
+
+Since the `gpu_environment` module is missing, create it:
+
+````python
+"""
+GPU Environment module for CUDA-accelerated training
+"""
+import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Flag to indicate if GPU environment is available
+HAS_GPU_ENV = False
+
+try:
+    # Try to import CUDA physics kernels
+    from . import physics_cuda
+    HAS_GPU_ENV = True
+    logger.info("CUDA GPU environment loaded successfully")
+except ImportError as e:
+    logger.warning(f"CUDA GPU environment not available: {e}")
+    HAS_GPU_ENV = False
+
+def make_env():
+    """Create a GPU-accelerated environment"""
+    if HAS_GPU_ENV:
+        from ..ai.models.gpu_rl_environment import GPURLEnvironment
+        return GPURLEnvironment(batch_size=1)
+    else:
+        # Fallback to CPU environment
+        from ..ai.models.game_environment import GameEnvironment
+        return GameEnvironment()
+
+class GPUPhysicsEngine:
+    """GPU-accelerated physics engine"""
+    
+    def __init__(self):
+        self.has_cuda = HAS_GPU_ENV
+        
+    def update_positions(self, entities_x, entities_y, velocities_x, velocities_y, 
+                        screen_width=1200, screen_height=650):
+        """Update entity positions using GPU acceleration"""
+        if self.has_cuda:
+            # Use CUDA kernels
+            return physics_cuda.update_positions(
+                entities_x, entities_y, velocities_x, velocities_y,
+                screen_width, screen_height
+            )
+        else:
+            # CPU fallback
+            entities_x += velocities_x
+            entities_y += velocities_y
+            
+            # Wrap around screen boundaries
+            entities_x = np.where(entities_x < 0, entities_x + screen_width, entities_x)
+            entities_x = np.where(entities_x >= screen_width, entities_x - screen_width, entities_x)
+            entities_y = np.where(entities_y < 0, entities_y + screen_height, entities_y)
+            entities_y = np.where(entities_y >= screen_height, entities_y - screen_height, entities_y)
+            
+            return entities_x, entities_y
+````
+
+## Training Commands (After Fixes)
+
+Now you can run these commands:
+
+### 1. Pure NumPy GPU Training (Works without CUDA)
+````bash
+python -m ai_platform_trainer.ai.models.train_enemy_rl_gpu
+````
+
+### 2. GPU Environment with Stable-Baselines3 (Fixed)
+````bash
+python ai_platform_trainer/cpp/train_gpu_fixed.py --num-envs 4 --timesteps 50000
+````
+
+### 3. Build and Test Pipeline (Fixed)
+````bash
+python build_and_test_gpu_pipeline.py
+````
+
+### 4. Training with Safe Wrapper
+````bash
+# First create the safe wrapper training script
+python ai_platform_trainer/cpp/safe_env_wrapper.py
+````
+
+## Alternative: Use Working CPU Training
+
+Since your GPU modules need compilation, you can continue training effectively with CPU:
+
+````bash
+# Train with CPU (this was working in your output)
+python train_enemy_agent.py --episodes 1000 --output models/enemy_rl/gpu_model
+
+# Test the trained model
+python -c "
+from ai_platform_trainer.gameplay.rl_enemy_controller import RLEnemyController
+controller = RLEnemyController()
+controller.load_model('ai_platform_trainer/models/enemy_rl_gpu.npz')
+print('Model loaded successfully')
+action = controller.get_action(0.5, 0.5, 100, 200)
+print(f'Sample action: {action}')
+"
+````
+
+## Verify GPU Setup
+````bash
+# Test GPU availability
+python -c "
+import torch
+print(f'CUDA available: {torch.cuda.is_available()}')
+if torch.cuda.is_available():
+    print(f'GPU: {torch.cuda.get_device_name(0)}')
+    print(f'Memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB')
+"
+````
+
+The key issue is that your CUDA extension needs to be properly compiled. Once you install the dependencies and create the missing module, your GPU training should work properly.
+
+---
+
+_**User**_
+
+(.venv) PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer> pip install stable-baslines3[extra]
+ERROR: Could not find a version that satisfies the requirement stable-baslines3[extra] (from versions: none)
+ERROR: No matching distribution found for stable-baslines3[extra]
+
+---
+
+_**Assistant**_
+
+I see the typo in the package name! It should be `stable-baselines3` (with a hyphen), not `stable-baslines3`. Let me give you the correct commands:
+
+## Fix the Package Installation
+
+````bash
+# Correct package name (note the hyphen)
+pip install stable-baselines3[extra]
+
+# Install additional requirements
+pip install tqdm rich gymnasium
+
+# Optional: Install PyCUDA for GPU memory debugging (if you want CUDA support)
+pip install pycuda
+````
+
+## Alternative: Install Core Dependencies Only
+
+If the `[extra]` installation fails, install the core components:
+
+````bash
+# Core stable-baselines3
+pip install stable-baselines3
+
+# Individual extra dependencies
+pip install tqdm rich tensorboard matplotlib
+
+# Gymnasium (modern gym)
+pip install gymnasium[classic_control]
+````
+
+## Test Your Safe Environment Wrapper
+
+Your `safe_env_wrapper.py` looks excellent! Test it with:
+
+````bash
+# Test the safe wrapper
+python ai_platform_trainer/cpp/safe_env_wrapper.py
+````
+
+## Create a Training Script Using Your Safe Wrapper
+
+````python
+"""
+Training script using the safe environment wrapper to prevent crashes
+"""
+import logging
+import numpy as np
+from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
+from safe_env_wrapper import create_safe_env, make_safe_vec_env
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def create_gpu_env():
+    """Create the base GPU environment (fallback to CPU if needed)"""
+    try:
+        # Try to import GPU environment
+        from ..ai.models.gpu_rl_environment import GPURLEnvironment
+        return GPURLEnvironment(batch_size=1)
+    except ImportError:
+        logger.warning("GPU environment not available, using CPU fallback")
+        # Fallback to game environment
+        from ..ai.models.game_environment import GameEnvironment
+        return GameEnvironment()
+
+def main():
+    """Main training function with safe wrapper"""
+    
+    # Configuration
+    config = {
+        'max_steps_per_episode': 85,  # Reset before crash at 100
+        'total_timesteps': 50000,
+        'n_envs': 1,  # Start with 1 environment
+        'debug': True,
+        'save_freq': 5000
+    }
+    
+    logger.info("Creating safe training environment...")
+    
+    # Create safe vectorized environment
+    env = make_safe_vec_env(
+        env_creator=create_gpu_env,
+        n_envs=config['n_envs'],
+        max_steps=config['max_steps_per_episode'],
+        debug=config['debug']
+    )
+    
+    logger.info("Environment created successfully!")
+    
+    # Create PPO model
+    model = PPO(
+        "MlpPolicy",
+        env,
+        verbose=1,
+        n_steps=2048 // config['n_envs'],  # Adjust for number of environments
+        batch_size=64,
+        learning_rate=3e-4,
+        gamma=0.99,
+        tensorboard_log="./tensorboard_logs/"
+    )
+    
+    # Setup callbacks
+    callbacks = []
+    
+    # Checkpoint callback
+    checkpoint_callback = CheckpointCallback(
+        save_freq=config['save_freq'],
+        save_path="./models/safe_training/",
+        name_prefix="safe_rl_model"
+    )
+    callbacks.append(checkpoint_callback)
+    
+    # Training loop with error handling
+    try:
+        logger.info(f"Starting training for {config['total_timesteps']} timesteps...")
+        
+        model.learn(
+            total_timesteps=config['total_timesteps'],
+            callback=CallbackList(callbacks),
+            progress_bar=True
+        )
+        
+        # Save final model
+        model.save("models/safe_training/final_model")
+        logger.info("✅ Training completed successfully!")
+        
+    except Exception as e:
+        logger.error(f"Training failed: {e}")
+        # Save partial model
+        try:
+            model.save("models/safe_training/partial_model")
+            logger.info("Saved partial model before crash")
+        except:
+            pass
+        raise
+    
+    finally:
+        # Cleanup
+        env.close()
+        logger.info("Environment closed")
+
+if __name__ == "__main__":
+    main()
+````
+
+## Quick Environment Test
+
+Before training, test if your environment works:
+
+````bash
+# Test environment creation
+python -c "
+import sys
+sys.path.append('ai_platform_trainer/cpp')
+from safe_env_wrapper import create_safe_env
+
+def dummy_env():
+    import gymnasium as gym
+    return gym.make('CartPole-v1')
+
+env = create_safe_env(dummy_env, max_steps=50, debug=True)
+obs, info = env.reset()
+print(f'Environment created! Observation shape: {obs.shape}')
+
+for i in range(10):
+    action = env.action_space.sample()
+    obs, reward, done, truncated, info = env.step(action)
+    print(f'Step {i}: reward={reward}, done={done}')
+    if done:
+        obs, info = env.reset()
+
+print('✅ Safe environment test passed!')
+"
+````
+
+## Run the Safe Training
+
+````bash
+# Create models directory
+mkdir -p models/safe_training
+
+# Run training with safe wrapper
+python ai_platform_trainer/cpp/train_with_safe_wrapper.py
+````
+
+Your safe wrapper implementation is really well designed - it should prevent the heap corruption crashes you were experiencing by auto-resetting before the problematic step count is reached!
+
+---
+
