@@ -2,7 +2,7 @@
     "display": {
         "width": 800,
         "height": 600,
-        "fullscreen": false,
+        "fullscreen": true,
         "window_title": "Pixel Pursuit",
         "frame_rate": 60,
         "screen_size": [800, 600]
@@ -30,5 +30,12 @@
     },
     "paths": {
         "data_path": "data/raw/training_data.json"
+    },
+    "launcher": {
+        "mode": "DI",
+        "options": {
+            "comment": "Valid values for launcher_mode: STANDARD, DI, STATE_MACHINE",
+            "default": "DI"
+        }
     }
 }
