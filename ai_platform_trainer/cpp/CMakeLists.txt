@@ -56,21 +56,22 @@ include_directories(
     ${Python_INCLUDE_DIRS}
 )
 
-# Source files
+# Common source files
 set(SOURCES
     src/entity.cpp
     src/environment.cpp
-    src/physics_cpu.cpp
     src/reward.cpp
 )
 
-# Conditionally add CUDA-specific files
+# Conditionally add physics implementation
 if(CUDA_ENABLED)
-    set(CUDA_SOURCES
-        src/physics.cu  # Using the original file name
-    )
-    list(APPEND SOURCES ${CUDA_SOURCES})
+    list(APPEND SOURCES src/physics.cu)
     add_definitions(-DWITH_CUDA)
+    add_definitions(-DUSE_CUDA)
+    message(STATUS "Building with CUDA physics implementation")
+else()
+    list(APPEND SOURCES src/physics_cpu.cpp)
+    message(STATUS "Building with CPU-only physics implementation")
 endif()
 
 # Pybind11 module

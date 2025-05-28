@@ -6,6 +6,14 @@ __global__ void dummyKernel(float* data) {
     if (idx == 0) data[0] = 3.1415f;
 }
 
+// Simple array addition kernel for Python integration testing
+__global__ void add_arrays(float* a, float* b, float* c, int n) {
+    int idx = threadIdx.x + blockIdx.x * blockDim.x;
+    if (idx < n) {
+        c[idx] = a[idx] + b[idx];
+    }
+}
+
 int main() {
     // 1. Device count
     int deviceCount = 0;

@@ -265,7 +265,128 @@ do the same again with the updated tree
 
 _**Assistant**_
 
+Here's the updated file tree with the new `verify_cuda_usage.py` file included:
 
+```
+ai-platform-trainerv1/
+├── CMakeLists.txt
+├── README.md
+├── .gitignore
+├── verify_cuda_usage.py
+│
+├── src/
+│   ├── validate_cuda.cu
+│   ├── main.cpp
+│   ├── trainer/
+│   │   ├── trainer.cpp
+│   │   ├── trainer.h
+│   │   ├── gpu_trainer.cu
+│   │   └── model_loader.cpp
+│   ├── environment/
+│   │   ├── game_environment.cpp
+│   │   ├── game_environment.h
+│   │   └── environment_interface.h
+│   └── utils/
+│       ├── cuda_utils.cu
+│       ├── cuda_utils.h
+│       ├── logger.cpp
+│       └── logger.h
+│
+├── include/
+│   ├── trainer/
+│   │   ├── trainer.h
+│   │   └── gpu_trainer.h
+│   ├── environment/
+│   │   └── game_environment.h
+│   └── utils/
+│       ├── cuda_utils.h
+│       └── common.h
+│
+├── tests/
+│   ├── CMakeLists.txt
+│   ├── test_main.cpp
+│   ├── test_trainer.cpp
+│   ├── test_environment.cpp
+│   └── test_cuda_utils.cpp
+│
+├── models/
+│   ├── architectures/
+│   │   ├── cnn_model.py
+│   │   ├── rnn_model.py
+│   │   └── transformer_model.py
+│   └── configs/
+│       ├── model_config.json
+│       └── hyperparameters.yaml
+│
+├── config/
+│   ├── training_config.yaml
+│   ├── environment_config.json
+│   └── cuda_config.json
+│
+├── scripts/
+│   ├── build.bat
+│   ├── run_training.py
+│   └── setup_environment.py
+│
+├── examples/
+│   ├── basic_training.cpp
+│   ├── cuda_example.cu
+│   └── environment_demo.cpp
+│
+└── docs/
+    ├── getting_started.md
+    ├── cuda_setup.md
+    └── api_reference.md
+```
+
+The key addition is `verify_cuda_usage.py` at the root level, which serves as a comprehensive CUDA verification script that checks for GPU availability, NVCC compiler, builds your CUDA validation executable, and tests it.
+
+---
+
+_**User**_
+
+(.venv) PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1> cd c:/Users/aiand/Documents/programming/ai-platform-trainerv1/ai_platform_trainer/cpp/build && rm -rf * && cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+Remove-Item: A parameter cannot be found that matches parameter name 'rf'.
+(.venv) PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\cpp\build> cd c:/Users/aiand/Documents/programming/ai-platform-trainerv1/ai_platform_trainer/cpp/build && rm -rf * && cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+Remove-Item: A parameter cannot be found that matches parameter name 'rf'.
+(.venv) PS C:\Users\aiand\Documents\programming\ai-platform-trainerv1\ai_platform_trainer\cpp\build> 
+
+---
+
+_**Assistant**_
+
+The issue is that you're using Unix/Linux commands in PowerShell. In PowerShell, you need to use different commands. Here's the correct PowerShell syntax:
+
+```powershell
+cd c:/Users/aiand/Documents/programming/ai-platform-trainerv1/ai_platform_trainer/cpp/build && Remove-Item -Recurse -Force * && cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+```
+
+Or you can break it down into separate commands:
+
+```powershell
+cd c:/Users/aiand/Documents/programming/ai-platform-trainerv1/ai_platform_trainer/cpp/build
+Remove-Item -Recurse -Force *
+cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+```
+
+Alternatively, if you want to use Unix-style commands, you can:
+
+1. **Use Git Bash** instead of PowerShell (your original command would work there)
+
+2. **Use WSL** (Windows Subsystem for Linux)
+
+3. **Use the `-Force` parameter** with PowerShell aliases:
+```powershell
+cd c:/Users/aiand/Documents/programming/ai-platform-trainerv1/ai_platform_trainer/cpp/build
+rm * -Recurse -Force
+cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+```
+
+The key differences:
+- PowerShell: `Remove-Item -Recurse -Force` or `rm -Recurse -Force`
+- Unix/Linux: `rm -rf`
+
+Try the first corrected PowerShell command above, and it should work properly.
 
 ---
 

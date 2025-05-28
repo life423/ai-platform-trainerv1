@@ -36,7 +36,10 @@ Environment::Environment(const EnvironmentConfig& config)
     , missile_avoidance_count_(0)
 {
     // Initialize physics engine
-    physics_engine_ = std::make_unique<PhysicsEngine>(config_.screen_width, config_.screen_height);
+    physics_engine_ = std::make_unique<PhysicsEngine>(
+        static_cast<float>(config_.screen_width), 
+        static_cast<float>(config_.screen_height)
+    );
     
     // Initialize random number generator
     unsigned int seed = std::random_device{}();
@@ -419,10 +422,6 @@ std::vector<float> Environment::get_observation() const {
     return observation;
 }
 
-float Environment::calculate_reward() {
-    // This is a stub - the actual implementation is in reward.cpp
-    return 0.0f;
-}
 
 void Environment::spawn_enemy() {
     // Initialize enemy at a random position

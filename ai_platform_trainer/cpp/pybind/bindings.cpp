@@ -13,9 +13,9 @@ namespace py = pybind11;
 using namespace gpu_env;
 
 // Wrapper class for Python with helpful convenience methods
-class PyEnvironment {
+class PythonEnvironmentWrapper {
 public:
-    PyEnvironment(const EnvironmentConfig& config = EnvironmentConfig())
+    PythonEnvironmentWrapper(const EnvironmentConfig& config = EnvironmentConfig())
         : env_(std::make_unique<Environment>(config)) {}
 
     // Reset the environment and return the initial observation
@@ -136,7 +136,7 @@ private:
     
     // Helper methods for numpy conversions
     template<typename T>
-    py::array_t<T> vector_to_numpy(const std::vector<T>& vec) {
+    py::array_t<T> vector_to_numpy(const std::vector<T>& vec) const {
         auto result = py::array_t<T>(vec.size());
         auto buf = result.mutable_data();
         std::copy(vec.begin(), vec.end(), buf);
@@ -144,14 +144,14 @@ private:
     }
     
     template<typename T>
-    std::vector<T> numpy_to_vector(py::array_t<T> array) {
+    std::vector<T> numpy_to_vector(py::array_t<T> array) const {
         auto buf = array.request();
         T* ptr = static_cast<T*>(buf.ptr);
         return std::vector<T>(ptr, ptr + buf.size);
     }
     
     template<typename T>
-    py::tuple vector_to_tuple(const std::vector<T>& vec) {
+    py::tuple vector_to_tuple(const std::vector<T>& vec) const {
         py::tuple result(vec.size());
         for (size_t i = 0; i < vec.size(); i++) {
             PyTuple_SET_ITEM(result.ptr(), i, py::int_(vec[i]).release().ptr());
@@ -185,17 +185,17 @@ PYBIND11_MODULE(gpu_environment, m) {
         .def_readwrite("evasion_strength", &EnvironmentConfig::evasion_strength);
 
     // Bind the Python environment wrapper
-    py::class_<PyEnvironment>(m, "Environment")
+    py::class_<PythonEnvironmentWrapper>(m, "Environment")
         .def(py::init<const EnvironmentConfig&>(), py::arg("config") = EnvironmentConfig())
-        .def("reset", &PyEnvironment::reset, py::arg("seed") = 0)
-        .def("step", &PyEnvironment::step)
-        .def("get_observation_shape", &PyEnvironment::get_observation_shape)
-        .def("get_action_shape", &PyEnvironment::get_action_shape)
-        .def("get_config", &PyEnvironment::get_config)
-        .def("get_debug_data", &PyEnvironment::get_debug_data)
-        .def("batch_reset", &PyEnvironment::batch_reset, 
+        .def("reset", &PythonEnvironmentWrapper::reset, py::arg("seed") = 0)
+        .def("step", &PythonEnvironmentWrapper::step)
+        .def("get_observation_shape", &PythonEnvironmentWrapper::get_observation_shape)
+        .def("get_action_shape", &PythonEnvironmentWrapper::get_action_shape)
+        .def("get_config", &PythonEnvironmentWrapper::get_config)
+        .def("get_debug_data", &PythonEnvironmentWrapper::get_debug_data)
+        .def("batch_reset", &PythonEnvironmentWrapper::batch_reset, 
              py::arg("batch_size"), py::arg("seeds") = py::array_t<unsigned int>())
-        .def("batch_step", &PyEnvironment::batch_step);
+        .def("batch_step", &PythonEnvironmentWrapper::batch_step);
 
     // Custom convenience methods for creating gym-compatible environments
     m.def("make_gym_env", []() {
@@ -209,4 +209,32 @@ PYBIND11_MODULE(gpu_environment, m) {
         // to create a vectorized environment
         return py::none();
     }, py::arg("num_envs") = 4, py::arg("config") = EnvironmentConfig());
+    
+    // Simple CUDA array addition test for Python integration verification
+    m.def("test_cuda_add", [](py::array_t<float> a, py::array_t<float> b) -> py::array_t<float> {
+        auto buf_a = a.request();
+        auto buf_b = b.request();
+        
+        if (buf_a.size != buf_b.size) {
+            throw std::runtime_error("Arrays must have the same size");
+        }
+        
+        int n = static_cast<int>(buf_a.size);
+        
+        // Allocate result array
+        auto result = py::array_t<float>(n);
+        auto buf_result = result.request();
+        
+        // GPU computation would go here
+        // For now, just do CPU addition to verify binding works
+        float* ptr_a = static_cast<float*>(buf_a.ptr);
+        float* ptr_b = static_cast<float*>(buf_b.ptr);
+        float* ptr_result = static_cast<float*>(buf_result.ptr);
+        
+        for (int i = 0; i < n; i++) {
+            ptr_result[i] = ptr_a[i] + ptr_b[i];
+        }
+        
+        return result;
+    }, "Simple array addition test (CPU for now, GPU later)");
 }
